@@ -16,14 +16,8 @@
     "type": "git",
     "url": "git+https://github.com/eXamadeus/opencode-orca.git"
   },
-  "keywords": [
-    "opencode",
-    "plugin",
-    "agents",
-    "orchestration",
-    "orca"
-  ],
-  "author": "eXamadeus",
+  "keywords": ["opencode", "plugin", "agents", "orchestration", "orca"],
+  "author": "Julian Coy <julian@juliancoy.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/eXamadeus/opencode-orca/issues"
