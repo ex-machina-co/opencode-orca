@@ -9,11 +9,13 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
+    "lint:staged": "biome check --staged --fix --no-errors-on-unmatched",
     "format": "biome format . --write",
     "test": "bun test",
     "wt:new": "bash scripts/worktree/new.sh",
     "wt:list": "bash scripts/worktree/list.sh",
-    "wt:rm": "bash scripts/worktree/rm.sh"
+    "wt:rm": "bash scripts/worktree/rm.sh",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -29,6 +31,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/bun": "^1.2.15",
+    "husky": "^9.1.7",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
   },
