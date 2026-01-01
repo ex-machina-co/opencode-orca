@@ -1,0 +1,28 @@
+{
+  "databases": {
+    "kanban": {
+      "name": "Work Items",
+      "database_id": "18f9ab16-3073-8054-baf1-f1cf006f8238",
+      "data_source_id": "18f9ab16-3073-80c1-8ae2-000bf6185235"
+    },
+    "epics": {
+      "name": "Epics",
+      "database_id": "26e9ab16-3073-807f-ab50-f710e3cf0257",
+      "data_source_id": "26e9ab16-3073-80f5-8f97-000b286c8e4c"
+    },
+    "prds": {
+      "name": "PRDs",
+      "database_id": "26e9ab16-3073-8055-87d8-f82ccbc91a17",
+      "data_source_id": "26e9ab16-3073-802a-80e8-000b99a94dd4"
+    }
+  },
+  "templates": {
+    "epic": "26e9ab16-3073-8028-b958-cb45e16ff253",
+    "prd": "26e9ab16-3073-8013-a9f3-d7c5cbaa8495"
+  },
+  "views": {
+    "my_tasks": "18f9ab16-3073-8052-9705-000c1f25306e",
+    "planning": "18f9ab16-3073-80e5-8a99-000c0d63e25d",
+    "unprioritized": "2759ab16-3073-80c8-a39a-000c273af340"
+  }
+}

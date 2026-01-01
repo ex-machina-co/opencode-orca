@@ -1,0 +1,45 @@
+{
+  "name": "opencode-orca",
+  "version": "0.0.1",
+  "description": "OpenCode plugin for Orca + Specialists agent orchestration",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format . --write",
+    "test": "bun test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eXamadeus/opencode-orca.git"
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "agents",
+    "orchestration",
+    "orca"
+  ],
+  "author": "eXamadeus",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eXamadeus/opencode-orca/issues"
+  },
+  "homepage": "https://github.com/eXamadeus/opencode-orca#readme",
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "^1.2.15",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.0.218",
+    "zod": "^3.25.56"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": "^1.0.0"
+  }
+}
