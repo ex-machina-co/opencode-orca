@@ -10,7 +10,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "format": "biome format . --write",
-    "test": "bun test"
+    "test": "bun test",
+    "wt:new": "bash scripts/worktree/new.sh",
+    "wt:list": "bash scripts/worktree/list.sh",
+    "wt:rm": "bash scripts/worktree/rm.sh"
   },
   "repository": {
     "type": "git",

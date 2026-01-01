@@ -1,0 +1,51 @@
+---
+name: git-worktree
+description: Git worktree workflow helpers for parallel development on multiple branches
+---
+
+# Git Worktree Workflow
+
+Worktrees enable working on multiple branches simultaneously without stashing or switching.
+
+## Layout
+
+```
+~/dev/
+├── opencode-orca/              # Main repo (main branch)
+└── opencode-orca-wt/           # Worktree container
+    ├── feat-login/             # Branch: feat/login
+    └── fix-build/              # Branch: fix/build
+```
+
+## Commands
+
+| Command                          | Description                        |
+| -------------------------------- | ---------------------------------- |
+| `bun run wt:new <branch> [base]` | Create worktree (auto bun install) |
+| `bun run wt:list`                | List all worktrees                 |
+| `bun run wt:rm <dirname>`        | Remove worktree and prune          |
+
+## Examples
+
+```bash
+# Create new feature branch from main
+bun run wt:new feat/auth
+
+# Create hotfix from production tag
+bun run wt:new hotfix/urgent v1.2.0
+
+# Attach to existing branch
+bun run wt:new existing-branch
+
+# List worktrees
+bun run wt:list
+
+# Remove worktree (by folder name)
+bun run wt:rm feat-auth
+```
+
+## Notes
+
+- Branch names are sanitized: `feat/login` → `feat-login` folder
+- Dependencies installed automatically on creation
+- Each worktree is independent — no shared node_modules with main repo
