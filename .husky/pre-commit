@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -eu
+
+# Run biome on staged files with auto-fix
+bun biome check --staged --fix --no-errors-on-unmatched
