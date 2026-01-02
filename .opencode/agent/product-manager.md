@@ -8,6 +8,9 @@ permission:
     "git *": deny
     "jq *": allow
     "*": ask
+tools:
+  task: true
+  bash: true
 ---
 
 # Product Manager Agent (GitHub Issues)

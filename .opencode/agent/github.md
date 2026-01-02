@@ -2,6 +2,7 @@
 description: Handles ALL git and gh CLI operations. Isolates GitHub operations from other agents' context windows.
 mode: subagent
 color: "#24292e"
+model: openai/gpt-5.2-none
 permission:
   bash:
     "git *": allow
