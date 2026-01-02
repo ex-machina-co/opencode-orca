@@ -3,7 +3,8 @@
   "agent": {
     "product-manager": {
       "tools": {
-        "task": true
+        "task": true,
+        "bash": true
       }
     }
   }
