@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "opencode-orca",
+      "name": "@ex-machina/opencode-orca",
       "dependencies": {
         "@opencode-ai/plugin": "^1.0.218",
         "comment-json": "^4.5.1",
@@ -100,9 +100,9 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.0.223", "", { "dependencies": { "@opencode-ai/sdk": "1.0.223", "zod": "4.1.8" } }, "sha512-ZQAB7woEWHTpDlZrr+WYwIFI/QrmPblGk1nYLRObtpdMFoP8e2zLwE61j0IL4eBrgWY23+Xc2MrALZnkWL4O2Q=="],
+    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.1.1", "", { "dependencies": { "@opencode-ai/sdk": "1.1.1", "zod": "4.1.8" } }, "sha512-OZGvpDal8YsSo6dnatHfwviSToGZ6mJJyEKZGxUyWDuGCP7VhcoPkoM16ktl7TCVHkDK+TdwY9tKzkzFqQNc5w=="],
 
-    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.0.223", "", {}, "sha512-oKJ6QjsviE+lt6cpGu0lL2kWuoj84ZkWvwieyqHEQ2pJunAJqUzhmIhzep0QyDax1/+UXhBWfrnciNt48ch66w=="],
+    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.1.1", "", {}, "sha512-PfXujMrHGeMnpS8Gd2BXSY+zZajlztcAvcokf06NtAhd0Mbo/hCLXgW0NBCQ+3FX3e/G2PNwz2DqMdtzyIZaCQ=="],
 
     "@rollup/rollup-android-arm-eabi": ["@rollup/rollup-android-arm-eabi@4.54.0", "", { "os": "android", "cpu": "arm" }, "sha512-OywsdRHrFvCdvsewAInDKCNyR3laPA2mc9bRYJ6LBp5IyvF3fvXbbNR0bSzHlZVFtn6E0xw2oZlyjg4rKCVcng=="],
 
@@ -252,6 +252,8 @@
 
     "undici-types": ["undici-types@7.16.0", "", {}, "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw=="],
 
-    "zod": ["zod@4.1.8", "", {}, "sha512-5R1P+WwQqmmMIEACyzSvo4JXHY5WiAFHRMg+zBZKgKS+Q1viRa0C1hmUKtHltoIFKtIdki3pRxkmpP74jnNYHQ=="],
+    "zod": ["zod@4.3.5", "", {}, "sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g=="],
+
+    "@opencode-ai/plugin/zod": ["zod@4.1.8", "", {}, "sha512-5R1P+WwQqmmMIEACyzSvo4JXHY5WiAFHRMg+zBZKgKS+Q1viRa0C1hmUKtHltoIFKtIdki3pRxkmpP74jnNYHQ=="],
   }
 }

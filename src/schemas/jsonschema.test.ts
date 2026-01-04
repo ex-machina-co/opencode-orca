@@ -6,15 +6,15 @@ describe('generateMessageJsonSchema', () => {
     const schema = generateMessageJsonSchema() as Record<string, unknown>
 
     expect(schema).toHaveProperty('$schema')
-    expect(schema).toHaveProperty('anyOf') // discriminatedUnion becomes anyOf
+    expect(schema).toHaveProperty('oneOf') // discriminatedUnion becomes oneOf in Zod 4.x
   })
 
   test('includes all message types', () => {
     const schema = generateMessageJsonSchema() as {
-      anyOf: Array<{ properties: { type: { const: string } } }>
+      oneOf: Array<{ properties: { type: { const: string } } }>
     }
 
-    const types = schema.anyOf.map((opt) => opt.properties?.type?.const).filter(Boolean)
+    const types = schema.oneOf.map((opt) => opt.properties?.type?.const).filter(Boolean)
 
     expect(types).toContain('task')
     expect(types).toContain('result')
@@ -29,11 +29,11 @@ describe('generateMessageJsonSchema', () => {
 
   test('schema includes required base envelope fields', () => {
     const schema = generateMessageJsonSchema() as {
-      anyOf: Array<{ properties: Record<string, unknown>; required: string[] }>
+      oneOf: Array<{ properties: Record<string, unknown>; required: string[] }>
     }
 
     // Check the first message type for base envelope fields
-    const firstType = schema.anyOf[0]
+    const firstType = schema.oneOf[0]
     expect(firstType.properties).toHaveProperty('session_id')
     expect(firstType.properties).toHaveProperty('timestamp')
     expect(firstType.properties).toHaveProperty('type')

@@ -8,7 +8,7 @@ import { error, info, success, warn } from '../utils/console'
 import { type OpenCodeConfig, readJsonc, writeJsonc } from '../utils/jsonc'
 import { getOpenCodeConfigPath, getOrcaConfigPath } from '../utils/paths'
 
-const PLUGIN_NAME = 'opencode-orca'
+const PLUGIN_NAME = '@ex-machina/opencode-orca'
 
 export interface UninstallOptions {
   removeConfig?: boolean

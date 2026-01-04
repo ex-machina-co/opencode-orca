@@ -1,6 +1,6 @@
-# opencode-orca
+# opencode-orca &#x1FACD;
 
-OpenCode plugin for Orca + Specialists agent orchestration.
+OpenCode plugin for safe and effective agent orchestration.
 
 ## Overview
 
@@ -36,11 +36,11 @@ User Inputa
 The easiest way to install is using the CLI:
 
 ```bash
-bunx opencode-orca@latest install
+bunx @ex-machina/opencode-orca@latest install
 ```
 
 This will:
-1. Add `opencode-orca` to the `plugin` array in your `opencode.jsonc`
+1. Add `@ex-machina/opencode-orca` to the `plugin` array in your `opencode.jsonc`
 2. Create a default configuration file at `.opencode/orca.json`
 
 ### Manual Installation
@@ -49,7 +49,7 @@ Alternatively, add to your `opencode.jsonc` manually:
 
 ```json
 {
-  "plugin": ["opencode-orca"]
+  "plugin": ["@ex-machina/opencode-orca"]
 }
 ```
 
@@ -92,7 +92,7 @@ When dispatching to a supervised agent, the plugin returns a `checkpoint` messag
 Installs the Orca plugin into your OpenCode project.
 
 ```bash
-bunx opencode-orca install [options]
+bunx @ex-machina/opencode-orca install [options]
 
 Options:
   --force, -f    Force reinstall even if already installed
@@ -103,7 +103,7 @@ Options:
 Removes the Orca plugin from your OpenCode project.
 
 ```bash
-bunx opencode-orca uninstall [options]
+bunx @ex-machina/opencode-orca uninstall [options]
 
 Options:
   --remove-config, -r    Remove .opencode/orca.json without prompting
@@ -115,7 +115,7 @@ Options:
 Creates only the `.opencode/orca.json` configuration file without modifying `opencode.jsonc`. Useful for customizing the config before installing.
 
 ```bash
-bunx opencode-orca init [options]
+bunx @ex-machina/opencode-orca init [options]
 
 Options:
   --force, -f    Overwrite existing configuration
