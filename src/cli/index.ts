@@ -5,7 +5,7 @@ import { error, info } from './utils/console'
 import { getVersion } from './utils/version'
 
 const HELP = `
-opencode-orca - CLI for installing and configuring the Orca plugin
+@ex-machina/opencode-orca - CLI for installing and configuring the Orca plugin
 
 Usage:
   opencode-orca <command> [options]
@@ -36,7 +36,7 @@ async function main(): Promise<void> {
   }
 
   if (command === '--version' || command === '-v') {
-    info(`opencode-orca v${getVersion()}`)
+    info(`@ex-machina/opencode-orca v${getVersion()}`)
     process.exit(0)
   }
 

@@ -31,7 +31,7 @@ export function getVersion(): string {
       try {
         const content = readFileSync(pkgPath, 'utf-8')
         const pkg = JSON.parse(content)
-        if (pkg.name === 'opencode-orca' && pkg.version) {
+        if (pkg.name === '@ex-machina/opencode-orca' && pkg.version) {
           cachedVersion = pkg.version
           return cachedVersion as string
         }

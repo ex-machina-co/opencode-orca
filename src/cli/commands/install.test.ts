@@ -28,7 +28,7 @@ describe('install command', () => {
 
     const content = readFileSync(join(TEST_DIR, 'opencode.jsonc'), 'utf-8')
     const config = JSON.parse(content)
-    expect(config.plugin).toContain('opencode-orca')
+    expect(config.plugin).toContain('@ex-machina/opencode-orca')
     expect(config.someConfig).toBe('value')
   })
 
@@ -43,20 +43,20 @@ describe('install command', () => {
     const content = readFileSync(join(TEST_DIR, 'opencode.jsonc'), 'utf-8')
     const config = JSON.parse(content)
     expect(config.plugin).toContain('other-plugin')
-    expect(config.plugin).toContain('opencode-orca')
+    expect(config.plugin).toContain('@ex-machina/opencode-orca')
   })
 
   test('does not duplicate plugin if already installed', async () => {
     writeFileSync(
       join(TEST_DIR, 'opencode.jsonc'),
-      JSON.stringify({ plugin: ['opencode-orca'] }, null, 2),
+      JSON.stringify({ plugin: ['@ex-machina/opencode-orca'] }, null, 2),
     )
 
     await install()
 
     const content = readFileSync(join(TEST_DIR, 'opencode.jsonc'), 'utf-8')
     const config = JSON.parse(content)
-    const orcaCount = config.plugin.filter((p: string) => p === 'opencode-orca').length
+    const orcaCount = config.plugin.filter((p: string) => p === '@ex-machina/opencode-orca').length
     expect(orcaCount).toBe(1)
   })
 

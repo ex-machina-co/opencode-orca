@@ -16,7 +16,7 @@
 
 /**
  * Default plugin instance for OpenCode registration
- * Add to your opencode.jsonc: "plugin": ["opencode-orca"]
+ * Add to your opencode.jsonc: "plugin": ["@ex-machina/opencode-orca"]
  */
 export { default } from './plugin'
 
