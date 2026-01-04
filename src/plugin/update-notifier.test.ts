@@ -8,22 +8,22 @@ describe('update-notifier', () => {
     })
 
     test('returns isPinned: false for unpinned entry', () => {
-      expect(parsePluginEntry('opencode-orca')).toEqual({ isPinned: false })
+      expect(parsePluginEntry('@ex-machina/opencode-orca')).toEqual({ isPinned: false })
     })
 
     test('returns isPinned: false for @latest', () => {
-      expect(parsePluginEntry('opencode-orca@latest')).toEqual({ isPinned: false })
+      expect(parsePluginEntry('@ex-machina/opencode-orca@latest')).toEqual({ isPinned: false })
     })
 
     test('returns isPinned: true with version for pinned entry', () => {
-      expect(parsePluginEntry('opencode-orca@0.1.0')).toEqual({
+      expect(parsePluginEntry('@ex-machina/opencode-orca@0.1.0')).toEqual({
         isPinned: true,
         pinnedVersion: '0.1.0',
       })
     })
 
     test('returns isPinned: true for pre-release pinned entry', () => {
-      expect(parsePluginEntry('opencode-orca@0.1.0-alpha.1')).toEqual({
+      expect(parsePluginEntry('@ex-machina/opencode-orca@0.1.0-alpha.1')).toEqual({
         isPinned: true,
         pinnedVersion: '0.1.0-alpha.1',
       })
@@ -31,7 +31,7 @@ describe('update-notifier', () => {
 
     test('handles scoped packages', () => {
       // The @ in scoped packages shouldn't confuse the parser
-      expect(parsePluginEntry('@scope/opencode-orca@0.1.0')).toEqual({
+      expect(parsePluginEntry('@other-scope/some-package@0.1.0')).toEqual({
         isPinned: true,
         pinnedVersion: '0.1.0',
       })

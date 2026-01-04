@@ -8,7 +8,7 @@ import { type OpenCodeConfig, readJsonc, writeJsonc } from '../utils/jsonc'
 import { getOpenCodeConfigPath, getOrcaConfigPath } from '../utils/paths'
 import { init } from './init'
 
-const PLUGIN_NAME = 'opencode-orca'
+const PLUGIN_NAME = '@ex-machina/opencode-orca'
 
 export interface InstallOptions {
   force?: boolean

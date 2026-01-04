@@ -61,7 +61,7 @@ export const createOrcaPlugin = (): Plugin => {
 
         // Find our plugin entry for update notifier
         pluginEntry = config.plugin?.find(
-          (p) => p === 'opencode-orca' || p.startsWith('opencode-orca@'),
+          (p) => p === '@ex-machina/opencode-orca' || p.startsWith('@ex-machina/opencode-orca@'),
         )
       },
 
@@ -136,6 +136,6 @@ export const createOrcaPlugin = (): Plugin => {
  * Default Orca plugin instance
  *
  * This is the standard export for OpenCode plugin registration.
- * Add to your opencode.jsonc: "plugin": ["opencode-orca"]
+ * Add to your opencode.jsonc: "plugin": ["@ex-machina/opencode-orca"]
  */
 export default createOrcaPlugin()

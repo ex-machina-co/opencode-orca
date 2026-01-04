@@ -14,12 +14,12 @@ import type { OrcaSettings } from './config'
 // Constants
 const CACHE_DIR = join(homedir(), '.cache', 'opencode-orca')
 const CACHE_FILE = join(CACHE_DIR, 'update-notifier.json')
-const NPM_REGISTRY_URL = 'https://registry.npmjs.org/opencode-orca'
+const NPM_REGISTRY_URL = 'https://registry.npmjs.org/@ex-machina/opencode-orca'
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000 // 24 hours
 const FETCH_TIMEOUT_MS = 5000
 
 // Package name for detecting plugin entry
-const PACKAGE_NAME = 'opencode-orca'
+const PACKAGE_NAME = '@ex-machina/opencode-orca'
 
 /**
  * Cached update check data
@@ -46,8 +46,8 @@ export interface UpdateNotifierContext {
 /**
  * Parse a plugin entry to determine if it's pinned
  * Examples:
- *   "opencode-orca" -> { isPinned: false }
- *   "opencode-orca@0.1.0" -> { isPinned: true, pinnedVersion: "0.1.0" }
+ *   "@ex-machina/opencode-orca" -> { isPinned: false }
+ *   "@ex-machina/opencode-orca@0.1.0" -> { isPinned: true, pinnedVersion: "0.1.0" }
  */
 export function parsePluginEntry(entry: string | undefined): {
   isPinned: boolean
@@ -232,7 +232,7 @@ export async function runUpdateNotifier(ctx: UpdateNotifierContext): Promise<voi
   if (wasUpgraded && !isPinned) {
     // Scenario A: Unpinned user just got upgraded
     await showToast(client, {
-      title: 'opencode-orca updated',
+      title: '@ex-machina/opencode-orca updated',
       message: `Now running v${currentVersion}`,
       variant: 'success',
       duration: 5000,
@@ -281,7 +281,7 @@ export async function runUpdateNotifier(ctx: UpdateNotifierContext): Promise<voi
     ].join('\n')
 
     await showToast(client, {
-      title: 'opencode-orca update available',
+      title: '@ex-machina/opencode-orca update available',
       message,
       variant: 'info',
       duration: 12000,

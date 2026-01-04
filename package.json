@@ -1,6 +1,6 @@
 {
-  "name": "opencode-orca",
-  "version": "0.0.1-alpha.1",
+  "name": "@ex-machina/opencode-orca",
+  "version": "0.0.1-alpha.2",
   "description": "OpenCode plugin for Orca + Specialists agent orchestration",
   "main": "dist/index.js",
   "type": "module",
@@ -22,15 +22,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eXamadeus/opencode-orca.git"
+    "url": "git+https://github.com/ex-machina-co/opencode-orca.git"
   },
   "keywords": ["opencode", "plugin", "agents", "orchestration", "orca"],
   "author": "Julian Coy <julian@juliancoy.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/eXamadeus/opencode-orca/issues"
+    "url": "https://github.com/ex-machina-co/opencode-orca/issues"
   },
-  "homepage": "https://github.com/eXamadeus/opencode-orca#readme",
+  "homepage": "https://github.com/ex-machina-co/opencode-orca#readme",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/bun": "^1.2.15",
@@ -46,5 +46,8 @@
   "peerDependencies": {
     "@opencode-ai/plugin": "^1.0.0"
   },
-  "files": ["dist", "templates"]
+  "files": ["dist", "templates"],
+  "publishConfig": {
+    "access": "public"
+  }
 }
