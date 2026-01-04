@@ -41,7 +41,7 @@ jobs:
             echo "FAIL: .opencode/orca.json not created"
             exit 1
           fi
-          if ! grep -q "autonomy" .opencode/orca.json; then
+          if ! grep -q "defaultSupervised" .opencode/orca.json; then
             echo "FAIL: orca.json missing expected content"
             exit 1
           fi
@@ -84,7 +84,7 @@ jobs:
             echo "FAIL: .opencode/orca.json not created"
             exit 1
           fi
-          if ! grep -q "autonomy" .opencode/orca.json; then
+          if ! grep -q "defaultSupervised" .opencode/orca.json; then
             echo "FAIL: orca.json missing expected content"
             exit 1
           fi
