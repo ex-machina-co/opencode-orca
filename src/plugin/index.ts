@@ -94,7 +94,7 @@ export const createOrcaPlugin = (): Plugin => {
          */
         orca_dispatch: tool({
           description:
-            'Route a task message to a specialist agent. Input must be a JSON TaskMessage envelope with type, session_id, timestamp, and payload (agent_id, prompt, context?, parent_session_id?).',
+            'Route a task message to a specialist agent. Input must be a JSON TaskMessage envelope with type, session_id, timestamp, and payload (agent_id, prompt, context?, parent_session_id?, plan_context?). For supervised agents, returns a checkpoint message unless plan_context.approved_remaining is true.',
           args: {
             message: tool.schema.string().describe('JSON TaskMessage envelope to dispatch'),
           },
@@ -103,6 +103,7 @@ export const createOrcaPlugin = (): Plugin => {
               client,
               agents,
               validationConfig,
+              settings: userConfig?.settings,
               abort: ctx.abort,
             }
 

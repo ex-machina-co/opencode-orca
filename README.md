@@ -9,14 +9,34 @@ This plugin provides a structured agent orchestration system with:
 - **Type-enforced contracts** via Zod discriminated union validation
 - **State machine orchestration** (IDLE/EXECUTING) with human-in-the-loop gates
 - **Session continuity** between agents via session_id tracking
-- **Configurable autonomy levels** (supervised, assisted, autonomous)
+- **Per-agent supervision** with checkpoint protocol for approval gates
+
+## Architecture
+
+```
+User Inputa
+    │
+    ▼
+  Orca (Orchestrator)
+    │
+    ├──► Strategist (Planning)
+    │
+    └──► Specialists (Execution)
+         ├── Coder
+         ├── Tester
+         ├── Reviewer
+         ├── Researcher
+         ├── Document Writer
+         └── Architect
+```
+
 
 ## Installation
 
 The easiest way to install is using the CLI:
 
 ```bash
-bunx opencode-orca install
+bunx opencode-orca@latest install
 ```
 
 This will:
@@ -33,16 +53,37 @@ Alternatively, add to your `opencode.jsonc` manually:
 }
 ```
 
-Then create `.opencode/orca.json` with:
+## Configuration
+
+Create `.opencode/orca.json` to customize behavior:
 
 ```json
 {
   "settings": {
-    "autonomy": "supervised"
+    "defaultSupervised": false,
+    "defaultModel": "anthropic/claude-sonnet-4-20250514"
   },
-  "agents": {}
+  "agents": {
+    "coder": {
+      "supervised": true
+    },
+    "my-specialist": {
+      "mode": "subagent",
+      "description": "Custom specialist agent",
+      "prompt": "You are a custom specialist..."
+    }
+  }
 }
 ```
+
+### Supervision
+
+Agents can be marked as "supervised" to require user approval before dispatch:
+
+- **Per-agent**: Set `supervised: true` on specific agents
+- **Global default**: Set `settings.defaultSupervised: true` for all agents
+
+When dispatching to a supervised agent, the plugin returns a `checkpoint` message instead of executing. The orchestrator (Orca) presents this to the user for approval before proceeding.
 
 ## CLI Commands
 
@@ -87,25 +128,6 @@ Shows help information.
 ### `opencode-orca --version`
 
 Shows the installed version.
-
-## Architecture
-
-```
-User Inputa
-    │
-    ▼
-  Orca (Orchestrator)
-    │
-    ├──► Strategist (Planning)
-    │
-    └──► Specialists (Execution)
-         ├── Coder
-         ├── Tester
-         ├── Reviewer
-         ├── Researcher
-         ├── Document Writer
-         └── Architect
-```
 
 ## Development
 
