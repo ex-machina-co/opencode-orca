@@ -148,12 +148,10 @@ git commit -m "<commit_message>"
 
 ## Phase 6: Push and Create PR
 
-Delegate to `github` agent with full specifics:
-
 ### Push
 
-```
-Push current branch to origin with -u flag for upstream tracking
+```bash
+git push -u origin <BRANCH_NAME>
 ```
 
 ### Check for Existing PR
@@ -166,27 +164,28 @@ gh pr list --head <BRANCH_NAME> --state open
 
 ### Create PR (if none exists)
 
-Delegate to `github` agent:
+**Delegate to `product-manager` agent** to craft the PR description:
 
-- **Title**: Use ISSUE_TITLE verbatim
-- **Head branch**: current branch name
-- **Base branch**: `main`
-- **Labels**: Copy from ISSUE_LABELS (filter to: `feature`, `bug`, `chore`)
-- **Body**: Generate from this template:
+Provide the PM with:
+- ISSUE_NUMBER and ISSUE_TITLE
+- ISSUE_BODY (including acceptance criteria)
+- Commits on branch: `git log origin/main..HEAD --oneline`
+- Files changed: `git diff origin/main..HEAD --stat`
+- Branch name and labels
 
-```markdown
-## Summary
-
-<2-3 bullets summarizing the key changes, derived from commits>
-
-## Changes
-
-<git diff --stat summary against main>
-
----
-
-Closes #<ISSUE_NUMBER>
-```
+The PM will:
+1. Write a professional PR description that:
+   - Links to and quotes the user story from the issue
+   - Shows acceptance criteria with checkmarks for completed items
+   - Summarizes what was implemented
+   - Groups changes by category (not raw file lists)
+   - Highlights any bonus/extra work beyond the issue scope
+2. Delegate to the `github` agent to create the PR with:
+   - **Title**: ISSUE_TITLE verbatim
+   - **Head branch**: current branch name
+   - **Base branch**: `main`
+   - **Labels**: From ISSUE_LABELS (filter to: `feature`, `bug`, `chore`)
+   - **Body**: The crafted description
 
 ---
 

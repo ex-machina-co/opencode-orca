@@ -11,13 +11,41 @@ This plugin provides a structured agent orchestration system with:
 - **Session continuity** between agents via session_id tracking
 - **Per-agent supervision** with checkpoint protocol for approval gates
 
-## Installation
+## Architecture
 
-```bash
-bunx opencode-orca install
+```
+User Inputa
+    │
+    ▼
+  Orca (Orchestrator)
+    │
+    ├──► Strategist (Planning)
+    │
+    └──► Specialists (Execution)
+         ├── Coder
+         ├── Tester
+         ├── Reviewer
+         ├── Researcher
+         ├── Document Writer
+         └── Architect
 ```
 
-Or manually add to your `opencode.json`:
+
+## Installation
+
+The easiest way to install is using the CLI:
+
+```bash
+bunx opencode-orca@latest install
+```
+
+This will:
+1. Add `opencode-orca` to the `plugin` array in your `opencode.jsonc`
+2. Create a default configuration file at `.opencode/orca.json`
+
+### Manual Installation
+
+Alternatively, add to your `opencode.jsonc` manually:
 
 ```json
 {
@@ -57,24 +85,49 @@ Agents can be marked as "supervised" to require user approval before dispatch:
 
 When dispatching to a supervised agent, the plugin returns a `checkpoint` message instead of executing. The orchestrator (Orca) presents this to the user for approval before proceeding.
 
-## Architecture
+## CLI Commands
 
+### `opencode-orca install`
+
+Installs the Orca plugin into your OpenCode project.
+
+```bash
+bunx opencode-orca install [options]
+
+Options:
+  --force, -f    Force reinstall even if already installed
 ```
-User Inputa
-    │
-    ▼
-  Orca (Orchestrator)
-    │
-    ├──► Strategist (Planning)
-    │
-    └──► Specialists (Execution)
-         ├── Coder
-         ├── Tester
-         ├── Reviewer
-         ├── Researcher
-         ├── Document Writer
-         └── Architect
+
+### `opencode-orca uninstall`
+
+Removes the Orca plugin from your OpenCode project.
+
+```bash
+bunx opencode-orca uninstall [options]
+
+Options:
+  --remove-config, -r    Remove .opencode/orca.json without prompting
+  --keep-config, -k      Keep .opencode/orca.json without prompting
 ```
+
+### `opencode-orca init`
+
+Creates only the `.opencode/orca.json` configuration file without modifying `opencode.jsonc`. Useful for customizing the config before installing.
+
+```bash
+bunx opencode-orca init [options]
+
+Options:
+  --force, -f    Overwrite existing configuration
+```
+
+### `opencode-orca --help`
+
+Shows help information.
+
+### `opencode-orca --version`
+
+Shows the installed version.
 
 ## Development
 

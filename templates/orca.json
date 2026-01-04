@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "autonomy": "supervised",
+    "defaultModel": null,
+    "validation": {
+      "maxRetries": 3,
+      "wrapPlainText": true
+    }
+  },
+  "agents": {}
+}
