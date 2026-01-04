@@ -60,7 +60,7 @@ export async function install(options: InstallOptions = {}): Promise<void> {
   if (!existsSync(orcaConfigPath)) {
     info('')
     info('Initializing Orca configuration...')
-    await init({ force: false })
+    await init({ force: false, quiet: true })
   }
 
   // Success message with next steps

@@ -10,6 +10,8 @@ import { getOpenCodeDirPath, getOrcaConfigPath } from '../utils/paths'
 
 export interface InitOptions {
   force?: boolean
+  /** Suppress "next steps" output (used when called from install) */
+  quiet?: boolean
 }
 
 /**
@@ -83,8 +85,11 @@ export async function init(options: InitOptions = {}): Promise<void> {
   writeFileSync(orcaConfigPath, template, 'utf-8')
 
   success(`Created ${orcaConfigPath}`)
-  info('')
-  info('Next steps:')
-  info('  1. Customize your configuration in .opencode/orca.json')
-  info('  2. Run `opencode-orca install` to add the plugin to opencode.jsonc')
+
+  if (!options.quiet) {
+    info('')
+    info('Next steps:')
+    info('  1. Customize your configuration in .opencode/orca.json')
+    info('  2. Run `opencode-orca install` to add the plugin to opencode.jsonc')
+  }
 }
