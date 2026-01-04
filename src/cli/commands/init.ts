@@ -41,7 +41,7 @@ function getTemplate(): string {
   return JSON.stringify(
     {
       settings: {
-        autonomy: 'supervised',
+        defaultSupervised: false,
         defaultModel: null,
         validation: {
           maxRetries: 3,

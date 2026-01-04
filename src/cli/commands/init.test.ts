@@ -26,7 +26,7 @@ describe(() => {
     const config = JSON.parse(content)
 
     expect(config).toHaveProperty('settings')
-    expect(config.settings).toHaveProperty('autonomy')
+    expect(config.settings).toHaveProperty('defaultSupervised')
   })
 
   test('does not overwrite existing config without --force', async () => {
