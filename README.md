@@ -13,17 +13,80 @@ This plugin provides a structured agent orchestration system with:
 
 ## Installation
 
+The easiest way to install is using the CLI:
+
 ```bash
 bunx opencode-orca install
 ```
 
-Or manually add to your `opencode.json`:
+This will:
+1. Add `opencode-orca` to the `plugin` array in your `opencode.jsonc`
+2. Create a default configuration file at `.opencode/orca.json`
+
+### Manual Installation
+
+Alternatively, add to your `opencode.jsonc` manually:
 
 ```json
 {
   "plugin": ["opencode-orca"]
 }
 ```
+
+Then create `.opencode/orca.json` with:
+
+```json
+{
+  "settings": {
+    "autonomy": "supervised"
+  },
+  "agents": {}
+}
+```
+
+## CLI Commands
+
+### `opencode-orca install`
+
+Installs the Orca plugin into your OpenCode project.
+
+```bash
+bunx opencode-orca install [options]
+
+Options:
+  --force, -f    Force reinstall even if already installed
+```
+
+### `opencode-orca uninstall`
+
+Removes the Orca plugin from your OpenCode project.
+
+```bash
+bunx opencode-orca uninstall [options]
+
+Options:
+  --remove-config, -r    Remove .opencode/orca.json without prompting
+  --keep-config, -k      Keep .opencode/orca.json without prompting
+```
+
+### `opencode-orca init`
+
+Creates only the `.opencode/orca.json` configuration file without modifying `opencode.jsonc`. Useful for customizing the config before installing.
+
+```bash
+bunx opencode-orca init [options]
+
+Options:
+  --force, -f    Overwrite existing configuration
+```
+
+### `opencode-orca --help`
+
+Shows help information.
+
+### `opencode-orca --version`
+
+Shows the installed version.
 
 ## Architecture
 
