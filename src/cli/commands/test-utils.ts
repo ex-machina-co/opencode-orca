@@ -1,5 +1,5 @@
-import { mkdirSync, rmSync } from 'node:fs'
 import { type Mock, spyOn } from 'bun:test'
+import { mkdirSync, rmSync } from 'node:fs'
 
 export const testDirectoryHelpers = (testDir: string, originalCwd: string) => {
   let consoleSpies: Mock<(...args: unknown[]) => void>[] = []
