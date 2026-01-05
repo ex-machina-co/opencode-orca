@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { generateMessageJsonSchema, generateProtocolDocumentation } from './jsonschema'
+import { generateMessageJsonSchema, generateProtocolDocumentation } from '../jsonschema'
 
 describe('generateMessageJsonSchema', () => {
   test('generates valid JSON Schema', () => {

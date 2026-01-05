@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { MessageEnvelopeSchema } from './messages'
+import { MessageEnvelopeSchema } from '../messages'
 
 // Request messages require session_id
 const requestEnvelope = {

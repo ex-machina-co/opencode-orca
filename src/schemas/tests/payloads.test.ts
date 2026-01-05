@@ -15,7 +15,7 @@ import {
   SourceSchema,
   TaskPayloadSchema,
   UserInputPayloadSchema,
-} from './payloads'
+} from '../payloads'
 
 // Valid fixtures for strict mode tests
 const validFixtures: [string, ZodTypeAny, Record<string, unknown>][] = [
