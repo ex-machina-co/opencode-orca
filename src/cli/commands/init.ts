@@ -42,7 +42,6 @@ function getTemplate(): string {
     {
       settings: {
         defaultSupervised: false,
-        defaultModel: null,
         validation: {
           maxRetries: 3,
           wrapPlainText: true,
