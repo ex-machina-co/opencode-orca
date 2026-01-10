@@ -6,17 +6,19 @@ import { ErrorCodeSchema } from './errors'
  * Plan context for tracking approval state within a plan
  */
 export const PlanContextSchema = z.strictObject({
-  goal: z.string().min(1),
-  step_index: z.number().int().nonnegative(),
-  approved_remaining: z.boolean(),
+  goal: z.string().min(1).describe('The overall plan objective'),
+  step_index: z.number().int().nonnegative().describe('Current step number (0-based)'),
+  approved_remaining: z
+    .boolean()
+    .describe('If true, skip checkpoints for remaining steps in this plan'),
 })
 
 export type PlanContext = z.infer<typeof PlanContextSchema>
 
 /**
- * Task payload - Orca assigns work to a specialist agent
+ * Task fields - Fields for task messages (merged into TaskMessageSchema)
  */
-export const TaskPayloadSchema = z.strictObject({
+export const TaskFieldsSchema = z.strictObject({
   agent_id: AgentIdSchema,
   prompt: z.string().min(1),
   context: z.record(z.string(), z.unknown()).optional(),
@@ -24,7 +26,7 @@ export const TaskPayloadSchema = z.strictObject({
   plan_context: PlanContextSchema.optional(),
 })
 
-export type TaskPayload = z.infer<typeof TaskPayloadSchema>
+export type TaskFields = z.infer<typeof TaskFieldsSchema>
 
 /**
  * Plan step schema
@@ -37,17 +39,25 @@ export const PlanStepSchema = z.strictObject({
 export type PlanStep = z.infer<typeof PlanStepSchema>
 
 /**
- * Plan payload - Strategist returns an execution plan
+ * Plan fields - Fields for plan messages (merged into PlanMessageSchema)
+ *
+ * Field descriptions are used to generate the planner prompt,
+ * ensuring documentation stays in sync with the schema.
  */
-export const PlanPayloadSchema = z.strictObject({
+export const PlanFieldsSchema = z.strictObject({
   agent_id: AgentIdSchema,
-  goal: z.string().min(1),
-  steps: z.array(PlanStepSchema).min(1),
-  assumptions: z.array(z.string()).optional(),
-  files_touched: z.array(z.string()).optional(),
+  goal: z.string().min(1).describe('Clear statement of what we are achieving'),
+  steps: z.array(PlanStepSchema).min(1).describe('Numbered steps with specific actions'),
+  assumptions: z.array(z.string()).min(1).describe('What we are assuming or need to clarify'),
+  files_touched: z.array(z.string()).min(1).describe('List of files that will be modified'),
+  verification: z
+    .array(z.string())
+    .min(1)
+    .describe('How to confirm success - commands, tests, or checks to run'),
+  risks: z.array(z.string()).min(1).describe('What could go wrong and how to recover/rollback'),
 })
 
-export type PlanPayload = z.infer<typeof PlanPayloadSchema>
+export type PlanFields = z.infer<typeof PlanFieldsSchema>
 
 /**
  * Source schema - Reference to where information came from
@@ -72,92 +82,75 @@ export const AnnotationSchema = z.strictObject({
 export type Annotation = z.infer<typeof AnnotationSchema>
 
 /**
- * Answer payload - Response with optional sources and annotations
+ * Answer fields - Fields for answer messages (merged into AnswerMessageSchema)
  */
-export const AnswerPayloadSchema = z.strictObject({
+export const AnswerFieldsSchema = z.strictObject({
   agent_id: AgentIdSchema,
   content: z.string(),
   sources: z.array(SourceSchema).optional(),
   annotations: z.array(AnnotationSchema).optional(),
 })
 
-export type AnswerPayload = z.infer<typeof AnswerPayloadSchema>
+export type AnswerFields = z.infer<typeof AnswerFieldsSchema>
 
 /**
- * Question payload - Agent asks for clarification
+ * Question fields - Fields for question messages (merged into QuestionMessageSchema)
  */
-export const QuestionPayloadSchema = z.strictObject({
+export const QuestionFieldsSchema = z.strictObject({
   agent_id: AgentIdSchema,
   question: z.string().min(1),
   options: z.array(z.string()).optional(),
   blocking: z.boolean(),
 })
 
-export type QuestionPayload = z.infer<typeof QuestionPayloadSchema>
+export type QuestionFields = z.infer<typeof QuestionFieldsSchema>
 
 /**
- * Escalation option schema
+ * Interrupt fields - Fields for interrupt messages (merged into InterruptMessageSchema)
  */
-export const EscalationOptionSchema = z.strictObject({
-  label: z.string().min(1),
-  value: z.string().min(1),
-})
-
-export type EscalationOption = z.infer<typeof EscalationOptionSchema>
-
-/**
- * Escalation payload - Agent escalates to Orca for a decision
- */
-export const EscalationPayloadSchema = z.strictObject({
-  agent_id: AgentIdSchema,
-  decision_id: z.string().min(1),
-  decision: z.string().min(1),
-  options: z.array(EscalationOptionSchema).min(1),
-  context: z.string(),
-})
-
-export type EscalationPayload = z.infer<typeof EscalationPayloadSchema>
-
-/**
- * User input payload - User provides input
- */
-export const UserInputPayloadSchema = z.strictObject({
-  content: z.string(),
-  in_response_to: SessionIdSchema.optional(),
-})
-
-export type UserInputPayload = z.infer<typeof UserInputPayloadSchema>
-
-/**
- * Interrupt payload - User interrupts execution
- */
-export const InterruptPayloadSchema = z.strictObject({
+export const InterruptFieldsSchema = z.strictObject({
   reason: z.string().min(1),
   agent_id: AgentIdSchema.optional(),
 })
 
-export type InterruptPayload = z.infer<typeof InterruptPayloadSchema>
+export type InterruptFields = z.infer<typeof InterruptFieldsSchema>
 
 /**
- * Failure payload - Agent reports a failure
+ * Failure fields - Fields for failure messages (merged into FailureMessageSchema)
  */
-export const FailurePayloadSchema = z.strictObject({
+export const FailureFieldsSchema = z.strictObject({
   agent_id: AgentIdSchema.optional(),
   code: ErrorCodeSchema,
   message: z.string().min(1),
   cause: z.string().optional(),
 })
 
-export type FailurePayload = z.infer<typeof FailurePayloadSchema>
+export type FailureFields = z.infer<typeof FailureFieldsSchema>
 
 /**
- * Checkpoint payload - Supervision checkpoint requiring user approval
+ * Checkpoint fields - Fields for checkpoint messages (merged into CheckpointMessageSchema)
  */
-export const CheckpointPayloadSchema = z.strictObject({
+export const CheckpointFieldsSchema = z.strictObject({
   agent_id: AgentIdSchema,
   prompt: z.string().min(1),
   step_index: z.number().int().nonnegative().optional(),
   plan_goal: z.string().optional(),
 })
 
-export type CheckpointPayload = z.infer<typeof CheckpointPayloadSchema>
+export type CheckpointFields = z.infer<typeof CheckpointFieldsSchema>
+
+/**
+ * Success fields - Fields for success messages (merged into SuccessMessageSchema)
+ *
+ * Used by execution specialists (coder, tester, document-writer) to report
+ * successful completion of a task with details of what was done.
+ */
+export const SuccessFieldsSchema = z.strictObject({
+  agent_id: AgentIdSchema,
+  summary: z.string().min(1).describe('Brief description of what was completed'),
+  artifacts: z.array(z.string()).optional().describe('Files created or modified'),
+  verification: z.array(z.string()).optional().describe('Verification steps performed'),
+  notes: z.array(z.string()).optional().describe('Additional context or caveats'),
+})
+
+export type SuccessFields = z.infer<typeof SuccessFieldsSchema>

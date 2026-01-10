@@ -20,67 +20,66 @@ export type {
   Timestamp,
 } from './common'
 
-// Payload schemas
+// Field schemas (new canonical names)
 export {
   AnnotationSchema,
-  AnswerPayloadSchema,
-  CheckpointPayloadSchema,
-  EscalationOptionSchema,
-  EscalationPayloadSchema,
-  FailurePayloadSchema,
-  InterruptPayloadSchema,
+  AnswerFieldsSchema,
+  CheckpointFieldsSchema,
+  FailureFieldsSchema,
+  InterruptFieldsSchema,
   PlanContextSchema,
-  PlanPayloadSchema,
+  PlanFieldsSchema,
   PlanStepSchema,
-  QuestionPayloadSchema,
+  QuestionFieldsSchema,
   SourceSchema,
-  TaskPayloadSchema,
-  UserInputPayloadSchema,
+  SuccessFieldsSchema,
+  TaskFieldsSchema,
 } from './payloads'
 export type {
   Annotation,
-  AnswerPayload,
-  CheckpointPayload,
-  EscalationOption,
-  EscalationPayload,
-  FailurePayload,
-  InterruptPayload,
+  AnswerFields,
+  CheckpointFields,
+  FailureFields,
+  InterruptFields,
   PlanContext,
-  PlanPayload,
+  PlanFields,
   PlanStep,
-  QuestionPayload,
+  QuestionFields,
   Source,
-  TaskPayload,
-  UserInputPayload,
+  SuccessFields,
+  TaskFields,
 } from './payloads'
 
 // Message schemas
 export {
   AnswerMessageSchema,
   CheckpointMessageSchema,
-  EscalationMessageSchema,
   FailureMessageSchema,
   InterruptMessageSchema,
   MessageEnvelopeSchema,
   PlanMessageSchema,
   QuestionMessageSchema,
+  SuccessMessageSchema,
   TaskMessageSchema,
-  UserInputMessageSchema,
 } from './messages'
 
 export type {
   AnswerMessage,
   CheckpointMessage,
-  EscalationMessage,
   FailureMessage,
   InterruptMessage,
   MessageEnvelope,
   MessageType,
   PlanMessage,
   QuestionMessage,
+  SuccessMessage,
   TaskMessage,
-  UserInputMessage,
 } from './messages'
 
-// JSON Schema generation
-export { generateMessageJsonSchema, generateProtocolDocumentation } from './jsonschema'
+// Field documentation utilities for generating prompts from schemas
+export {
+  extractFieldDocs,
+  formatFieldDocsAsCodeList,
+  formatFieldDocsAsMarkdownList,
+} from './jsonschema'
+export type { FieldDoc } from './jsonschema'

@@ -63,12 +63,10 @@ export function createCheckpointMessage(task: TaskMessage): CheckpointMessage {
   return {
     timestamp: new Date().toISOString(),
     type: 'checkpoint',
-    payload: {
-      agent_id: task.payload.agent_id,
-      prompt: task.payload.prompt,
-      step_index: task.payload.plan_context?.step_index,
-      plan_goal: task.payload.plan_context?.goal,
-    },
+    agent_id: task.agent_id,
+    prompt: task.prompt,
+    step_index: task.plan_context?.step_index,
+    plan_goal: task.plan_context?.goal,
   }
 }
 
@@ -109,7 +107,7 @@ export async function dispatchToAgent(messageJson: string, ctx: DispatchContext)
     )
   }
 
-  const { agent_id: targetAgentId, prompt, parent_session_id, plan_context } = task.payload
+  const { agent_id: targetAgentId, prompt, parent_session_id, plan_context } = task
 
   // Verify target agent exists
   if (!ctx.agents[targetAgentId]) {

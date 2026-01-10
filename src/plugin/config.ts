@@ -25,7 +25,7 @@ export type PermissionConfig = z.infer<typeof PermissionConfigSchema>
  * Response types that agents can produce
  * Used to generate format instructions in prompts
  */
-export const ResponseTypeSchema = z.enum(['answer', 'plan', 'question', 'escalation', 'failure'])
+export const ResponseTypeSchema = z.enum(['answer', 'success', 'plan', 'question', 'failure'])
 
 export type ResponseType = z.infer<typeof ResponseTypeSchema>
 
@@ -56,6 +56,20 @@ export const AgentConfigSchema = z.looseObject({
    * Defaults to ['answer', 'failure'] for subagents.
    */
   responseTypes: z.array(ResponseTypeSchema).optional(),
+  /**
+   * Whether this agent appears in Orca's "Available specialists" list.
+   * Defaults to true for built-in subagents, false for user-defined agents.
+   */
+  specialist: z
+    .boolean()
+    .optional()
+    .describe("Whether this agent appears in Orca's specialist list"),
+  /**
+   * Whether this agent is loaded.
+   * If false, the agent is completely excluded from the system.
+   * Defaults to true.
+   */
+  enabled: z.boolean().optional().describe('Whether this agent is loaded (default: true)'),
 })
 
 export type AgentConfig = z.infer<typeof AgentConfigSchema>

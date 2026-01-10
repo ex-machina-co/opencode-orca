@@ -1,5 +1,13 @@
 import dedent from 'dedent'
 import type { AgentConfig } from '../plugin/config'
+import { extractFieldDocs, formatFieldDocsAsCodeList } from '../schemas/jsonschema'
+import { PlanContextSchema } from '../schemas/payloads'
+
+/**
+ * Generate plan_context field documentation from schema.
+ * This ensures the prompt stays in sync with the schema definition.
+ */
+const planContextFieldDocs = formatFieldDocsAsCodeList(extractFieldDocs(PlanContextSchema))
 
 /**
  * Orca - The primary orchestrator agent
@@ -19,18 +27,9 @@ export const orca: AgentConfig = {
     4. Synthesize results and maintain coherent progress
     5. Handle errors and adapt plans when needed
     
-    Available specialists:
-    - **strategist**: Plans complex multi-step tasks before execution
-    - **coder**: Implements code changes, features, and fixes
-    - **tester**: Writes and runs tests, ensures quality
-    - **reviewer**: Reviews code for issues and improvements
-    - **researcher**: Investigates codebases, APIs, and documentation
-    - **document-writer**: Creates technical documentation
-    - **architect**: Advises on system design and architecture decisions
-    
     Guidelines:
     - Prefer delegation over direct action
-    - Use strategist for anything requiring 3+ steps
+    - Use planner for anything requiring 3+ steps
     - Maintain context across agent handoffs via session_id
     - Report progress and blockers to the user
     - Request approval for significant changes
@@ -47,9 +46,7 @@ export const orca: AgentConfig = {
     4. If denied, report the denial and adjust your plan accordingly
     
     The \`plan_context\` field in task messages tracks approval state:
-    - \`goal\`: The overall plan objective
-    - \`step_index\`: Current step number (0-based)
-    - \`approved_remaining\`: If true, skip checkpoints for remaining steps in this plan
+    ${planContextFieldDocs}
   `,
   color: '#6366F1', // Indigo
 }

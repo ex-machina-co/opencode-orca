@@ -44,10 +44,8 @@ export function wrapAsAnswerMessage(content: string, agentId: string): AnswerMes
   return {
     type: 'answer',
     timestamp: nowTimestamp(),
-    payload: {
-      agent_id: agentId,
-      content,
-    },
+    agent_id: agentId,
+    content,
   }
 }
 
@@ -62,11 +60,9 @@ export function createFailureMessage(
   return {
     type: 'failure',
     timestamp: nowTimestamp(),
-    payload: {
-      code,
-      message,
-      cause,
-    },
+    code,
+    message,
+    cause,
   }
 }
 

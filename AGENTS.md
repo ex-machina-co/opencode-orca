@@ -1,0 +1,8 @@
+- We use the dedent library for TypeScript multiline string formatting, meaning leading spaces and line breaks are trimmed. Check for examples in the code.
+- This is a PLUGIN, not a library. We don't need to maintain backwards API compatibility. Remove deprecated code instead of keeping aliases.
+- Follow TypeScript best practices:
+  - Use `unknown` instead of `any`.
+  - Prefer `const` over `let`.
+  - Avoid casting (it's almost never necessary).
+  - Prefer inferred types when possible, unless there's a specific reason to use a type annotation.
+- Comments should be for exceptional or confusing things...not normal code. Be sparing with them.

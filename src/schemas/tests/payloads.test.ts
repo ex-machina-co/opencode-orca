@@ -2,56 +2,51 @@ import { describe, expect, test } from 'bun:test'
 import type { ZodTypeAny } from 'zod'
 import {
   AnnotationSchema,
-  AnswerPayloadSchema,
-  CheckpointPayloadSchema,
-  EscalationOptionSchema,
-  EscalationPayloadSchema,
-  FailurePayloadSchema,
-  InterruptPayloadSchema,
+  AnswerFieldsSchema,
+  CheckpointFieldsSchema,
+  FailureFieldsSchema,
+  InterruptFieldsSchema,
   PlanContextSchema,
-  PlanPayloadSchema,
+  PlanFieldsSchema,
   PlanStepSchema,
-  QuestionPayloadSchema,
+  QuestionFieldsSchema,
   SourceSchema,
-  TaskPayloadSchema,
-  UserInputPayloadSchema,
+  TaskFieldsSchema,
 } from '../payloads'
 
 // Valid fixtures for strict mode tests
 const validFixtures: [string, ZodTypeAny, Record<string, unknown>][] = [
-  ['TaskPayloadSchema', TaskPayloadSchema, { agent_id: 'a', prompt: 'p' }],
+  ['TaskFieldsSchema', TaskFieldsSchema, { agent_id: 'a', prompt: 'p' }],
   ['PlanStepSchema', PlanStepSchema, { description: 'd' }],
   [
-    'PlanPayloadSchema',
-    PlanPayloadSchema,
-    { agent_id: 'a', goal: 'g', steps: [{ description: 'd' }] },
+    'PlanFieldsSchema',
+    PlanFieldsSchema,
+    {
+      agent_id: 'a',
+      goal: 'g',
+      steps: [{ description: 'd' }],
+      assumptions: ['a'],
+      files_touched: ['f'],
+      verification: ['v'],
+      risks: ['r'],
+    },
   ],
   ['SourceSchema', SourceSchema, { type: 'file', ref: 'src/index.ts' }],
   ['AnnotationSchema', AnnotationSchema, { type: 'note', content: 'n' }],
-  ['AnswerPayloadSchema', AnswerPayloadSchema, { agent_id: 'a', content: 'c' }],
-  [
-    'QuestionPayloadSchema',
-    QuestionPayloadSchema,
-    { agent_id: 'a', question: 'q', blocking: true },
-  ],
-  ['EscalationOptionSchema', EscalationOptionSchema, { label: 'l', value: 'v' }],
-  [
-    'EscalationPayloadSchema',
-    EscalationPayloadSchema,
-    {
-      agent_id: 'a',
-      decision_id: 'd',
-      decision: 'd',
-      options: [{ label: 'l', value: 'v' }],
-      context: 'c',
-    },
-  ],
-  ['UserInputPayloadSchema', UserInputPayloadSchema, { content: 'c' }],
-  ['InterruptPayloadSchema', InterruptPayloadSchema, { reason: 'r' }],
-  ['FailurePayloadSchema', FailurePayloadSchema, { code: 'AGENT_ERROR', message: 'm' }],
-  ['CheckpointPayloadSchema', CheckpointPayloadSchema, { agent_id: 'a', prompt: 'p' }],
+  ['AnswerFieldsSchema', AnswerFieldsSchema, { agent_id: 'a', content: 'c' }],
+  ['QuestionFieldsSchema', QuestionFieldsSchema, { agent_id: 'a', question: 'q', blocking: true }],
+  ['InterruptFieldsSchema', InterruptFieldsSchema, { reason: 'r' }],
+  ['FailureFieldsSchema', FailureFieldsSchema, { code: 'AGENT_ERROR', message: 'm' }],
+  ['CheckpointFieldsSchema', CheckpointFieldsSchema, { agent_id: 'a', prompt: 'p' }],
   ['PlanContextSchema', PlanContextSchema, { goal: 'g', step_index: 0, approved_remaining: false }],
 ]
+
+describe('descriptions', () => {
+  test.each(validFixtures)('%s', (_name, schema) => {
+    expect(schema.description).toMatchSnapshot()
+    expect(schema.toJSONSchema()).toMatchSnapshot()
+  })
+})
 
 describe('strict mode rejects extra fields', () => {
   test.each(validFixtures)('%s', (_name, schema, valid) => {
@@ -60,87 +55,117 @@ describe('strict mode rejects extra fields', () => {
 })
 
 describe('min(1) constraints reject empty values', () => {
-  test('TaskPayloadSchema rejects empty prompt', () => {
-    expect(() => TaskPayloadSchema.parse({ agent_id: 'a', prompt: '' })).toThrow()
+  test('TaskFieldsSchema rejects empty prompt', () => {
+    expect(() => TaskFieldsSchema.parse({ agent_id: 'a', prompt: '' })).toThrow()
   })
 
   test('PlanStepSchema rejects empty description', () => {
     expect(() => PlanStepSchema.parse({ description: '' })).toThrow()
   })
 
-  test('PlanPayloadSchema rejects empty goal', () => {
+  test('PlanFieldsSchema rejects empty goal', () => {
     expect(() =>
-      PlanPayloadSchema.parse({
+      PlanFieldsSchema.parse({
         agent_id: 'a',
         goal: '',
         steps: [{ description: 'd' }],
+        assumptions: ['a'],
+        files_touched: ['f'],
+        verification: ['v'],
+        risks: ['r'],
       }),
     ).toThrow()
   })
 
-  test('PlanPayloadSchema rejects empty steps array', () => {
-    expect(() => PlanPayloadSchema.parse({ agent_id: 'a', goal: 'g', steps: [] })).toThrow()
-  })
-
-  test('QuestionPayloadSchema rejects empty question', () => {
+  test('PlanFieldsSchema rejects empty steps array', () => {
     expect(() =>
-      QuestionPayloadSchema.parse({ agent_id: 'a', question: '', blocking: true }),
-    ).toThrow()
-  })
-
-  test('EscalationOptionSchema rejects empty label', () => {
-    expect(() => EscalationOptionSchema.parse({ label: '', value: 'v' })).toThrow()
-  })
-
-  test('EscalationOptionSchema rejects empty value', () => {
-    expect(() => EscalationOptionSchema.parse({ label: 'l', value: '' })).toThrow()
-  })
-
-  test('EscalationPayloadSchema rejects empty options array', () => {
-    expect(() =>
-      EscalationPayloadSchema.parse({
+      PlanFieldsSchema.parse({
         agent_id: 'a',
-        decision_id: 'd',
-        decision: 'd',
-        options: [],
-        context: 'c',
+        goal: 'g',
+        steps: [],
+        assumptions: ['a'],
+        files_touched: ['f'],
+        verification: ['v'],
+        risks: ['r'],
       }),
     ).toThrow()
   })
 
-  test('EscalationPayloadSchema rejects empty decision_id', () => {
+  test('PlanFieldsSchema rejects empty verification array', () => {
     expect(() =>
-      EscalationPayloadSchema.parse({
+      PlanFieldsSchema.parse({
         agent_id: 'a',
-        decision_id: '',
-        decision: 'd',
-        options: [{ label: 'l', value: 'v' }],
-        context: 'c',
+        goal: 'g',
+        steps: [{ description: 'd' }],
+        assumptions: ['a'],
+        files_touched: ['f'],
+        verification: [],
+        risks: ['r'],
       }),
     ).toThrow()
   })
 
-  test('InterruptPayloadSchema rejects empty reason', () => {
-    expect(() => InterruptPayloadSchema.parse({ reason: '' })).toThrow()
+  test('PlanFieldsSchema rejects empty risks array', () => {
+    expect(() =>
+      PlanFieldsSchema.parse({
+        agent_id: 'a',
+        goal: 'g',
+        steps: [{ description: 'd' }],
+        assumptions: ['a'],
+        files_touched: ['f'],
+        verification: ['v'],
+        risks: [],
+      }),
+    ).toThrow()
   })
 
-  test('FailurePayloadSchema rejects empty message', () => {
-    expect(() => FailurePayloadSchema.parse({ code: 'AGENT_ERROR', message: '' })).toThrow()
+  test('PlanFieldsSchema rejects empty assumptions array', () => {
+    expect(() =>
+      PlanFieldsSchema.parse({
+        agent_id: 'a',
+        goal: 'g',
+        steps: [{ description: 'd' }],
+        assumptions: [],
+        files_touched: ['f'],
+        verification: ['v'],
+        risks: ['r'],
+      }),
+    ).toThrow()
+  })
+
+  test('PlanFieldsSchema rejects empty files_touched array', () => {
+    expect(() =>
+      PlanFieldsSchema.parse({
+        agent_id: 'a',
+        goal: 'g',
+        steps: [{ description: 'd' }],
+        assumptions: ['a'],
+        files_touched: [],
+        verification: ['v'],
+        risks: ['r'],
+      }),
+    ).toThrow()
+  })
+
+  test('QuestionFieldsSchema rejects empty question', () => {
+    expect(() =>
+      QuestionFieldsSchema.parse({ agent_id: 'a', question: '', blocking: true }),
+    ).toThrow()
+  })
+
+  test('InterruptFieldsSchema rejects empty reason', () => {
+    expect(() => InterruptFieldsSchema.parse({ reason: '' })).toThrow()
+  })
+
+  test('FailureFieldsSchema rejects empty message', () => {
+    expect(() => FailureFieldsSchema.parse({ code: 'AGENT_ERROR', message: '' })).toThrow()
   })
 })
 
-describe('intentional design decisions', () => {
-  test('UserInputPayloadSchema allows empty content', () => {
-    // Intentionally no .min(1) — users can send empty messages
-    const result = UserInputPayloadSchema.parse({ content: '' })
-    expect(result.content).toBe('')
-  })
-})
-
-describe('CheckpointPayloadSchema', () => {
+describe('CheckpointFieldsSchema', () => {
   test('accepts minimal checkpoint payload', () => {
     const payload = { agent_id: 'coder', prompt: 'Write tests' }
-    expect(CheckpointPayloadSchema.parse(payload)).toEqual(payload)
+    expect(CheckpointFieldsSchema.parse(payload)).toEqual(payload)
   })
 
   test('accepts full checkpoint payload with optional fields', () => {
@@ -150,16 +175,16 @@ describe('CheckpointPayloadSchema', () => {
       step_index: 2,
       plan_goal: 'Implement feature X',
     }
-    expect(CheckpointPayloadSchema.parse(payload)).toEqual(payload)
+    expect(CheckpointFieldsSchema.parse(payload)).toEqual(payload)
   })
 
   test('rejects empty prompt', () => {
-    expect(() => CheckpointPayloadSchema.parse({ agent_id: 'a', prompt: '' })).toThrow()
+    expect(() => CheckpointFieldsSchema.parse({ agent_id: 'a', prompt: '' })).toThrow()
   })
 
   test('rejects negative step_index', () => {
     expect(() =>
-      CheckpointPayloadSchema.parse({ agent_id: 'a', prompt: 'p', step_index: -1 }),
+      CheckpointFieldsSchema.parse({ agent_id: 'a', prompt: 'p', step_index: -1 }),
     ).toThrow()
   })
 })
@@ -188,7 +213,7 @@ describe('PlanContextSchema', () => {
   })
 })
 
-describe('TaskPayloadSchema with plan_context', () => {
+describe('TaskFieldsSchema with plan_context', () => {
   test('accepts task payload with plan_context', () => {
     const payload = {
       agent_id: 'coder',
@@ -199,12 +224,12 @@ describe('TaskPayloadSchema with plan_context', () => {
         approved_remaining: true,
       },
     }
-    expect(TaskPayloadSchema.parse(payload)).toEqual(payload)
+    expect(TaskFieldsSchema.parse(payload)).toEqual(payload)
   })
 
   test('accepts task payload without plan_context', () => {
     const payload = { agent_id: 'coder', prompt: 'Write code' }
-    expect(TaskPayloadSchema.parse(payload)).toEqual(payload)
+    expect(TaskFieldsSchema.parse(payload)).toEqual(payload)
   })
 })
 
@@ -265,14 +290,14 @@ describe('AnnotationSchema', () => {
   })
 })
 
-describe('AnswerPayloadSchema with sources and annotations', () => {
+describe('AnswerFieldsSchema with sources and annotations', () => {
   test('accepts answer with sources', () => {
     const payload = {
       agent_id: 'researcher',
       content: 'Found the answer',
       sources: [{ type: 'file' as const, ref: 'src/index.ts' }],
     }
-    expect(AnswerPayloadSchema.parse(payload)).toEqual(payload)
+    expect(AnswerFieldsSchema.parse(payload)).toEqual(payload)
   })
 
   test('accepts answer with annotations', () => {
@@ -281,7 +306,7 @@ describe('AnswerPayloadSchema with sources and annotations', () => {
       content: 'Found the answer',
       annotations: [{ type: 'note' as const, content: 'Verified' }],
     }
-    expect(AnswerPayloadSchema.parse(payload)).toEqual(payload)
+    expect(AnswerFieldsSchema.parse(payload)).toEqual(payload)
   })
 
   test('accepts answer with both sources and annotations', () => {
@@ -294,11 +319,11 @@ describe('AnswerPayloadSchema with sources and annotations', () => {
         { type: 'warning' as const, content: 'May be deprecated' },
       ],
     }
-    expect(AnswerPayloadSchema.parse(payload)).toEqual(payload)
+    expect(AnswerFieldsSchema.parse(payload)).toEqual(payload)
   })
 
   test('accepts minimal answer without optional fields', () => {
     const payload = { agent_id: 'coder', content: 'Done' }
-    expect(AnswerPayloadSchema.parse(payload)).toEqual(payload)
+    expect(AnswerFieldsSchema.parse(payload)).toEqual(payload)
   })
 })

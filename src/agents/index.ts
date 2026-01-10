@@ -6,7 +6,7 @@
  */
 
 export { orca } from './orca'
-export { strategist } from './strategist'
+export { planner } from './planner'
 export { coder } from './coder'
 export { tester } from './tester'
 export { reviewer } from './reviewer'

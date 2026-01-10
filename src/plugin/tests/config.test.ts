@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { MessageEnvelopeSchema } from '../../schemas/messages'
 import {
   AgentConfigSchema,
   OrcaSettingsSchema,
@@ -117,6 +118,28 @@ describe('config schemas', () => {
       expect(() => AgentConfigSchema.parse({ responseTypes: ['invalid'] })).toThrow()
       expect(() => AgentConfigSchema.parse({ responseTypes: ['result'] })).toThrow()
     })
+
+    test('accepts specialist boolean', () => {
+      expect(AgentConfigSchema.parse({ specialist: true })).toEqual({ specialist: true })
+      expect(AgentConfigSchema.parse({ specialist: false })).toEqual({ specialist: false })
+    })
+
+    test('allows specialist to be undefined (optional)', () => {
+      const config = { model: 'some-model' }
+      const result = AgentConfigSchema.parse(config)
+      expect(result.specialist).toBeUndefined()
+    })
+
+    test('accepts enabled boolean', () => {
+      expect(AgentConfigSchema.parse({ enabled: true })).toEqual({ enabled: true })
+      expect(AgentConfigSchema.parse({ enabled: false })).toEqual({ enabled: false })
+    })
+
+    test('allows enabled to be undefined (optional)', () => {
+      const config = { model: 'some-model' }
+      const result = AgentConfigSchema.parse(config)
+      expect(result.enabled).toBeUndefined()
+    })
   })
 
   describe('ResponseTypeSchema', () => {
@@ -124,13 +147,30 @@ describe('config schemas', () => {
       expect(ResponseTypeSchema.parse('answer')).toBe('answer')
       expect(ResponseTypeSchema.parse('plan')).toBe('plan')
       expect(ResponseTypeSchema.parse('question')).toBe('question')
-      expect(ResponseTypeSchema.parse('escalation')).toBe('escalation')
       expect(ResponseTypeSchema.parse('failure')).toBe('failure')
+      expect(ResponseTypeSchema.parse('success')).toBe('success')
     })
 
     test('rejects invalid response types', () => {
       expect(() => ResponseTypeSchema.parse('result')).toThrow()
       expect(() => ResponseTypeSchema.parse('invalid')).toThrow()
+    })
+
+    test('every ResponseType is a valid MessageType (sync check)', () => {
+      // Get all valid message types from the discriminated union
+      // Each option has a literal 'type' field with a .value property
+      const messageTypes = new Set(
+        MessageEnvelopeSchema.options.map((schema) => schema.shape.type.value),
+      )
+
+      // Get all response types from the enum (.options is the public API)
+      const responseTypes = ResponseTypeSchema.options
+
+      // Every response type must be a valid message type
+      // (ResponseType is intentionally a subset - excludes task, checkpoint, interrupt)
+      for (const responseType of responseTypes) {
+        expect(messageTypes.has(responseType)).toBe(true)
+      }
     })
   })
 

@@ -1,0 +1,564 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`descriptions TaskFieldsSchema 1`] = `undefined`;
+
+exports[`descriptions TaskFieldsSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "minLength": 1,
+      "type": "string",
+    },
+    "context": {
+      "additionalProperties": {},
+      "propertyNames": {
+        "type": "string",
+      },
+      "type": "object",
+    },
+    "parent_session_id": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string",
+    },
+    "plan_context": {
+      "additionalProperties": false,
+      "properties": {
+        "approved_remaining": {
+          "description": "If true, skip checkpoints for remaining steps in this plan",
+          "type": "boolean",
+        },
+        "goal": {
+          "description": "The overall plan objective",
+          "minLength": 1,
+          "type": "string",
+        },
+        "step_index": {
+          "description": "Current step number (0-based)",
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "goal",
+        "step_index",
+        "approved_remaining",
+      ],
+      "type": "object",
+    },
+    "prompt": {
+      "minLength": 1,
+      "type": "string",
+    },
+  },
+  "required": [
+    "agent_id",
+    "prompt",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions PlanStepSchema 1`] = `undefined`;
+
+exports[`descriptions PlanStepSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "command": {
+      "type": "string",
+    },
+    "description": {
+      "minLength": 1,
+      "type": "string",
+    },
+  },
+  "required": [
+    "description",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions PlanFieldsSchema 1`] = `undefined`;
+
+exports[`descriptions PlanFieldsSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "minLength": 1,
+      "type": "string",
+    },
+    "assumptions": {
+      "description": "What we are assuming or need to clarify",
+      "items": {
+        "type": "string",
+      },
+      "minItems": 1,
+      "type": "array",
+    },
+    "files_touched": {
+      "description": "List of files that will be modified",
+      "items": {
+        "type": "string",
+      },
+      "minItems": 1,
+      "type": "array",
+    },
+    "goal": {
+      "description": "Clear statement of what we are achieving",
+      "minLength": 1,
+      "type": "string",
+    },
+    "risks": {
+      "description": "What could go wrong and how to recover/rollback",
+      "items": {
+        "type": "string",
+      },
+      "minItems": 1,
+      "type": "array",
+    },
+    "steps": {
+      "description": "Numbered steps with specific actions",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "type": "string",
+          },
+          "description": {
+            "minLength": 1,
+            "type": "string",
+          },
+        },
+        "required": [
+          "description",
+        ],
+        "type": "object",
+      },
+      "minItems": 1,
+      "type": "array",
+    },
+    "verification": {
+      "description": "How to confirm success - commands, tests, or checks to run",
+      "items": {
+        "type": "string",
+      },
+      "minItems": 1,
+      "type": "array",
+    },
+  },
+  "required": [
+    "agent_id",
+    "goal",
+    "steps",
+    "assumptions",
+    "files_touched",
+    "verification",
+    "risks",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions SourceSchema 1`] = `undefined`;
+
+exports[`descriptions SourceSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "excerpt": {
+      "type": "string",
+    },
+    "ref": {
+      "type": "string",
+    },
+    "title": {
+      "type": "string",
+    },
+    "type": {
+      "enum": [
+        "file",
+        "url",
+        "artifact",
+      ],
+      "type": "string",
+    },
+  },
+  "required": [
+    "type",
+    "ref",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions AnnotationSchema 1`] = `undefined`;
+
+exports[`descriptions AnnotationSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "content": {
+      "type": "string",
+    },
+    "type": {
+      "enum": [
+        "note",
+        "warning",
+        "assumption",
+        "caveat",
+      ],
+      "type": "string",
+    },
+  },
+  "required": [
+    "type",
+    "content",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions AnswerFieldsSchema 1`] = `undefined`;
+
+exports[`descriptions AnswerFieldsSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "minLength": 1,
+      "type": "string",
+    },
+    "annotations": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "string",
+          },
+          "type": {
+            "enum": [
+              "note",
+              "warning",
+              "assumption",
+              "caveat",
+            ],
+            "type": "string",
+          },
+        },
+        "required": [
+          "type",
+          "content",
+        ],
+        "type": "object",
+      },
+      "type": "array",
+    },
+    "content": {
+      "type": "string",
+    },
+    "sources": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "excerpt": {
+            "type": "string",
+          },
+          "ref": {
+            "type": "string",
+          },
+          "title": {
+            "type": "string",
+          },
+          "type": {
+            "enum": [
+              "file",
+              "url",
+              "artifact",
+            ],
+            "type": "string",
+          },
+        },
+        "required": [
+          "type",
+          "ref",
+        ],
+        "type": "object",
+      },
+      "type": "array",
+    },
+  },
+  "required": [
+    "agent_id",
+    "content",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions QuestionFieldsSchema 1`] = `undefined`;
+
+exports[`descriptions QuestionFieldsSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "minLength": 1,
+      "type": "string",
+    },
+    "blocking": {
+      "type": "boolean",
+    },
+    "options": {
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+    "question": {
+      "minLength": 1,
+      "type": "string",
+    },
+  },
+  "required": [
+    "agent_id",
+    "question",
+    "blocking",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions InterruptFieldsSchema 1`] = `undefined`;
+
+exports[`descriptions InterruptFieldsSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "minLength": 1,
+      "type": "string",
+    },
+    "reason": {
+      "minLength": 1,
+      "type": "string",
+    },
+  },
+  "required": [
+    "reason",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions FailureFieldsSchema 1`] = `undefined`;
+
+exports[`descriptions FailureFieldsSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "minLength": 1,
+      "type": "string",
+    },
+    "cause": {
+      "type": "string",
+    },
+    "code": {
+      "enum": [
+        "VALIDATION_ERROR",
+        "UNKNOWN_AGENT",
+        "SESSION_NOT_FOUND",
+        "AGENT_ERROR",
+        "TIMEOUT",
+      ],
+      "type": "string",
+    },
+    "message": {
+      "minLength": 1,
+      "type": "string",
+    },
+  },
+  "required": [
+    "code",
+    "message",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions CheckpointFieldsSchema 1`] = `undefined`;
+
+exports[`descriptions CheckpointFieldsSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "minLength": 1,
+      "type": "string",
+    },
+    "plan_goal": {
+      "type": "string",
+    },
+    "prompt": {
+      "minLength": 1,
+      "type": "string",
+    },
+    "step_index": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer",
+    },
+  },
+  "required": [
+    "agent_id",
+    "prompt",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;
+
+exports[`descriptions PlanContextSchema 1`] = `undefined`;
+
+exports[`descriptions PlanContextSchema 2`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "approved_remaining": {
+      "description": "If true, skip checkpoints for remaining steps in this plan",
+      "type": "boolean",
+    },
+    "goal": {
+      "description": "The overall plan objective",
+      "minLength": 1,
+      "type": "string",
+    },
+    "step_index": {
+      "description": "Current step number (0-based)",
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer",
+    },
+  },
+  "required": [
+    "goal",
+    "step_index",
+    "approved_remaining",
+  ],
+  "type": "object",
+  "~standard": {
+    "jsonSchema": {
+      "input": [Function],
+      "output": [Function],
+    },
+    "validate": [Function],
+    "vendor": "zod",
+    "version": 1,
+  },
+}
+`;

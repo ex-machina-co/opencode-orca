@@ -54,17 +54,17 @@ function createMockClient(options: {
  * Create a valid TaskMessage for testing
  */
 function createTaskMessage(
-  overrides?: Partial<TaskMessage['payload']> & { plan_context?: PlanContext },
+  overrides?: Partial<Omit<TaskMessage, 'type' | 'session_id' | 'timestamp'>> & {
+    plan_context?: PlanContext
+  },
 ): string {
   const message: TaskMessage = {
     type: 'task',
     session_id: '550e8400-e29b-41d4-a716-446655440000',
     timestamp: '2024-01-01T00:00:00.000Z',
-    payload: {
-      agent_id: 'coder',
-      prompt: 'Write a function',
-      ...overrides,
-    },
+    agent_id: 'coder',
+    prompt: 'Write a function',
+    ...overrides,
   }
   return JSON.stringify(message)
 }
@@ -73,17 +73,17 @@ function createTaskMessage(
  * Create a TaskMessage object for testing helper functions
  */
 function createTaskMessageObject(
-  overrides?: Partial<TaskMessage['payload']> & { plan_context?: PlanContext },
+  overrides?: Partial<Omit<TaskMessage, 'type' | 'session_id' | 'timestamp'>> & {
+    plan_context?: PlanContext
+  },
 ): TaskMessage {
   return {
     type: 'task',
     session_id: '550e8400-e29b-41d4-a716-446655440000',
     timestamp: '2024-01-01T00:00:00.000Z',
-    payload: {
-      agent_id: 'coder',
-      prompt: 'Write a function',
-      ...overrides,
-    },
+    agent_id: 'coder',
+    prompt: 'Write a function',
+    ...overrides,
   }
 }
 
@@ -104,7 +104,7 @@ describe('dispatchToAgent', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('failure')
-    expect(parsed.payload.code).toBe('VALIDATION_ERROR')
+    expect(parsed.code).toBe('VALIDATION_ERROR')
   })
 
   test('returns failure for unknown agent', async () => {
@@ -118,9 +118,9 @@ describe('dispatchToAgent', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('failure')
-    expect(parsed.payload.code).toBe('UNKNOWN_AGENT')
-    expect(parsed.payload.cause).toContain('coder')
-    expect(parsed.payload.cause).toContain('researcher')
+    expect(parsed.code).toBe('UNKNOWN_AGENT')
+    expect(parsed.cause).toContain('coder')
+    expect(parsed.cause).toContain('researcher')
   })
 
   test('returns failure when session creation fails', async () => {
@@ -134,7 +134,7 @@ describe('dispatchToAgent', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('failure')
-    expect(parsed.payload.code).toBe('SESSION_NOT_FOUND')
+    expect(parsed.code).toBe('SESSION_NOT_FOUND')
   })
 
   test('returns failure when agent returns empty response', async () => {
@@ -155,8 +155,8 @@ describe('dispatchToAgent', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('failure')
-    expect(parsed.payload.code).toBe('AGENT_ERROR')
-    expect(parsed.payload.message).toContain('empty response')
+    expect(parsed.code).toBe('AGENT_ERROR')
+    expect(parsed.message).toContain('empty response')
   })
 
   test('wraps plain text response as answer message', async () => {
@@ -170,18 +170,16 @@ describe('dispatchToAgent', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('answer')
-    expect(parsed.payload.content).toBe('Here is my plain text response')
-    expect(parsed.payload.agent_id).toBe('coder')
+    expect(parsed.content).toBe('Here is my plain text response')
+    expect(parsed.agent_id).toBe('coder')
   })
 
   test('returns valid JSON response from agent', async () => {
     const validResponse = JSON.stringify({
       type: 'answer',
       timestamp: '2024-01-01T00:00:00.000Z',
-      payload: {
-        agent_id: 'coder',
-        content: 'Task completed',
-      },
+      agent_id: 'coder',
+      content: 'Task completed',
     })
 
     const ctx: DispatchContext = {
@@ -194,7 +192,7 @@ describe('dispatchToAgent', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('answer')
-    expect(parsed.payload.content).toBe('Task completed')
+    expect(parsed.content).toBe('Task completed')
   })
 
   test('returns failure when agent throws error', async () => {
@@ -208,8 +206,8 @@ describe('dispatchToAgent', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('failure')
-    expect(parsed.payload.code).toBe('AGENT_ERROR')
-    expect(parsed.payload.cause).toContain('Agent crashed')
+    expect(parsed.code).toBe('AGENT_ERROR')
+    expect(parsed.cause).toContain('Agent crashed')
   })
 
   test('returns timeout failure when abort signal is triggered', async () => {
@@ -236,7 +234,7 @@ describe('dispatchToAgent', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('failure')
-    expect(parsed.payload.code).toBe('TIMEOUT')
+    expect(parsed.code).toBe('TIMEOUT')
   })
 
   test('uses parent_session_id when provided', async () => {
@@ -331,10 +329,10 @@ describe('createCheckpointMessage', () => {
     expect(checkpoint.type).toBe('checkpoint')
     // Checkpoint is a response message, so no session_id
     expect((checkpoint as Record<string, unknown>).session_id).toBeUndefined()
-    expect(checkpoint.payload.agent_id).toBe('coder')
-    expect(checkpoint.payload.prompt).toBe('Write a function')
-    expect(checkpoint.payload.step_index).toBeUndefined()
-    expect(checkpoint.payload.plan_goal).toBeUndefined()
+    expect(checkpoint.agent_id).toBe('coder')
+    expect(checkpoint.prompt).toBe('Write a function')
+    expect(checkpoint.step_index).toBeUndefined()
+    expect(checkpoint.plan_goal).toBeUndefined()
   })
 
   test('includes plan context fields when present', () => {
@@ -347,8 +345,8 @@ describe('createCheckpointMessage', () => {
     })
     const checkpoint = createCheckpointMessage(task)
 
-    expect(checkpoint.payload.step_index).toBe(2)
-    expect(checkpoint.payload.plan_goal).toBe('Build feature X')
+    expect(checkpoint.step_index).toBe(2)
+    expect(checkpoint.plan_goal).toBe('Build feature X')
   })
 })
 
@@ -369,8 +367,8 @@ describe('dispatchToAgent with supervision', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('checkpoint')
-    expect(parsed.payload.agent_id).toBe('coder')
-    expect(parsed.payload.prompt).toBe('Write a function')
+    expect(parsed.agent_id).toBe('coder')
+    expect(parsed.prompt).toBe('Write a function')
   })
 
   test('proceeds with dispatch when approved_remaining is true', async () => {
@@ -391,7 +389,7 @@ describe('dispatchToAgent with supervision', () => {
 
     // Should proceed to dispatch and return answer, not checkpoint
     expect(parsed.type).toBe('answer')
-    expect(parsed.payload.content).toBe('Done')
+    expect(parsed.content).toBe('Done')
   })
 
   test('proceeds with dispatch for non-supervised agent', async () => {
@@ -405,7 +403,7 @@ describe('dispatchToAgent with supervision', () => {
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('answer')
-    expect(parsed.payload.content).toBe('Research complete')
+    expect(parsed.content).toBe('Research complete')
   })
 
   test('uses defaultSupervised from settings', async () => {
