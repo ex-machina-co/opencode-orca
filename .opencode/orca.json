@@ -11,6 +11,7 @@
   },
   "agents": {
     "executor": { "model": "anthropic/claude-opus-4-5" },
+    "strategist": { "mode": "subagent" },
     "orca": { "model": "openai/gpt-5.2", "reasoningEffort": "low" },
     "github": { "model": "openai/gpt-5.2", "reasoningEffort": "medium" },
     "planner": { "model": "anthropic/claude-opus-4-5" },
