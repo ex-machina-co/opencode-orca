@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'bun:test'
 import { z } from 'zod'
 import { extractFieldDocs, formatFieldDocsAsMarkdownList } from '../jsonschema'
-import { PlanFieldsSchema } from '../payloads'
+import { PlanMessage } from '../messages'
 
 describe('extractFieldDocs', () => {
-  test('extracts field names and descriptions from PlanFieldsSchema', () => {
-    const docs = extractFieldDocs(PlanFieldsSchema, { exclude: ['agent_id'] })
+  test('extracts field names and descriptions from PlanMessage', () => {
+    const docs = extractFieldDocs(PlanMessage, { exclude: ['type', 'timestamp', 'agent_id'] })
 
     expect(docs).toHaveLength(6)
     expect(docs[0]).toEqual({
@@ -23,8 +23,12 @@ describe('extractFieldDocs', () => {
   })
 
   test('excludes specified fields', () => {
-    const docs = extractFieldDocs(PlanFieldsSchema, { exclude: ['agent_id', 'goal', 'steps'] })
+    const docs = extractFieldDocs(PlanMessage, {
+      exclude: ['type', 'timestamp', 'agent_id', 'goal', 'steps'],
+    })
 
+    expect(docs.find((d) => d.name === 'type')).toBeUndefined()
+    expect(docs.find((d) => d.name === 'timestamp')).toBeUndefined()
     expect(docs.find((d) => d.name === 'agent_id')).toBeUndefined()
     expect(docs.find((d) => d.name === 'goal')).toBeUndefined()
     expect(docs.find((d) => d.name === 'steps')).toBeUndefined()
@@ -32,17 +36,15 @@ describe('extractFieldDocs', () => {
   })
 
   test('converts snake_case to Title Case labels', () => {
-    const docs = extractFieldDocs(PlanFieldsSchema, { exclude: ['agent_id'] })
+    const docs = extractFieldDocs(PlanMessage, { exclude: ['type', 'timestamp', 'agent_id'] })
 
     expect(docs.find((d) => d.name === 'files_touched')?.label).toBe('Files Touched')
   })
 
   test('handles schemas with optional fields', () => {
-    // Create a test schema with optional field
-    // Note: In Zod 4, .describe() should come BEFORE .optional() to put description on inner schema
     const TestSchema = z.strictObject({
       required_field: z.string().describe('Required'),
-      optional_field: z.string().describe('Optional').optional(),
+      optional_field: z.string().optional().describe('Optional'),
     })
 
     const docs = extractFieldDocs(TestSchema)
@@ -66,7 +68,7 @@ describe('extractFieldDocs', () => {
 
 describe('formatFieldDocsAsMarkdownList', () => {
   test('generates numbered markdown list', () => {
-    const docs = extractFieldDocs(PlanFieldsSchema, { exclude: ['agent_id'] })
+    const docs = extractFieldDocs(PlanMessage, { exclude: ['type', 'timestamp', 'agent_id'] })
     const formatted = formatFieldDocsAsMarkdownList(docs)
 
     expect(formatted).toContain('1. **Goal**:')
@@ -75,7 +77,7 @@ describe('formatFieldDocsAsMarkdownList', () => {
   })
 
   test('includes descriptions in output', () => {
-    const docs = extractFieldDocs(PlanFieldsSchema, { exclude: ['agent_id'] })
+    const docs = extractFieldDocs(PlanMessage, { exclude: ['type', 'timestamp', 'agent_id'] })
     const formatted = formatFieldDocsAsMarkdownList(docs)
 
     expect(formatted).toContain('Clear statement of what we are achieving')

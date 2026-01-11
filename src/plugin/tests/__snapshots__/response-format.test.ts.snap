@@ -167,7 +167,6 @@ You MUST respond with a valid JSON message envelope.
 {
   "type": "failure",
   "timestamp": "2024-01-15T10:30:00.000Z",
-  "agent_id": "test-agent",
   "code": "AGENT_ERROR",
   "message": "Unable to complete the task due to...",
   "cause": "Missing required configuration..."
@@ -290,7 +289,6 @@ You MUST respond with a valid JSON message envelope.
 {
   "type": "failure",
   "timestamp": "2024-01-15T10:30:00.000Z",
-  "agent_id": "test-agent",
   "code": "AGENT_ERROR",
   "message": "Unable to complete the task due to...",
   "cause": "Missing required configuration..."

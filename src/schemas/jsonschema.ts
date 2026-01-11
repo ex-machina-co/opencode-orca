@@ -27,33 +27,25 @@ export interface FieldDoc {
  *
  * @example
  * ```ts
- * const docs = extractFieldDocs(PlanFieldsSchema, { exclude: ['agent_id'] })
+ * const docs = extractFieldDocs(PlanMessage, { exclude: ['type', 'timestamp', 'agent_id'] })
  * // Returns: [{ name: 'goal', label: 'Goal', description: '...', optional: false }, ...]
  * ```
  */
-export function extractFieldDocs(
-  schema: z.ZodObject<z.ZodRawShape>,
+export function extractFieldDocs<Schema extends z.ZodObject<Shape>, Shape extends z.ZodRawShape>(
+  schema: Schema,
   options: { exclude?: string[] } = {},
 ): FieldDoc[] {
   const { exclude = [] } = options
   const shape = schema.shape
   const docs: FieldDoc[] = []
 
-  for (const [name, fieldSchema] of Object.entries(shape)) {
+  for (const name of Object.keys(shape)) {
     if (exclude.includes(name)) continue
 
-    // Use isOptional() method to check optionality (Zod 4 compatible)
-    // biome-ignore lint/suspicious/noExplicitAny: Zod 4 types are complex, runtime check is reliable
-    const schemaAny = fieldSchema as any
-    const optional = typeof schemaAny.isOptional === 'function' ? schemaAny.isOptional() : false
+    const fieldSchema = shape[name] as z.ZodType // minor hack because of Object typing difficulties...
 
-    // Get description - try unwrap() for optional schemas, fall back to direct access
-    let description: string | undefined
-    if (optional && typeof schemaAny.unwrap === 'function') {
-      description = schemaAny.unwrap().description
-    } else {
-      description = schemaAny.description
-    }
+    const optional = fieldSchema.safeParse(undefined).success
+    const description = fieldSchema.description
 
     // Convert field name to human-readable label
     // e.g., 'files_touched' -> 'Files Touched'

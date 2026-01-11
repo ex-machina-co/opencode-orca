@@ -157,7 +157,7 @@ gh extension install yahsan2/gh-sub-issue
 | `epic`    | Larger effort with sub-issues |
 | `bug`     | Something broken              |
 | `feature` | New functionality             |
-| `chore`   | Maintenance/cleanup           |
+| `enhancement` | Enhancements, maintenance, cleanup |
 
 ### Project Board Statuses
 | Status      | Meaning                         |
@@ -311,7 +311,7 @@ When asked to mark an issue done:
 
 When asked to park something for later:
 
-1. Delegate to github agent: Create issue with title, label: chore, body with context, assigned to @me
+1. Delegate to github agent: Create issue with title, label: enhancement, body with context, assigned to @me
 2. Delegate to github agent: Add issue to project board (status: Todo)
 3. Confirm the parked idea with issue number
 

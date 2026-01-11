@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
-import { MessageEnvelopeSchema } from '../../schemas/messages'
-import { type ResponseType, ResponseTypeSchema } from '../config'
+import { z } from 'zod'
+import { MessageEnvelope } from '../../schemas/messages'
+import { ResponseType } from '../config'
 import {
   TYPE_GUIDANCE,
   createResponseExamples,
@@ -10,12 +11,12 @@ import {
 describe('createResponseExamples', () => {
   const responseTypes: ResponseType[] = ['answer', 'plan', 'question', 'failure']
 
-  test.each(responseTypes)('%s example validates against MessageEnvelopeSchema', (type) => {
+  test.each(responseTypes)('%s example validates against MessageEnvelope', (type) => {
     const examples = createResponseExamples('test-agent')
-    const result = MessageEnvelopeSchema.safeParse(examples[type])
+    const result = MessageEnvelope.safeParse(examples[type])
 
     if (!result.success) {
-      console.error(`Validation errors for ${type}:`, result.error.format())
+      console.error(`Validation errors for ${type}:`, z.treeifyError(result.error))
     }
     expect(result.success).toBe(true)
   })
@@ -26,7 +27,7 @@ describe('createResponseExamples', () => {
     expect(examples.answer.agent_id).toBe('my-custom-agent')
     expect(examples.plan.agent_id).toBe('my-custom-agent')
     expect(examples.question.agent_id).toBe('my-custom-agent')
-    expect(examples.failure.agent_id).toBe('my-custom-agent')
+    expect(examples.failure).not.toHaveProperty('agent_id')
   })
 
   test('no examples contain session_id', () => {
@@ -55,7 +56,7 @@ describe('generateResponseFormatInstructions', () => {
     expect(result).toBe('')
   })
 
-  test.each(ResponseTypeSchema.options)(
+  test.each(ResponseType.options)(
     'generates correct format instructions for %s response type',
     (type) => {
       const result = generateResponseFormatInstructions('test-agent', [type])
@@ -64,9 +65,7 @@ describe('generateResponseFormatInstructions', () => {
   )
 
   test('generates correct format instructions for ALL response types', () => {
-    expect(
-      generateResponseFormatInstructions('test-agent', ResponseTypeSchema.options),
-    ).toMatchSnapshot()
+    expect(generateResponseFormatInstructions('test-agent', ResponseType.options)).toMatchSnapshot()
   })
 
   test('includes MUST respond directive', () => {

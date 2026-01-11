@@ -2,19 +2,11 @@ import dedent from 'dedent'
 import type { AgentConfig } from '../plugin/config'
 import { SPECIALIST_LIST_PLACEHOLDER } from '../plugin/constants'
 import { extractFieldDocs, formatFieldDocsAsMarkdownList } from '../schemas/jsonschema'
-import { PlanFieldsSchema } from '../schemas/payloads'
+import { PlanMessage } from '../schemas/messages'
 
-/**
- * Generate the "Your output should include" section from PlanFieldsSchema.
- * This ensures the prompt stays in sync with the schema definition.
- */
-function generatePlanOutputDocs(): string {
-  const docs = extractFieldDocs(PlanFieldsSchema, { exclude: ['agent_id'] })
-  return formatFieldDocsAsMarkdownList(docs)
-}
-
-// Generate once at module load time
-const planOutputDocs = generatePlanOutputDocs()
+const planOutputDocs = formatFieldDocsAsMarkdownList(
+  extractFieldDocs(PlanMessage, { exclude: ['type', 'timestamp', 'agent_id'] }),
+)
 
 export const planner: AgentConfig = {
   mode: 'subagent',

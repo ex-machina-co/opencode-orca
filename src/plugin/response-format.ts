@@ -1,11 +1,4 @@
-import { ErrorCode } from '../schemas/errors'
-import type {
-  AnswerMessage,
-  FailureMessage,
-  PlanMessage,
-  QuestionMessage,
-  SuccessMessage,
-} from '../schemas/messages'
+import type { MessageEnvelope } from '../schemas/messages'
 import type { ResponseType } from './config'
 
 /**
@@ -13,11 +6,7 @@ import type { ResponseType } from './config'
  * TypeScript ensures these stay in sync with the message schemas.
  */
 type ResponseExamples = {
-  answer: AnswerMessage
-  success: SuccessMessage
-  plan: PlanMessage
-  question: QuestionMessage
-  failure: FailureMessage
+  [responseType in ResponseType]: Extract<MessageEnvelope, { type: responseType }>
 }
 
 /**
@@ -88,8 +77,7 @@ export function createResponseExamples(agentId: string): ResponseExamples {
     failure: {
       type: 'failure',
       timestamp: '2024-01-15T10:30:00.000Z',
-      agent_id: agentId,
-      code: ErrorCode.AGENT_ERROR,
+      code: 'AGENT_ERROR',
       message: 'Unable to complete the task due to...',
       cause: 'Missing required configuration...',
     },
@@ -125,10 +113,9 @@ export function generateResponseFormatInstructions(
   }
 
   const typeList = responseTypes.map((t) => `\`${t}\``).join(', ')
-
   const guidanceLines = responseTypes.map((t) => `- **${t}**: ${TYPE_GUIDANCE[t]}`).join('\n')
-
   const allExamples = createResponseExamples(agentId)
+
   const examples = responseTypes
     .map((t) => {
       const example = JSON.stringify(allExamples[t], null, 2)

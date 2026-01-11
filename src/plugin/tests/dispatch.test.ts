@@ -1,7 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test'
 import type { OpencodeClient } from '@opencode-ai/sdk'
-import type { TaskMessage } from '../../schemas/messages'
-import type { PlanContext } from '../../schemas/payloads'
+import type { PlanContext, TaskMessage } from '../../schemas/messages'
 import {
   type DispatchContext,
   createCheckpointMessage,
@@ -50,29 +49,7 @@ function createMockClient(options: {
   return { session: mockSession } as unknown as OpencodeClient
 }
 
-/**
- * Create a valid TaskMessage for testing
- */
 function createTaskMessage(
-  overrides?: Partial<Omit<TaskMessage, 'type' | 'session_id' | 'timestamp'>> & {
-    plan_context?: PlanContext
-  },
-): string {
-  const message: TaskMessage = {
-    type: 'task',
-    session_id: '550e8400-e29b-41d4-a716-446655440000',
-    timestamp: '2024-01-01T00:00:00.000Z',
-    agent_id: 'coder',
-    prompt: 'Write a function',
-    ...overrides,
-  }
-  return JSON.stringify(message)
-}
-
-/**
- * Create a TaskMessage object for testing helper functions
- */
-function createTaskMessageObject(
   overrides?: Partial<Omit<TaskMessage, 'type' | 'session_id' | 'timestamp'>> & {
     plan_context?: PlanContext
   },
@@ -100,27 +77,11 @@ describe('dispatchToAgent', () => {
       validationConfig: DEFAULT_VALIDATION_CONFIG,
     }
 
-    const result = await dispatchToAgent('not valid json', ctx)
+    const result = await dispatchToAgent('not valid json' as unknown as TaskMessage, ctx)
     const parsed = JSON.parse(result)
 
     expect(parsed.type).toBe('failure')
     expect(parsed.code).toBe('VALIDATION_ERROR')
-  })
-
-  test('returns failure for unknown agent', async () => {
-    const ctx: DispatchContext = {
-      client: createMockClient({}),
-      agents: testAgents,
-      validationConfig: DEFAULT_VALIDATION_CONFIG,
-    }
-
-    const result = await dispatchToAgent(createTaskMessage({ agent_id: 'unknown-agent' }), ctx)
-    const parsed = JSON.parse(result)
-
-    expect(parsed.type).toBe('failure')
-    expect(parsed.code).toBe('UNKNOWN_AGENT')
-    expect(parsed.cause).toContain('coder')
-    expect(parsed.cause).toContain('researcher')
   })
 
   test('returns failure when session creation fails', async () => {
@@ -323,7 +284,7 @@ describe('isAgentSupervised', () => {
 
 describe('createCheckpointMessage', () => {
   test('creates checkpoint from task message', () => {
-    const task = createTaskMessageObject()
+    const task = createTaskMessage()
     const checkpoint = createCheckpointMessage(task)
 
     expect(checkpoint.type).toBe('checkpoint')
@@ -336,7 +297,7 @@ describe('createCheckpointMessage', () => {
   })
 
   test('includes plan context fields when present', () => {
-    const task = createTaskMessageObject({
+    const task = createTaskMessage({
       plan_context: {
         goal: 'Build feature X',
         step_index: 2,

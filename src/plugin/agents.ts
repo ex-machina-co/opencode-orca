@@ -1,4 +1,11 @@
-import * as agents from '../agents'
+import { architect } from '../agents/architect'
+import { coder } from '../agents/coder'
+import { documentWriter } from '../agents/document-writer'
+import { orca } from '../agents/orca'
+import { planner } from '../agents/planner'
+import { researcher } from '../agents/researcher'
+import { reviewer } from '../agents/reviewer'
+import { tester } from '../agents/tester'
 import type { AgentConfig, ResponseType } from './config'
 import { PROTECTED_AGENTS, SPECIALIST_LIST_PLACEHOLDER } from './constants'
 import { generateResponseFormatInstructions } from './response-format'
@@ -35,17 +42,14 @@ function withProtocol(agentId: string, agent: AgentConfig): AgentConfig {
  * overridden or extended via .opencode/orca.json
  */
 export const DEFAULT_AGENTS: Record<string, AgentConfig> = {
-  orca: withProtocol('orca', agents.orca),
-  planner: withProtocol('planner', { ...agents.planner, specialist: true }),
-  coder: withProtocol('coder', { ...agents.coder, specialist: true }),
-  tester: withProtocol('tester', { ...agents.tester, specialist: true }),
-  reviewer: withProtocol('reviewer', { ...agents.reviewer, specialist: true }),
-  researcher: withProtocol('researcher', { ...agents.researcher, specialist: true }),
-  'document-writer': withProtocol('document-writer', {
-    ...agents.documentWriter,
-    specialist: true,
-  }),
-  architect: withProtocol('architect', { ...agents.architect, specialist: true }),
+  orca: withProtocol('orca', orca),
+  planner: withProtocol('planner', { ...planner, specialist: true }),
+  coder: withProtocol('coder', { ...coder, specialist: true }),
+  tester: withProtocol('tester', { ...tester, specialist: true }),
+  reviewer: withProtocol('reviewer', { ...reviewer, specialist: true }),
+  researcher: withProtocol('researcher', { ...researcher, specialist: true }),
+  'document-writer': withProtocol('document-writer', { ...documentWriter, specialist: true }),
+  architect: withProtocol('architect', { ...architect, specialist: true }),
 }
 
 /**

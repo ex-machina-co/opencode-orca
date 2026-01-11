@@ -1,18 +1,9 @@
 import dedent from 'dedent'
 import type { AgentConfig } from '../plugin/config'
 import { extractFieldDocs, formatFieldDocsAsCodeList } from '../schemas/jsonschema'
-import { PlanContextSchema } from '../schemas/payloads'
+import { PlanContext } from '../schemas/messages'
 
-/**
- * Generate plan_context field documentation from schema.
- * This ensures the prompt stays in sync with the schema definition.
- */
-const planContextFieldDocs = formatFieldDocsAsCodeList(extractFieldDocs(PlanContextSchema))
-
-/**
- * Orca - The primary orchestrator agent
- * Routes tasks to specialist agents based on context and requirements
- */
+const planContextFieldDocs = formatFieldDocsAsCodeList(extractFieldDocs(PlanContext))
 export const orca: AgentConfig = {
   mode: 'primary',
   responseTypes: [],

@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test'
-import { ErrorCode } from '../../schemas/errors'
 import type { AnswerMessage } from '../../schemas/messages'
 import {
   createFailureMessage,
@@ -40,7 +39,7 @@ describe('validation', () => {
     test('returns error for invalid schema', () => {
       const invalidMessage = {
         type: 'answer',
-        // missing timestamp, payload
+        // missing timestamp, agent_id, content
       }
 
       const result = validateMessage(JSON.stringify(invalidMessage))
@@ -71,7 +70,7 @@ describe('validation', () => {
   describe('createFailureMessage', () => {
     test('creates failure envelope with all fields', () => {
       const result = createFailureMessage(
-        ErrorCode.VALIDATION_ERROR,
+        'VALIDATION_ERROR',
         'Something went wrong',
         'Detailed cause',
       )
@@ -85,7 +84,7 @@ describe('validation', () => {
     })
 
     test('creates failure envelope without cause', () => {
-      const result = createFailureMessage(ErrorCode.TIMEOUT, 'Request timed out')
+      const result = createFailureMessage('TIMEOUT', 'Request timed out')
 
       expect(result.type).toBe('failure')
       expect(result.code).toBe('TIMEOUT')
