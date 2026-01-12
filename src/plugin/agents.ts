@@ -1,3 +1,4 @@
+import { cloneDeep, merge } from 'lodash'
 import { architect } from '../agents/architect'
 import { coder } from '../agents/coder'
 import { documentWriter } from '../agents/document-writer'
@@ -12,9 +13,8 @@ import { generateResponseFormatInstructions } from './response-format'
 
 const mergeConfigs = (a: AgentConfig, b: AgentConfig): AgentConfig => {
   return {
-    ...a,
-    ...b,
-    messageTypes: new Set([...(a.messageTypes ?? []), ...(b.messageTypes ?? [])])
+    ...merge(cloneDeep(a), cloneDeep(b)),
+    messageTypes: new Set(b.messageTypes?.length ? b.messageTypes : (a.messageTypes ?? []))
       .values()
       .toArray(),
   }
@@ -41,12 +41,8 @@ export const parseAgentConfig = (agentId: string, agent: AgentConfig): AgentConf
   }
 
   if (agent.specialist) {
-    baseConfig.messageTypes.push('task')
+    baseConfig.messageTypes.push('task', 'question')
     baseConfig.mode = agent.mode || 'subagent'
-  }
-
-  if (agent.supervised) {
-    baseConfig.messageTypes.push('checkpoint')
   }
 
   return mergeConfigs(baseConfig, parsedConfig)

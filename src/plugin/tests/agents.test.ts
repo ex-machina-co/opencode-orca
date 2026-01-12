@@ -4,6 +4,7 @@ import {
   generateSpecialistList,
   injectSpecialistList,
   mergeAgentConfigs,
+  parseAgentConfig,
 } from '../agents'
 import type { AgentConfig } from '../config'
 import { PROTECTED_AGENTS, SPECIALIST_LIST_PLACEHOLDER } from '../constants'
@@ -115,11 +116,7 @@ describe('DEFAULT_AGENTS messageTypes', () => {
   })
 
   test('planner has full messageTypes', () => {
-    expect(DEFAULT_AGENTS.planner.messageTypes).toMatchInlineSnapshot(`
-      [
-        "question",
-      ]
-    `)
+    expect(DEFAULT_AGENTS.planner.messageTypes).toMatchInlineSnapshot('[]')
   })
 
   test.each([
@@ -157,7 +154,7 @@ describe('protected agents in mergeAgentConfigs', () => {
       orca: { mode: 'primary', messageTypes: [], prompt: 'Default prompt', color: '#000000' },
     }
     const user: Record<string, AgentConfig> = {
-      orca: { messageTypes: ['answer'], prompt: 'Custom prompt', model: 'gpt-4o' },
+      orca: { messageTypes: ['task'], prompt: 'Custom prompt', model: 'gpt-4o' },
     }
     const result = mergeAgentConfigs(defaults, user)
 
@@ -172,18 +169,18 @@ describe('protected agents in mergeAgentConfigs', () => {
     const defaults: Record<string, AgentConfig> = {
       planner: {
         mode: 'subagent',
-        messageTypes: ['plan', 'answer', 'question', 'failure'],
+        messageTypes: ['question'],
         prompt: 'Default planner prompt',
       },
     }
     const user: Record<string, AgentConfig> = {
-      planner: { messageTypes: ['answer'], prompt: 'Custom prompt', model: 'gpt-4o' },
+      planner: { messageTypes: ['task'], prompt: 'Custom prompt', model: 'gpt-4o' },
     }
     const result = mergeAgentConfigs(defaults, user)
 
     // Entire config should be unchanged
     expect(result.planner).toEqual(defaults.planner)
-    expect(result.planner.messageTypes).toEqual(['plan', 'answer', 'question', 'failure'])
+    expect(result.planner.messageTypes).toEqual(['question'])
     expect(result.planner.prompt).toBe('Default planner prompt')
     expect(result.planner.model).toBeUndefined()
   })
@@ -245,13 +242,13 @@ describe('protected agents in mergeAgentConfigs', () => {
 
   test('non-protected agents can override messageTypes', () => {
     const defaults: Record<string, AgentConfig> = {
-      coder: { mode: 'subagent', messageTypes: ['answer', 'failure'] },
+      coder: { mode: 'subagent', messageTypes: ['task'] },
     }
     const user: Record<string, AgentConfig> = {
-      coder: { messageTypes: ['answer', 'question'] },
+      coder: { messageTypes: ['question'] },
     }
     const result = mergeAgentConfigs(defaults, user)
-    expect(result.coder.messageTypes).toEqual(['answer', 'question'])
+    expect(result.coder.messageTypes).toEqual(['question'])
   })
 
   test('custom agents can set messageTypes', () => {
@@ -261,11 +258,11 @@ describe('protected agents in mergeAgentConfigs', () => {
     const user: Record<string, AgentConfig> = {
       'my-specialist': {
         mode: 'subagent',
-        messageTypes: ['answer', 'question'],
+        messageTypes: ['task', 'question'],
       },
     }
     const result = mergeAgentConfigs(defaults, user)
-    expect(result['my-specialist'].messageTypes).toEqual(['answer', 'question'])
+    expect(result['my-specialist'].messageTypes).toEqual(['task', 'question'])
   })
 })
 
@@ -670,5 +667,160 @@ describe('injectSpecialistList', () => {
     // Should NOT include orca or planner itself
     expect(result.planner.prompt).not.toMatch(/- \*\*orca\*\*:/)
     expect(result.planner.prompt).not.toMatch(/- \*\*planner\*\*:/)
+  })
+})
+
+describe('parseAgentConfig', () => {
+  describe('orca agent', () => {
+    test('defaults supervised to false', () => {
+      const result = parseAgentConfig('orca', {})
+      expect(result.supervised).toBe(false)
+    })
+
+    test('defaults specialist to false', () => {
+      const result = parseAgentConfig('orca', {})
+      expect(result.specialist).toBe(false)
+    })
+
+    test('defaults mode to primary', () => {
+      const result = parseAgentConfig('orca', {})
+      expect(result.mode).toBe('primary')
+    })
+
+    test('allows explicit overrides', () => {
+      const result = parseAgentConfig('orca', {
+        supervised: true,
+        specialist: true,
+        mode: 'subagent',
+      })
+      expect(result.supervised).toBe(true)
+      expect(result.specialist).toBe(true)
+      expect(result.mode).toBe('subagent')
+    })
+
+    test('preserves other config values', () => {
+      const result = parseAgentConfig('orca', {
+        prompt: 'Test prompt',
+        model: 'gpt-4o',
+        color: '#FF0000',
+      })
+      expect(result.prompt).toBe('Test prompt')
+      expect(result.model).toBe('gpt-4o')
+      expect(result.color).toBe('#FF0000')
+    })
+
+    test('initializes messageTypes to empty array', () => {
+      const result = parseAgentConfig('orca', {})
+      expect(result.messageTypes).toEqual([])
+    })
+  })
+
+  describe('planner agent', () => {
+    test('defaults supervised to false', () => {
+      const result = parseAgentConfig('planner', {})
+      expect(result.supervised).toBe(false)
+    })
+
+    test('defaults specialist to false', () => {
+      const result = parseAgentConfig('planner', {})
+      expect(result.specialist).toBe(false)
+    })
+
+    test('defaults mode to subagent', () => {
+      const result = parseAgentConfig('planner', {})
+      expect(result.mode).toBe('subagent')
+    })
+
+    test('allows explicit overrides', () => {
+      const result = parseAgentConfig('planner', {
+        supervised: true,
+        specialist: true,
+        mode: 'primary',
+      })
+      expect(result.supervised).toBe(true)
+      expect(result.specialist).toBe(true)
+      expect(result.mode).toBe('primary')
+    })
+
+    test('preserves other config values', () => {
+      const result = parseAgentConfig('planner', {
+        prompt: 'Planner prompt',
+        model: 'claude-3',
+        temperature: 0.5,
+      })
+      expect(result.prompt).toBe('Planner prompt')
+      expect(result.model).toBe('claude-3')
+      expect(result.temperature).toBe(0.5)
+    })
+
+    test('initializes messageTypes to empty array', () => {
+      const result = parseAgentConfig('planner', {})
+      expect(result.messageTypes).toEqual([])
+    })
+  })
+
+  describe('specialist agents', () => {
+    test('defaults to task and question messageTypes when specialist: true', () => {
+      const result = parseAgentConfig('coder', { specialist: true })
+      expect(result.messageTypes).toEqual(['task', 'question'])
+    })
+
+    test('does not add messageTypes when specialist: false', () => {
+      const result = parseAgentConfig('coder', { specialist: false })
+      expect(result.messageTypes).toEqual([])
+    })
+
+    test('does not add messageTypes when specialist not set', () => {
+      const result = parseAgentConfig('coder', {})
+      expect(result.messageTypes).toEqual([])
+    })
+
+    test('defaults to subagent mode when specialist: true and no mode provided', () => {
+      const result = parseAgentConfig('coder', { specialist: true })
+      expect(result.mode).toBe('subagent')
+    })
+
+    test('uses provided mode when specialist: true', () => {
+      const result = parseAgentConfig('coder', { specialist: true, mode: 'primary' })
+      expect(result.mode).toBe('primary')
+    })
+
+    test('provided messageTypes completely replaces defaults', () => {
+      const result = parseAgentConfig('coder', {
+        specialist: true,
+        messageTypes: ['task'],
+      })
+      expect(result.messageTypes).toEqual(['task'])
+      expect(result.messageTypes).not.toContain('question')
+    })
+
+    test('deduplicates messageTypes using Set', () => {
+      const result = parseAgentConfig('coder', {
+        messageTypes: ['question', 'question', 'task'],
+      })
+      expect(result.messageTypes).toEqual(['question', 'task'])
+    })
+  })
+
+  describe('general behavior', () => {
+    test('validates config through AgentConfig schema', () => {
+      expect(() =>
+        parseAgentConfig('test', {
+          temperature: 3, // Invalid: max is 2
+        }),
+      ).toThrow()
+    })
+
+    test('allows pass-through fields from loose schema', () => {
+      const result = parseAgentConfig('test', {
+        customField: 'value',
+      } as AgentConfig)
+      expect((result as Record<string, unknown>).customField).toBe('value')
+    })
+
+    test('provides default messageTypes as empty array', () => {
+      const result = parseAgentConfig('custom-agent', {})
+      expect(result.messageTypes).toEqual([])
+    })
   })
 })

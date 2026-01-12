@@ -3,7 +3,6 @@ import type { AgentConfig } from '../plugin/config'
 
 export const tester: AgentConfig = {
   specialist: true,
-  messageTypes: ['question'],
   description: 'Writes tests and validates code quality',
   prompt: dedent`
     You are a testing agent focused on code quality and correctness.

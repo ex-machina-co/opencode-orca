@@ -7,28 +7,13 @@ exports[`generateResponseFormatInstructions generates correct format instruction
 
 You MUST respond with a valid JSON object. Nothing else.
 
-**Allowed response types:** \`answer\`, \`plan\`
+**Allowed response types:** \`plan\`
 
 ### Type Selection Guidance
 
-- **answer**: Use when providing information, completing analysis, or returning results.
 - **plan**: Use when proposing a multi-step execution plan that requires approval.
 
 ### JSON Examples
-
-### answer
-{
-  "type": "answer",
-  "content": "The implementation uses...",
-  "sources": [
-    {
-      "type": "file",
-      "ref": "src/index.ts",
-      "title": "Main entry",
-      "excerpt": "export function..."
-    }
-  ]
-}
 
 ### plan
 {
@@ -263,17 +248,30 @@ exports[`generateResponseFormatInstructions generates correct format instruction
 
 You MUST respond with a valid JSON object. Nothing else.
 
-**Allowed response types:** \`success\`, \`failure\`, \`checkpoint\`, \`answer\`, \`interrupt\`
+**Allowed response types:** \`answer\`, \`success\`, \`failure\`, \`interrupt\`
 
 ### Type Selection Guidance
 
+- **answer**: Use when providing information, completing analysis, or returning results.
 - **success**: Use when a task has been completed successfully with details of what was done.
 - **failure**: Use when the task cannot be completed due to an error or blocker.
-- **checkpoint**: Use then HITL supervision is required.
-- **answer**: Use when providing information, completing analysis, or returning results.
 - **interrupt**: Use when the agent requires immediate attention or intervention.
 
 ### JSON Examples
+
+### answer
+{
+  "type": "answer",
+  "content": "The implementation uses...",
+  "sources": [
+    {
+      "type": "file",
+      "ref": "src/index.ts",
+      "title": "Main entry",
+      "excerpt": "export function..."
+    }
+  ]
+}
 
 ### success
 {
@@ -298,26 +296,6 @@ You MUST respond with a valid JSON object. Nothing else.
   "code": "AGENT_ERROR",
   "message": "Unable to complete the task due to...",
   "cause": "Missing required configuration..."
-}
-
-### checkpoint
-{
-  "type": "checkpoint",
-  "prompt": "The agent is requesting to ... Continue?"
-}
-
-### answer
-{
-  "type": "answer",
-  "content": "The implementation uses...",
-  "sources": [
-    {
-      "type": "file",
-      "ref": "src/index.ts",
-      "title": "Main entry",
-      "excerpt": "export function..."
-    }
-  ]
 }
 
 ### interrupt
@@ -386,17 +364,30 @@ exports[`generateResponseFormatInstructions generates correct format instruction
 
 You MUST respond with a valid JSON object. Nothing else.
 
-**Allowed response types:** \`success\`, \`failure\`, \`checkpoint\`, \`answer\`, \`interrupt\`
+**Allowed response types:** \`answer\`, \`success\`, \`failure\`, \`interrupt\`
 
 ### Type Selection Guidance
 
+- **answer**: Use when providing information, completing analysis, or returning results.
 - **success**: Use when a task has been completed successfully with details of what was done.
 - **failure**: Use when the task cannot be completed due to an error or blocker.
-- **checkpoint**: Use then HITL supervision is required.
-- **answer**: Use when providing information, completing analysis, or returning results.
 - **interrupt**: Use when the agent requires immediate attention or intervention.
 
 ### JSON Examples
+
+### answer
+{
+  "type": "answer",
+  "content": "The implementation uses...",
+  "sources": [
+    {
+      "type": "file",
+      "ref": "src/index.ts",
+      "title": "Main entry",
+      "excerpt": "export function..."
+    }
+  ]
+}
 
 ### success
 {
@@ -421,26 +412,6 @@ You MUST respond with a valid JSON object. Nothing else.
   "code": "AGENT_ERROR",
   "message": "Unable to complete the task due to...",
   "cause": "Missing required configuration..."
-}
-
-### checkpoint
-{
-  "type": "checkpoint",
-  "prompt": "The agent is requesting to ... Continue?"
-}
-
-### answer
-{
-  "type": "answer",
-  "content": "The implementation uses...",
-  "sources": [
-    {
-      "type": "file",
-      "ref": "src/index.ts",
-      "title": "Main entry",
-      "excerpt": "export function..."
-    }
-  ]
 }
 
 ### interrupt

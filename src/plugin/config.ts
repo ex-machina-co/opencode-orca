@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import dedent from 'dedent'
 import { z } from 'zod'
 import { AgentId } from '../schemas/common'
-import { MessageType } from '../schemas/messages'
+import { MessageType, QuestionMessage, TaskMessage } from '../schemas/messages'
 
 export const PermissionConfig = z
   .strictObject({
@@ -43,11 +43,11 @@ export const AgentConfig = z
       .optional()
       .describe('Whether this agent requires approval before dispatch'),
     messageTypes: z
-      .array(MessageType)
+      .array(QuestionMessage.shape.type.or(TaskMessage.shape.type))
       .default([])
       .optional()
       .describe(dedent`
-        Message types this agent can be sent.
+        Message types this agent can be dispatched.
         Defaults to ['task'] for specialist agents.
       `),
     specialist: z

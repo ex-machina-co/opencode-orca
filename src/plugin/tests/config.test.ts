@@ -104,8 +104,8 @@ describe('config', () => {
     })
 
     test('accepts messageTypes array', () => {
-      const result = AgentConfig.parse({ messageTypes: ['answer', 'failure'] })
-      expect(result.messageTypes).toEqual(['answer', 'failure'])
+      const result = AgentConfig.parse({ messageTypes: ['task'] })
+      expect(result.messageTypes).toEqual(['task'])
     })
 
     test('accepts empty messageTypes array', () => {
