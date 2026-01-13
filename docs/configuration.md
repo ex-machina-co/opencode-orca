@@ -17,49 +17,59 @@ Both top-level keys are optional. The file itself is optional.
 
 Global plugin settings under the `settings` key.
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `defaultSupervised` | boolean | `false` | Require user approval for all agents by default |
-| `defaultModel` | string | - | Default model for agents without explicit model config |
-| `updateNotifier` | boolean | `true` | Show notifications about plugin updates |
-| `validation.maxRetries` | number (0-10) | `3` | Max retries when agent response fails validation |
-| `validation.wrapPlainText` | boolean | `true` | Wrap plain text responses in result messages |
+| Option                     | Type          | Default | Description                                            |
+|----------------------------|---------------|---------|--------------------------------------------------------|
+| `defaultSupervised`        | boolean       | `false` | Require user approval for all agents by default        |
+| `defaultModel`             | string        |         | Default model for agents without explicit model config |
+| `updateNotifier`           | boolean       | `true`  | Show notifications about plugin updates                |
+| `validation.maxRetries`    | number (0-10) | `3`     | Max retries when agent response fails validation       |
+| `validation.wrapPlainText` | boolean       | `true`  | Wrap plain text responses in result messages           |
 
 ## Agent Configuration
 
 Override built-in agents or define custom ones under the `agents` key.
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `model` | string | Model identifier (e.g., `claude-sonnet-4-20250514`) |
-| `temperature` | number (0-2) | Sampling temperature |
-| `top_p` | number (0-1) | Nucleus sampling parameter |
-| `prompt` | string | System prompt (overrides built-in prompt) |
-| `tools` | `Record<string, boolean>` | Enable/disable specific tools |
-| `disable` | boolean | Disable this agent entirely |
-| `description` | string | Agent description shown in UI |
-| `mode` | `'subagent'` \| `'primary'` \| `'all'` | Agent visibility mode |
-| `color` | string | Hex color for UI display (`#RRGGBB`) |
-| `maxSteps` | number | Maximum steps before agent stops |
-| `permission` | PermissionConfig | Permission overrides (see below) |
-| `supervised` | boolean | Require user approval before dispatch |
-| `responseTypes` | array | Allowed response types (see below) |
+| Option        | Type                              | Description                                            |
+| ------------- | --------------------------------- | ------------------------------------------------------ |
+| `model`         | string                            | Model identifier (e.g., `claude-sonnet-4-20250514`)    |
+| `temperature`   | number (0-2)                      | Sampling temperature                                   |
+| `top_p`         | number (0-1)                      | Nucleus sampling parameter                             |
+| `prompt`        | string                            | System prompt (overrides built-in prompt)              |
+| `tools`         | `Record<string, boolean>`         | Enable/disable specific tools                          |
+| `disable`       | boolean                           | Disable this agent entirely                            |
+| `description`   | string                            | Agent description shown in UI                          |
+| `mode`          | `'subagent' \| 'primary' \| 'all'` | Agent visibility mode                                  |
+| `color`         | string                            | Hex color for UI display (`#RRGGBB`)                   |
+| `maxSteps`      | number                            | Maximum steps before agent stops                       |
+| `permission`    | PermissionConfig                  | Permission overrides (see below)                       |
+| `supervised`    | boolean                           | Require user approval before dispatch                  |
+| `accepts`       | `('task' \| 'question')[]`          | Message types this agent accepts (see below)           |
+| `specialist`    | boolean                           | Include in Orca's specialist list                      |
 
-### Response Types
+### Accepts (Input Types)
 
-Allowed message types: `answer`, `plan`, `question`, `escalation`, `failure`. Default: `['answer', 'failure']`
+The `accepts` array defines what message types can be dispatched TO an agent:
+
+| Value        | Purpose                 |
+|--------------|-------------------------|
+| `'task'`     | Work execution requests |
+| `'question'` | Information requests    |
+
+Default for specialists: `['task', 'question']`. Response types are derived automatically.
+
+> **Note**: `orca` and `planner` are protected and cannot be overridden via user config.
 
 ### Permission Config
 
 Fine-grained permission control per agent.
 
-| Permission | Type | Description |
-|------------|------|-------------|
-| `edit` | `'ask'` \| `'allow'` \| `'deny'` | File editing permission |
-| `bash` | enum or `Record<pattern, enum>` | Shell command permission |
-| `webfetch` | `'ask'` \| `'allow'` \| `'deny'` | Web fetch permission |
-| `doom_loop` | `'ask'` \| `'allow'` \| `'deny'` | Allow repeated failures |
-| `external_directory` | `'ask'` \| `'allow'` \| `'deny'` | Access outside project |
+| Permission           | Type                            | Description              |
+|----------------------|---------------------------------|--------------------------|
+| `edit`               | `'ask' \| 'allow' \| 'deny'`    | File editing permission  |
+| `bash`               | enum or `Record<pattern, enum>` | Shell command permission |
+| `webfetch`           | `'ask' \| 'allow' \| 'deny'`    | Web fetch permission     |
+| `doom_loop`          | `'ask' \| 'allow' \| 'deny'`    | Allow repeated failures  |
+| `external_directory` | `'ask' \| 'allow' \| 'deny'`    | Access outside project   |
 
 For `bash`, you can specify per-command patterns:
 
@@ -114,8 +124,9 @@ Define a project-specific specialist:
       "description": "Designs REST API endpoints",
       "model": "claude-sonnet-4-20250514",
       "mode": "subagent",
+      "specialist": true,
       "prompt": "You are an API design specialist...",
-      "responseTypes": ["answer", "question", "failure"],
+      "accepts": ["question"],
       "supervised": true,
       "permission": {
         "edit": "allow",

@@ -15,19 +15,19 @@ This document describes the system design and architecture decisions behind open
                     |           mode: 'primary'           |
                     +------------------+------------------+
                                        |
-            +-----------+--------------+--------------+-----------+
-            |           |              |              |           |
-            v           v              v              v           v
+            +-----------+-+------------+---------+-+--------------+
+            |           | |            |         | |              |
+            v           v |            v         | v              v
      +------+----+ +----+-----+ +-----+----+ +------+-----+ +-----+------+
      |  Planner  | |  Coder   | |  Tester  | | Researcher | |  Reviewer  |
      |  (plans)  | | (code)   | | (tests)  | |  (search)  | | (quality)  |
      +-----------+ +----------+ +----------+ +------------+ +------------+
-                          |                         |
-                          v                         v
-                   +------+------+          +------+-------+
-                   | Doc Writer  |          |  Architect   |
-                   |   (docs)    |          |  (design)    |
-                   +-------------+          +--------------+
+                          |                      |
+                          v                      v
+                   +------+------+        +------+-------+
+                   | Doc Writer  |        |  Architect   |
+                   |   (docs)    |        |  (design)    |
+                   +-------------+        +--------------+
 ```
 
 ## Agent Classes
@@ -38,10 +38,10 @@ Agents are organized into three classes based on their role in the communication
 
 The primary agent that receives all user messages and coordinates work.
 
-| Sends                   | Receives                                                          | Responds with |
-| ----------------------- | ----------------------------------------------------------------- | ------------- |
-| `question` (to Planner) | `plan`, `answer`, `success`, `failure`, `checkpoint`, `interrupt` | (to user)     |
-| `task` (to Specialists) |                                                                   |               |
+| Sends                   | Receives                                        |
+|-------------------------|-------------------------------------------------|
+| `question` (to Planner) | `plan`, `answer`                                |
+| `task` (to Specialists) | `success`, `failure`, `checkpoint`, `interrupt` |
 
 **Key behavior**: Orca sends different message types to different agent classes:
 - To Planner: `question` ("How should we do X?")
@@ -51,30 +51,31 @@ The primary agent that receives all user messages and coordinates work.
 
 Plans complex multi-step tasks. Outputs structured plans with goals, steps, assumptions, and risks.
 
-| Sends                       | Receives   | Responds with                             |
-| --------------------------- | ---------- | ----------------------------------------- |
-| `question` (to Specialists) | `question` | `plan`, `answer`, `failure`, `checkpoint` |
+| Receives   | Responds with               |
+|------------|-----------------------------|
+| `question` | `plan`, `answer`, `failure` |
 
-**Key behavior**: Planners plan, they don't execute. They may ask specialists questions while planning (e.g., "What's the current auth implementation?") but never dispatch tasks.
+**Key behavior**: Planners plan, they don't execute or dispatch. They receive questions from Orca and respond with plans or answers.
 
 ### Specialists
 
-Execute specific types of work. Each specialist has a focused domain:
+Execute specific types of work. Each specialist has a focused domain and declares which message types it `accepts`:
 
-| Agent           | Purpose                                     |
-| --------------- | ------------------------------------------- |
-| coder           | Implements code changes, features, fixes    |
-| tester          | Writes and runs tests                       |
-| reviewer        | Reviews code for issues and improvements    |
-| researcher      | Investigates codebases, APIs, documentation |
-| document-writer | Creates technical documentation             |
-| architect       | Advises on system design decisions          |
+| Agent           | Purpose                                     | Accepts                |
+|-----------------|---------------------------------------------|------------------------|
+| coder           | Implements code changes, features, fixes    | `['task']`             |
+| tester          | Writes and runs tests                       | `['task', 'question']` |
+| reviewer        | Reviews code for issues and improvements    | `['task', 'question']` |
+| researcher      | Investigates codebases, APIs, documentation | `['question']`         |
+| document-writer | Creates technical documentation             | `['task']`             |
+| architect       | Advises on system design decisions          | `['question']`         |
 
-| Sends                | Receives | Responds with                                |
-| -------------------- | -------- | -------------------------------------------- |
-| `question` (to Orca) | `task`   | `success`, `answer`, `failure`, `checkpoint` |
+Response types are derived from what the agent accepts:
+- `accepts: ['task']` → responds with `success`, `failure`, `checkpoint`, `interrupt`
+- `accepts: ['question']` → responds with `answer`, `failure`, `interrupt`
+- `accepts: ['task', 'question']` → can respond with any of the above
 
-**Key behavior**: Specialists respond with `success` for completed work or `answer` for information requests. They may ask clarifying questions back to Orca.
+**Key behavior**: Specialists respond with `success` for completed work or `answer` for information requests. Any specialist can emit `interrupt` to halt execution.
 
 ### Communication Flow
 
@@ -92,9 +93,9 @@ Execute specific types of work. Each specialist has a focused domain:
         │ Planner │   │Specialists│
         └────┬────┘   └─────┬─────┘
              │              │
-        plan/answer    success/answer
-        failure        failure
-        checkpoint     checkpoint
+        plan/answer    success/failure
+                       checkpoint
+                       interrupt
 ```
 
 ### Checkpoint Capability
@@ -114,23 +115,23 @@ All inter-agent communication uses typed messages validated by Zod discriminated
 
 ### Message Types
 
-**Request types** (sent to agents):
+**Request types** (sent to agents via `DispatchPayload`):
 
-| Type        | Sender        | Recipient            | Purpose                   |
-| ----------- | ------------- | -------------------- | ------------------------- |
-| `question`  | Orca, Planner | Planner, Specialists | Request information       |
-| `task`      | Orca          | Specialists          | Assign work for execution |
-| `interrupt` | User          | Orca                 | Cancel ongoing execution  |
+| Type       | Sender | Recipient            | Purpose                   |
+|------------|--------|----------------------|---------------------------|
+| `question` | Orca   | Planner, Specialists | Request information       |
+| `task`     | Orca   | Specialists          | Assign work for execution |
 
-**Response types** (returned by agents):
+**Response types** (returned by agents in `DispatchResponse`):
 
-| Type         | Sender      | Recipient | Purpose                     |
-| ------------ | ----------- | --------- | --------------------------- |
-| `answer`     | Any agent   | Caller    | Information response        |
-| `success`    | Specialists | Caller    | Work completed successfully |
-| `plan`       | Planner     | Orca      | Execution plan proposal     |
-| `checkpoint` | Any agent   | Caller    | Requires user approval      |
-| `failure`    | Any agent   | Caller    | Reports error               |
+| Type         | Sender      | Recipient | Purpose                         |
+|--------------|-------------|-----------|---------------------------------|
+| `answer`     | Planner     | Orca      | Information response            |
+| `plan`       | Planner     | Orca      | Execution plan proposal         |
+| `success`    | Specialists | Caller    | Work completed successfully     |
+| `failure`    | Specialists | Caller    | Reports error with task         |
+| `checkpoint` | Specialists | Caller    | Requires user approval          |
+| `interrupt`  | Specialists | Caller    | Halt execution, needs attention |
 
 ### Two Communication Patterns
 
@@ -149,76 +150,35 @@ This separation ensures:
 - The response type reflects what was requested (information vs. completion)
 - Clear semantics for each message type
 
-### Message Structure
+### Dispatch Envelope
 
-All messages share common fields:
-
-```typescript
-{
-  type: 'answer' | 'success' | 'plan' | ...,
-  timestamp: ISO8601,
-  agent_id: string,
-  // ... type-specific fields directly on message
-}
-```
-
-Request messages include `session_id` for routing:
+Inter-agent communication uses an envelope structure. The `agent_id` and `session_id` live on the envelope, NOT on individual messages:
 
 ```typescript
-{
-  type: 'task' | 'question',
-  session_id: UUID,
-  timestamp: ISO8601,
-  // ... type-specific fields
-}
-```
-
-### Schema Examples
-
-```typescript
-// Answer - information response
-{
-  type: 'answer',
-  agent_id: 'researcher',
-  content: 'The API uses OAuth2...',
-  sources: [{ type: 'file', ref: 'src/auth.ts' }],
-  annotations: [{ type: 'caveat', content: 'Docs may be outdated' }]
+// What is sent to agents
+type DispatchPayload = {
+  agent_id: string,        // Target agent
+  session_id?: string,     // For resuming conversations
+  message: Message         // The actual message (task, question, etc.)
 }
 
-// Success - work completion
-{
-  type: 'success',
-  agent_id: 'coder',
-  summary: 'Implemented OAuth2 flow',
-  artifacts: ['src/auth.ts', 'src/middleware/auth.ts'],
-  verification: ['tests pass', 'lint clean'],
-  notes: ['Added dependency: passport-oauth2']
-}
-
-// Plan - execution proposal
-{
-  type: 'plan',
-  agent_id: 'planner',
-  goal: 'Implement OAuth2 authentication',
-  steps: [{ description: 'Add passport dependency' }, ...],
-  assumptions: ['Using Express.js'],
-  files_touched: ['src/auth.ts', 'package.json'],
-  verification: ['Run auth tests', 'Manual login test'],
-  risks: ['Breaking change to existing sessions']
+// What is returned by agents  
+type DispatchResponse = {
+  session_id?: string,     // For continuing conversation
+  message: Message         // The actual message (answer, plan, etc.)
 }
 ```
 
 ## Session Continuity
 
-Sessions maintain context across agent handoffs:
+Sessions maintain context across agent handoffs via the dispatch envelope:
 
-- **session_id**: UUID identifying the conversation session
-- **parent_session_id**: Links child tasks to parent session for context
+- **session_id**: On `DispatchPayload`/`DispatchResponse`, identifies the conversation
 - **plan_context**: Tracks plan execution state (goal, step_index, approved_remaining)
 
 ```
-User Request -> Orca creates session -> Dispatches task with parent_session_id
-             -> Agent responds in same context -> Orca synthesizes and continues
+User Request -> Orca creates session -> Dispatches with session_id
+             -> Agent responds with same session_id -> Orca continues
 ```
 
 ## State Machine
@@ -254,7 +214,7 @@ Type-safe message handling with runtime validation:
 Two distinct communication patterns serve different purposes:
 
 | Pattern     | Request    | Response            | Purpose            |
-| ----------- | ---------- | ------------------- | ------------------ |
+|-------------|------------|---------------------|--------------------|
 | Information | `question` | `answer`            | Research, analysis |
 | Execution   | `task`     | `success`/`failure` | Work completion    |
 

@@ -84,14 +84,16 @@ When `approved_remaining` is true, subsequent supervised agents in the same plan
 
 ## Checkpoint Message Structure
 
-When a checkpoint is returned, it contains:
+When a checkpoint is returned, the `DispatchResponse` contains a checkpoint message:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `agent_id` | string | The agent awaiting approval |
-| `prompt` | string | What the agent would execute |
-| `step_index` | number (optional) | Current step in the plan |
-| `plan_goal` | string (optional) | Overall objective of the plan |
+| Field        | Type              | Description                    |
+| ------------ | ----------------- | ------------------------------ |
+| `type`         | `'checkpoint'`      | Message type discriminant      |
+| `prompt`       | string            | What the agent would execute   |
+| `step_index`   | number (optional) | Current step in the plan       |
+| `plan_goal`    | string (optional) | Overall objective of the plan  |
+
+The `agent_id` is on the `DispatchResponse` envelope, not on the checkpoint message itself.
 
 ## When to Use Supervision
 

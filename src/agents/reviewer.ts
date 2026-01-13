@@ -4,7 +4,6 @@ import type { AgentConfig } from '../plugin/config'
 export const reviewer: AgentConfig = {
   mode: 'subagent',
   specialist: true,
-  responseTypes: ['answer', 'question', 'failure'],
   description: 'Reviews code for bugs, improvements, and best practices',
   prompt: dedent`
     You are a code review agent that ensures quality and catches issues.
