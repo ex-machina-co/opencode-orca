@@ -29,7 +29,7 @@ Each line shows `path: message`. Fix the value at the specified path.
 
 **Validation failures**: If responses fail format validation, increase `settings.validation.maxRetries` (default: 3, max: 10) or enable `wrapPlainText: true`.
 
-**Agent returns wrong format**: Verify `responseTypes` array includes all message types the agent should produce.
+**Agent returns wrong format**: Verify `accepts` array includes the input types (`'task'`, `'question'`) the agent should receive. Response types are derived automatically.
 
 **Empty response**: Model returned empty completion, agent hit max steps, or tool loop consumed output.
 

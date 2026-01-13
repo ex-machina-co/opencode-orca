@@ -12,34 +12,62 @@ Built-in agents: `orca`, `planner`, `coder`, `tester`, `reviewer`, `researcher`,
 
 For overrides, all fields are optional (they merge). For new agents, include:
 
-| Field | Purpose |
-|-------|---------|
-| `mode` | Set to `'subagent'` for agents dispatched by Orca |
-| `description` | Shown in UI; helps Orca select the right agent |
-| `prompt` | System prompt defining agent behavior |
-| `responseTypes` | Message types the agent can return |
+| Field         | Purpose                                              |
+| ------------- | ---------------------------------------------------- |
+| `mode`          | Set to `'subagent'` for agents dispatched by Orca      |
+| `description`   | Shown in UI; helps Orca select the right agent       |
+| `prompt`        | System prompt defining agent behavior                |
+| `accepts`       | Message types this agent accepts (`'task'`, `'question'`) |
+| `specialist`    | Set to `true` to include in Orca's specialist list     |
 
 See [Configuration Reference](configuration.md) for all fields.
 
+> **Note**: `orca` and `planner` are protected agents and cannot be overridden.
+
 ## Protocol Requirements
 
-Agents respond with a JSON message envelope:
+Agents receive messages via `DispatchPayload` and respond with flat JSON messages (no wrapper):
 
-```json
-{ "type": "answer", "timestamp": "2025-01-05T10:30:00Z", "payload": { ... } }
+```typescript
+// What agents receive
+DispatchPayload: { agent_id, session_id?, message }
+
+// What agents return (flat structure)
+{ "type": "answer", "content": "..." }
 ```
 
-The `responseTypes` array determines valid message types. Default for subagents: `['answer', 'failure']`
+## Input Types (`accepts`)
+
+The `accepts` array defines what message types an agent can receive:
+
+| Type       | Purpose                              | Default for specialists |
+| ---------- | ------------------------------------ | ----------------------- |
+| `task`       | Work execution requests              | Yes                     |
+| `question`   | Information requests                 | Yes                     |
+
+Specialists default to `accepts: ['task', 'question']`. Override to restrict:
+- `accepts: ['task']` — only work requests (e.g., coder)
+- `accepts: ['question']` — only information requests (e.g., researcher)
 
 ## Response Types
 
-| Type | Purpose | Key Payload Fields |
-|------|---------|-------------------|
-| `answer` | Content response | `agent_id`, `content`, `sources?`, `annotations?` |
-| `plan` | Execution plan | `agent_id`, `goal`, `steps[]` |
-| `question` | Ask clarification | `agent_id`, `question`, `options?`, `blocking` |
-| `escalation` | Escalate decision | `agent_id`, `decision_id`, `decision`, `options[]`, `context` |
-| `failure` | Report error | `agent_id?`, `code`, `message`, `cause?` |
+Response types are derived automatically from `accepts`:
+
+| If agent accepts | Can respond with                       |
+| ---------------- | -------------------------------------- |
+| `task`             | `success`, `failure`, `checkpoint`         |
+| `question`         | `answer`, `failure`                        |
+| (any specialist) | `interrupt` (always available)           |
+
+### Message Fields
+
+| Type         | Fields                                             |
+| ------------ | -------------------------------------------------- |
+| `answer`       | `content`, `sources?`, `annotations?`                  |
+| `success`      | `summary`, `artifacts?`, `verification?`, `notes?`       |
+| `failure`      | `code`, `message`, `cause?`                            |
+| `checkpoint`   | `prompt`, `step_index?`, `plan_goal?`                  |
+| `interrupt`    | `reason`                                             |
 
 Error codes: `VALIDATION_ERROR`, `UNKNOWN_AGENT`, `SESSION_NOT_FOUND`, `AGENT_ERROR`, `TIMEOUT`
 
@@ -48,25 +76,19 @@ Error codes: `VALIDATION_ERROR`, `UNKNOWN_AGENT`, `SESSION_NOT_FOUND`, `AGENT_ER
 ```json
 {
   "type": "answer",
-  "payload": {
-    "agent_id": "security-reviewer",
-    "content": "Found 2 potential vulnerabilities...",
-    "sources": [{ "type": "file", "ref": "src/auth.ts" }]
-  }
+  "content": "Found 2 potential vulnerabilities...",
+  "sources": [{ "type": "file", "ref": "src/auth.ts" }]
 }
 ```
 
-### Example: Question Response
+### Example: Success Response
 
 ```json
 {
-  "type": "question",
-  "payload": {
-    "agent_id": "security-reviewer",
-    "question": "Which auth method should I evaluate?",
-    "options": ["OAuth2", "JWT", "Session-based"],
-    "blocking": true
-  }
+  "type": "success",
+  "summary": "Completed security audit of auth module",
+  "artifacts": ["docs/security-audit.md"],
+  "verification": ["No critical vulnerabilities found"]
 }
 ```
 
@@ -79,14 +101,20 @@ Error codes: `VALIDATION_ERROR`, `UNKNOWN_AGENT`, `SESSION_NOT_FOUND`, `AGENT_ER
       "description": "Reviews code for security vulnerabilities",
       "mode": "subagent",
       "model": "claude-sonnet-4-20250514",
+      "specialist": true,
       "supervised": true,
-      "responseTypes": ["answer", "question", "failure"],
+      "accepts": ["question"],
       "prompt": "You are a security specialist. Analyze code for vulnerabilities including injection attacks, authentication flaws, and data exposure. Cite file locations. Ask questions if scope is unclear.",
       "permission": { "edit": "deny", "bash": "deny" }
     }
   }
 }
 ```
+
+This agent:
+- `specialist: true` — appears in Orca's specialist list
+- `accepts: ["question"]` — only receives information requests (read-only analysis)
+- `supervised: true` — requires approval before dispatch
 
 Use it: `@orca Review the auth module for security issues`
 
@@ -111,8 +139,8 @@ This adds supervision to coder while keeping its default prompt and tools.
 ## Testing Custom Agents
 
 1. Verify config loads without errors (check OpenCode startup)
-2. Dispatch to your agent via `@orca` with a relevant task
-3. Confirm responses match your `responseTypes` list
+2. Dispatch to your agent via `@orca` with a relevant task or question
+3. Confirm responses match the expected types for what the agent `accepts`
 4. Check supervision gates appear if `supervised: true`
 
 Failed validations retry up to `validation.maxRetries` times before returning failure.

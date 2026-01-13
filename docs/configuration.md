@@ -29,25 +29,35 @@ Global plugin settings under the `settings` key.
 
 Override built-in agents or define custom ones under the `agents` key.
 
-| Option         | Type                                | Description                                                    |
-|----------------|-------------------------------------|----------------------------------------------------------------|
-| `model`        | string                              | Model identifier (e.g., `claude-sonnet-4-20250514`)            |
-| `temperature`  | number (0-2)                        | Sampling temperature                                           |
-| `top_p`        | number (0-1)                        | Nucleus sampling parameter                                     |
-| `prompt`       | string                              | System prompt (overrides built-in prompt)                      |
-| `tools`        | `Record<string, boolean>`           | Enable/disable specific tools                                  |
-| `disable`      | boolean                             | Disable this agent entirely                                    |
-| `description`  | string                              | Agent description shown in UI                                  |
-| `mode`         | `'subagent' \| 'primary'  \| 'all'` | Agent visibility mode                                          |
-| `color`        | string                              | Hex color for UI display (`#RRGGBB`)                           |
-| `maxSteps`     | number                              | Maximum steps before agent stops                               |
-| `permission`   | PermissionConfig                    | Permission overrides (see below)                               |
-| `supervised`   | boolean                             | Require user approval before dispatch                          |
-| `messageTypes` | array                               | Message types that can be dispatched to this agent (see below) |
+| Option        | Type                              | Description                                            |
+| ------------- | --------------------------------- | ------------------------------------------------------ |
+| `model`         | string                            | Model identifier (e.g., `claude-sonnet-4-20250514`)    |
+| `temperature`   | number (0-2)                      | Sampling temperature                                   |
+| `top_p`         | number (0-1)                      | Nucleus sampling parameter                             |
+| `prompt`        | string                            | System prompt (overrides built-in prompt)              |
+| `tools`         | `Record<string, boolean>`         | Enable/disable specific tools                          |
+| `disable`       | boolean                           | Disable this agent entirely                            |
+| `description`   | string                            | Agent description shown in UI                          |
+| `mode`          | `'subagent' \| 'primary' \| 'all'` | Agent visibility mode                                  |
+| `color`         | string                            | Hex color for UI display (`#RRGGBB`)                   |
+| `maxSteps`      | number                            | Maximum steps before agent stops                       |
+| `permission`    | PermissionConfig                  | Permission overrides (see below)                       |
+| `supervised`    | boolean                           | Require user approval before dispatch                  |
+| `accepts`       | `('task' \| 'question')[]`          | Message types this agent accepts (see below)           |
+| `specialist`    | boolean                           | Include in Orca's specialist list                      |
 
-### Response Types
+### Accepts (Input Types)
 
-Allowed message types: `answer`, `plan`, `question`, `escalation`, `failure`. Default: `['answer', 'failure']`
+The `accepts` array defines what message types can be dispatched TO an agent:
+
+| Value        | Purpose                 |
+|--------------|-------------------------|
+| `'task'`     | Work execution requests |
+| `'question'` | Information requests    |
+
+Default for specialists: `['task', 'question']`. Response types are derived automatically.
+
+> **Note**: `orca` and `planner` are protected and cannot be overridden via user config.
 
 ### Permission Config
 
@@ -114,8 +124,9 @@ Define a project-specific specialist:
       "description": "Designs REST API endpoints",
       "model": "claude-sonnet-4-20250514",
       "mode": "subagent",
+      "specialist": true,
       "prompt": "You are an API design specialist...",
-      "responseTypes": ["answer", "question", "failure"],
+      "accepts": ["question"],
       "supervised": true,
       "permission": {
         "edit": "allow",

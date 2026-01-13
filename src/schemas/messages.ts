@@ -38,7 +38,6 @@ export const TaskMessage = z
     type: z.literal('task'),
     prompt: z.string().min(1),
     context: z.record(z.string(), z.unknown()).optional(),
-    parent_session_id: SessionId.optional(),
     plan_context: PlanContext.optional(),
   })
   .describe('A `task` is used to request a specialist to perform a specific goal (write-capable)')

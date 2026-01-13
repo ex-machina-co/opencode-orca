@@ -7,13 +7,28 @@ exports[`generateResponseFormatInstructions generates correct format instruction
 
 You MUST respond with a valid JSON object. Nothing else.
 
-**Allowed response types:** \`plan\`
+**Allowed response types:** \`answer\`, \`plan\`
 
 ### Type Selection Guidance
 
+- **answer**: Use when providing information, completing analysis, or returning results.
 - **plan**: Use when proposing a multi-step execution plan that requires approval.
 
 ### JSON Examples
+
+### answer
+{
+  "type": "answer",
+  "content": "The implementation uses...",
+  "sources": [
+    {
+      "type": "file",
+      "ref": "src/index.ts",
+      "title": "Main entry",
+      "excerpt": "export function..."
+    }
+  ]
+}
 
 ### plan
 {

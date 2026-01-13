@@ -115,8 +115,8 @@ describe('DEFAULT_AGENTS accepts', () => {
     expect(DEFAULT_AGENTS.orca.accepts).toEqual([])
   })
 
-  test('planner has empty accepts', () => {
-    expect(DEFAULT_AGENTS.planner.accepts).toEqual([])
+  test('planner accepts questions', () => {
+    expect(DEFAULT_AGENTS.planner.accepts).toEqual(['question'])
   })
 
   test.each([
