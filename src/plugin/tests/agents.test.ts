@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
 import {
   DEFAULT_AGENTS,
   generateSpecialistList,
@@ -9,6 +9,7 @@ import {
 import type { AgentConfig } from '../config'
 import { PROTECTED_AGENTS, SPECIALIST_LIST_PLACEHOLDER } from '../constants'
 import { RESPONSE_FORMAT_INJECTION_HEADER } from '../response-format'
+import { type MockLogger, mockLogger } from './test-utils'
 
 describe('DEFAULT_AGENTS', () => {
   test('contains all expected agents', () => {
@@ -139,14 +140,10 @@ describe('PROTECTED_AGENTS', () => {
 })
 
 describe('protected agents in mergeAgentConfigs', () => {
-  let warnSpy: ReturnType<typeof spyOn>
+  let log: MockLogger
 
   beforeEach(() => {
-    warnSpy = spyOn(console, 'warn').mockImplementation(() => {})
-  })
-
-  afterEach(() => {
-    warnSpy.mockRestore()
+    log = mockLogger()
   })
 
   test('orca config cannot be overridden', () => {
@@ -194,9 +191,13 @@ describe('protected agents in mergeAgentConfigs', () => {
     }
     mergeAgentConfigs(defaults, user)
 
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[orca] Warning: "orca" agent cannot be overridden. User config ignored.',
-    )
+    expect(log.warn.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          ""orca" agent cannot be overridden. User config ignored.",
+        ],
+      ]
+    `)
   })
 
   test('emits warning when user tries to override planner', () => {
@@ -208,9 +209,13 @@ describe('protected agents in mergeAgentConfigs', () => {
     }
     mergeAgentConfigs(defaults, user)
 
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[orca] Warning: "planner" agent cannot be overridden. User config ignored.',
-    )
+    expect(log.warn.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          ""planner" agent cannot be overridden. User config ignored.",
+        ],
+      ]
+    `)
   })
 
   test('emits warnings for both protected agents when both are overridden', () => {
@@ -224,7 +229,16 @@ describe('protected agents in mergeAgentConfigs', () => {
     }
     mergeAgentConfigs(defaults, user)
 
-    expect(warnSpy).toHaveBeenCalledTimes(2)
+    expect(log.warn.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          ""orca" agent cannot be overridden. User config ignored.",
+        ],
+        [
+          ""planner" agent cannot be overridden. User config ignored.",
+        ],
+      ]
+    `)
   })
 
   test('no warning when user config does not include protected agents', () => {
@@ -237,7 +251,7 @@ describe('protected agents in mergeAgentConfigs', () => {
     }
     mergeAgentConfigs(defaults, user)
 
-    expect(warnSpy).not.toHaveBeenCalled()
+    expect(log.warn).not.toHaveBeenCalled()
   })
 
   test('non-protected agents can override accepts', () => {
