@@ -5,13 +5,14 @@
  * which enables editor autocomplete and validation for orca.json files.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
 import { OrcaUserConfig } from './config'
 
 const SCHEMA_FILENAME = 'orca.schema.json'
+const GITIGNORE_FILENAME = '.gitignore'
 
 /**
  * Generate JSON Schema from OrcaUserConfig Zod schema
@@ -61,14 +62,43 @@ export function readBundledSchema(): string | undefined {
 }
 
 /**
+ * Ensure schema filename is in the .gitignore file.
+ * Appends if not already present.
+ */
+function ensureGitignore(targetDir: string): void {
+  const gitignorePath = resolve(targetDir, GITIGNORE_FILENAME)
+
+  try {
+    if (existsSync(gitignorePath)) {
+      const content = readFileSync(gitignorePath, 'utf-8')
+      if (content.includes(SCHEMA_FILENAME)) {
+        return // Already ignored
+      }
+      // Append with newline if file doesn't end with one
+      const prefix = content.endsWith('\n') ? '' : '\n'
+      appendFileSync(gitignorePath, `${prefix}${SCHEMA_FILENAME}\n`)
+    } else {
+      // Create new .gitignore with just the schema
+      writeFileSync(gitignorePath, `${SCHEMA_FILENAME}\n`)
+    }
+  } catch {
+    // Silent failure - gitignore is nice to have, not critical
+  }
+}
+
+/**
  * Ensure schema file exists in the target directory.
  * Copies from bundled schema if missing.
+ * Also ensures the schema is gitignored.
  *
  * @param targetDir - Directory to write schema to (e.g., .opencode/)
  * @returns true if schema exists or was copied, false otherwise
  */
 export function ensureSchema(targetDir: string): boolean {
   const targetPath = resolve(targetDir, SCHEMA_FILENAME)
+
+  // Ensure schema is gitignored (even if it already exists)
+  ensureGitignore(targetDir)
 
   // Already exists
   if (existsSync(targetPath)) {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ensureSchema, generateSchema } from '../schema'
@@ -72,5 +72,47 @@ describe('ensureSchema', () => {
 
     // Directory creation is attempted even if schema copy fails
     // (the function returns false if copy fails, but we're testing the attempt)
+  })
+
+  test('adds schema to .gitignore if not present', () => {
+    const gitignorePath = join(tempDir, '.gitignore')
+    writeFileSync(gitignorePath, 'node_modules\n')
+
+    ensureSchema(tempDir)
+
+    const content = readFileSync(gitignorePath, 'utf-8')
+    expect(content).toContain('orca.schema.json')
+    expect(content).toContain('node_modules') // Original content preserved
+  })
+
+  test('does not duplicate schema in .gitignore', () => {
+    const gitignorePath = join(tempDir, '.gitignore')
+    writeFileSync(gitignorePath, 'node_modules\norca.schema.json\n')
+
+    ensureSchema(tempDir)
+
+    const content = readFileSync(gitignorePath, 'utf-8')
+    const matches = content.match(/orca\.schema\.json/g)
+    expect(matches?.length).toBe(1)
+  })
+
+  test('creates .gitignore if it does not exist', () => {
+    const gitignorePath = join(tempDir, '.gitignore')
+
+    ensureSchema(tempDir)
+
+    expect(existsSync(gitignorePath)).toBe(true)
+    const content = readFileSync(gitignorePath, 'utf-8')
+    expect(content).toContain('orca.schema.json')
+  })
+
+  test('handles .gitignore without trailing newline', () => {
+    const gitignorePath = join(tempDir, '.gitignore')
+    writeFileSync(gitignorePath, 'node_modules') // No trailing newline
+
+    ensureSchema(tempDir)
+
+    const content = readFileSync(gitignorePath, 'utf-8')
+    expect(content).toBe('node_modules\norca.schema.json\n')
   })
 })
