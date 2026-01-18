@@ -3,17 +3,16 @@ import type {
   QuestionAnswer,
   QuestionInfo,
 } from '@opencode-ai/sdk/v2'
+import { QUESTION_TIMEOUT_MS } from './constants'
 import { getLogger } from './log'
 
-export type QuestionResult = { type: 'answered'; answers: QuestionAnswer[] } | { type: 'rejected' }
+export type QuestionResult =
+  | { type: 'answered'; answers: QuestionAnswer[] }
+  | { type: 'rejected' }
+  | { type: 'timeout' }
 
-type PendingQuestion = {
-  resolve: (result: QuestionResult) => void
-  reject: (error: Error) => void
-}
-
-/** Pending questions waiting for answers */
-const pending = new Map<string, PendingQuestion>()
+/** Pending questions waiting for answers, keyed by question ID */
+const pending = new Map<string, (result: QuestionResult) => void>()
 
 /**
  * Handle a question.replied event
@@ -25,7 +24,7 @@ export function handleQuestionReplied(requestID: string, answers: QuestionAnswer
   if (p) {
     log.info('Resolved pending question', { requestID })
     pending.delete(requestID)
-    p.resolve({ type: 'answered', answers })
+    p({ type: 'answered', answers })
   } else {
     log.warn('No pending question found', { requestID })
   }
@@ -40,7 +39,7 @@ export function handleQuestionRejected(requestID: string): void {
   if (p) {
     log.info('Question rejected', { requestID })
     pending.delete(requestID)
-    p.resolve({ type: 'rejected' })
+    p({ type: 'rejected' })
   }
 }
 
@@ -72,7 +71,18 @@ export async function askQuestion(
 
   log.info('Question asked', { questionId, sessionID })
 
-  return new Promise<QuestionResult>((resolve, reject) => {
-    pending.set(questionId, { resolve, reject })
+  return new Promise<QuestionResult>((resolve) => {
+    const timeoutId = setTimeout(() => {
+      if (pending.has(questionId)) {
+        pending.delete(questionId)
+        log.warn('Question timed out', { questionId, timeoutMs: QUESTION_TIMEOUT_MS })
+        resolve({ type: 'timeout' })
+      }
+    }, QUESTION_TIMEOUT_MS)
+
+    pending.set(questionId, (result) => {
+      clearTimeout(timeoutId)
+      resolve(result)
+    })
   })
 }
