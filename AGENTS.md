@@ -19,3 +19,6 @@
     ```
 - Prefer inferred types when possible, unless there's a specific reason to use a type annotation.
 - Prefer string literal union types over enums (unless using Zod enums, which are fine)
+- **Make invalid states unrepresentable**: Use discriminated unions instead of objects with many optional fields. Each variant should contain exactly the fields meaningful for that state - no more, no less. This eliminates impossible states at the type level.
+  - Bad: `{ status: string, error?: string, output?: string, startedAt?: string }` (allows `error` with `status: 'pending'`)
+  - Good: Discriminated union where `error` only exists on `failed` variant, `output` only on `completed`, etc.
