@@ -20,6 +20,7 @@ bunx @ex-machina/opencode-orca@latest install
 This command:
 - Adds `@ex-machina/opencode-orca` to the `plugin` array in your `opencode.jsonc`
 - Creates a default configuration file at `.opencode/orca.json`
+- Generates `orca.schema.json` for editor autocomplete
 
 ### 2. Verify installation
 
@@ -53,19 +54,25 @@ In the OpenCode chat, try:
 @orca Help me refactor the authentication module
 ```
 
-Orca will analyze your request, create a plan, and coordinate specialist agents to execute it.
+Orca will route your request to the planner, which will analyze it and create an execution plan.
 
 ## What happens next
 
 When you interact with Orca:
 
-1. **Planner** analyzes your request and creates an execution plan
-2. **You approve** the plan (or request changes)
-3. **Specialist agents** execute each step (coder, tester, reviewer, etc.)
-4. **Orca** coordinates the workflow and reports results
+1. **Orca** routes your request to the planner
+2. **Planner** may ask clarifying questions via HITL prompts
+3. **Planner** creates a structured execution plan
+4. **You review and approve** the plan (or request changes)
+5. **Execution loop** runs each step with the appropriate specialist
+6. **Context flows** between steps - each specialist sees what previous steps accomplished
+7. **On failure**, you choose to Retry, Replan, or Stop
+
+Plans are saved to `.opencode/plans/` so you can resume or review them later.
 
 ## Next steps
 
-- [Configuration](./configuration.md) - Customize models, validation, and agent behavior
+- [Architecture](./architecture.md) - Understand the system design and tools
+- [Supervision](./supervision.md) - Learn about HITL approval and deviation handling
 - [Custom Agents](./custom-agents.md) - Create your own specialist agents
-- [Supervision](./supervision.md) - Configure approval gates for agent actions
+- [Configuration](./configuration.md) - Customize models and agent behavior

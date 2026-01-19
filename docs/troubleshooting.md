@@ -19,7 +19,9 @@ Invalid .opencode/orca.json:
 ```
 Each line shows `path: message`. Fix the value at the specified path.
 
-**Unknown fields rejected**: Root config uses `strictObject` - only `agents` and `settings` are valid. Remove unrecognized fields.
+**Unknown fields rejected**: Root config uses `strictObject`. Valid top-level keys are: `$schema`, `orca`, `planner`, `agents`, `settings`. Remove unrecognized fields.
+
+**Trying to override orca/planner**: These agents have restricted configuration. Only `model`, `temperature`, `top_p`, `maxSteps`, and `color` can be changed. Use the dedicated `orca` and `planner` keys, not `agents`.
 
 **Type mismatches**: Common errors include `"0.7"` instead of `0.7` (temperature), `"true"` instead of `true` (disable), and invalid enums like `"sub-agent"` instead of `"subagent"`.
 
@@ -33,23 +35,33 @@ Each line shows `path: message`. Fix the value at the specified path.
 
 **Empty response**: Model returned empty completion, agent hit max steps, or tool loop consumed output.
 
-## Supervision Issues
+## Plan Issues
 
-**Checkpoint not appearing**: Verify `supervised: true` on the agent. Check that `plan_context.approved_remaining` is not `true`.
+**Plan stuck in drafting**: The planner may be waiting for clarification. Check for pending HITL questions.
 
-**Stuck in approval loop**: Use Ctrl+C to interrupt, then restart the conversation.
+**Plan not saving**: Verify `.opencode/plans/` directory exists and is writable.
 
-**approved_remaining not working**: Ensure the dispatching agent passes the full `plan_context` object in the dispatch payload.
+**Can't find old plan**: Plans are stored as JSON files in `.opencode/plans/`. Use `orca_list_plans` to see available plans.
+
+**Execution stuck**: If a step is stuck `in_progress`, the session may have crashed. Resume the plan - you'll get a HITL prompt to Retry, Replan, or Stop.
+
+## HITL Issues
+
+**HITL prompt not appearing**: Verify OpenCode TUI is in the foreground. HITL questions require user interaction.
+
+**Wrong options in HITL**: The planner or plugin provides HITL content. If options seem wrong, the planner may need clearer instructions in its prompt.
+
+**Can't type custom answer**: Check if `custom: false` on the question. Plugin-controlled questions (approval, deviation) have deterministic options - use the Context tab for freeform input.
 
 ## Error Codes
 
-| Code | Meaning |
-|------|---------|
-| `VALIDATION_ERROR` | Message format invalid - failed schema validation |
-| `UNKNOWN_AGENT` | Agent ID not registered in configuration |
-| `SESSION_NOT_FOUND` | Requested session does not exist |
-| `AGENT_ERROR` | Agent execution failed (model error, tool failure) |
-| `TIMEOUT` | Request exceeded time limit |
+| Code              | Meaning                                            |
+| ----------------- | -------------------------------------------------- |
+| `VALIDATION_ERROR`  | Message format invalid - failed schema validation  |
+| `UNKNOWN_AGENT`     | Agent ID not registered in configuration           |
+| `SESSION_NOT_FOUND` | Requested session does not exist                   |
+| `AGENT_ERROR`       | Agent execution failed (model error, tool failure) |
+| `TIMEOUT`           | Request exceeded time limit                        |
 
 ## Debugging Tips
 
@@ -57,6 +69,7 @@ Each line shows `path: message`. Fix the value at the specified path.
 2. **Validate JSON first**: Use `jq . .opencode/orca.json` before checking schema
 3. **Isolate with minimal config**: Start with empty `{}` and add fields incrementally
 4. **Check model availability**: Verify model name and API quota in provider dashboard
+5. **Check plan files**: Look at `.opencode/plans/*.json` to see plan state
 
 ## FAQ
 
@@ -64,10 +77,16 @@ Each line shows `path: message`. Fix the value at the specified path.
 Delete `orca.json` and run `bunx @ex-machina/opencode-orca@latest install` to regenerate from template.
 
 **Can I use multiple orchestrators?**
-No. Orca is the primary orchestrator and manages all specialist agents.
+No. Orca is the primary orchestrator and routes all requests to the planner.
 
 **How do I disable an agent?**
 Set `disable: true` in the agent configuration:
 ```json
 { "agents": { "researcher": { "disable": true } } }
 ```
+
+**How do I see my plans?**
+Plans are stored in `.opencode/plans/`. Agents can also use `orca_list_plans` and `orca_describe_plan` to query them.
+
+**How do I resume a plan?**
+Use `orca_ask_planner` with the `plan_id` to continue where you left off.
