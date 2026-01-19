@@ -1,4 +1,5 @@
 node_modules
+package.json
 bun.lock
 user-config
 orca.schema.json
