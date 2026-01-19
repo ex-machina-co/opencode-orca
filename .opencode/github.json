@@ -24,13 +24,22 @@
     }
   },
   "labels": {
-    "epic": { "name": "epic", "description": "Larger effort with sub-issues" },
-    "bug": { "name": "bug", "description": "Something broken" },
-    "feature": { "name": "feature", "description": "New functionality" },
-    "enhancement": {
-      "name": "enhancement",
-      "description": "Any enhancement that is not a full-fledged feature. Includes maintenance, cleanup, or improvements that might not be user facing."
-    }
+    "bug": { "name": "bug", "description": "Something isn't working" },
+    "documentation": {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation"
+    },
+    "duplicate": {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists"
+    },
+    "good first issue": { "name": "good first issue", "description": "Good for newcomers" },
+    "help wanted": { "name": "help wanted", "description": "Extra attention is needed" },
+    "invalid": { "name": "invalid", "description": "This doesn't seem right" },
+    "question": { "name": "question", "description": "Further information is requested" },
+    "wontfix": { "name": "wontfix", "description": "This will not be worked on" },
+    "epic": { "name": "epic", "description": "Larger effort containing sub-issues" },
+    "enhancement": { "name": "enhancement", "description": "Features or improvements." }
   },
   "current_epic": {
     "number": 6,
