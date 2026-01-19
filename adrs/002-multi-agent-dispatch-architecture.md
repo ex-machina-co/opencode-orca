@@ -30,11 +30,11 @@ Chosen option: **Multi-tool with role separation**, because it enforces clear bo
 
 ### Tool Assignment by Role
 
-| Role            | Tools Available                                             | Responsibilities                                             |
-|-----------------|-------------------------------------------------------------|--------------------------------------------------------------|
-| **Orca**        | `orca_ask_planner`, `orca_list_plans`, `orca_describe_plan` | Route user messages to planner, help find/resume plans       |
-| **Planner**     | `orca_ask_specialist` (read-only)                           | Research, produce plans, answer questions, revise on failure |
-| **Specialists** | `orca_ask_specialist` (read-only), `orca_describe_plan`     | Execute tasks, ask questions to non-supervised agents        |
+| Role            | Tools Available                                                                    | Responsibilities                                             |
+|-----------------|------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| **Orca**        | `orca_ask_planner`, `orca_list_plans`, `orca_describe_plan`                        | Route user messages to planner, help find/resume plans       |
+| **Planner**     | `orca_ask_specialist` (read-only), `orca_list_plans`, `orca_describe_plan`         | Research, produce plans, answer questions, revise on failure |
+| **Specialists** | `orca_ask_specialist` (read-only), `orca_list_plans`, `orca_describe_plan`         | Execute tasks, ask questions to non-supervised agents        |
 
 ### Plugin-Controlled HITL
 
