@@ -85,7 +85,7 @@ export type PendingStepResult = z.infer<typeof PendingStepResult>
 export const InProgressStepResult = StepResultBase.extend({
   status: z.literal('in_progress'),
   agent_session_id: SessionId.optional().describe('Session ID for the executing agent'),
-  started_at: z.string().datetime(),
+  started_at: z.iso.datetime(),
   retry_count: z.number().int().nonnegative().default(0),
   input_context: StepContext.optional().describe('Context provided to this step'),
 })
@@ -94,8 +94,8 @@ export type InProgressStepResult = z.infer<typeof InProgressStepResult>
 export const CompletedStepResult = StepResultBase.extend({
   status: z.literal('completed'),
   agent_session_id: SessionId.optional(),
-  started_at: z.string().datetime(),
-  completed_at: z.string().datetime(),
+  started_at: z.iso.datetime(),
+  completed_at: z.iso.datetime(),
   retry_count: z.number().int().nonnegative().default(0),
   input_context: StepContext.optional(),
   output: StepOutput,
@@ -105,8 +105,8 @@ export type CompletedStepResult = z.infer<typeof CompletedStepResult>
 export const FailedStepResult = StepResultBase.extend({
   status: z.literal('failed'),
   agent_session_id: SessionId.optional(),
-  started_at: z.string().datetime(),
-  failed_at: z.string().datetime(),
+  started_at: z.iso.datetime(),
+  failed_at: z.iso.datetime(),
   retry_count: z.number().int().nonnegative().default(0),
   input_context: StepContext.optional(),
   error: z.string().describe('Error message'),
@@ -127,38 +127,38 @@ export type StepResult = z.infer<typeof StepResult>
 
 export const DraftingStatus = z.strictObject({
   stage: z.literal('drafting'),
-  updated_at: z.string().datetime(),
+  updated_at: z.iso.datetime(),
 })
 export type DraftingStatus = z.infer<typeof DraftingStatus>
 
 export const PendingApprovalStatus = z.strictObject({
   stage: z.literal('pending_approval'),
-  updated_at: z.string().datetime(),
+  updated_at: z.iso.datetime(),
 })
 export type PendingApprovalStatus = z.infer<typeof PendingApprovalStatus>
 
 export const ChangesRequestedStatus = z.strictObject({
   stage: z.literal('changes_requested'),
   changes: z.string().describe('What the user wants changed'),
-  updated_at: z.string().datetime(),
+  updated_at: z.iso.datetime(),
 })
 export type ChangesRequestedStatus = z.infer<typeof ChangesRequestedStatus>
 
 export const ApprovedStatus = z.strictObject({
   stage: z.literal('approved'),
-  updated_at: z.string().datetime(),
+  updated_at: z.iso.datetime(),
 })
 export type ApprovedStatus = z.infer<typeof ApprovedStatus>
 
 export const InProgressStatus = z.strictObject({
   stage: z.literal('in_progress'),
-  updated_at: z.string().datetime(),
+  updated_at: z.iso.datetime(),
 })
 export type InProgressStatus = z.infer<typeof InProgressStatus>
 
 export const CompletedStatus = z.strictObject({
   stage: z.literal('completed'),
-  updated_at: z.string().datetime(),
+  updated_at: z.iso.datetime(),
 })
 export type CompletedStatus = z.infer<typeof CompletedStatus>
 
@@ -167,14 +167,14 @@ export const FailedStatus = z.strictObject({
   error: z.string(),
   failed_step: z.number().int().nonnegative(),
   user_stop_reason: z.string().optional().describe('User context when they chose to stop'),
-  updated_at: z.string().datetime(),
+  updated_at: z.iso.datetime(),
 })
 export type FailedStatus = z.infer<typeof FailedStatus>
 
 export const RejectedStatus = z.strictObject({
   stage: z.literal('rejected'),
   reason: z.string().optional().describe('Why the user rejected the plan'),
-  updated_at: z.string().datetime(),
+  updated_at: z.iso.datetime(),
 })
 export type RejectedStatus = z.infer<typeof RejectedStatus>
 
@@ -211,7 +211,7 @@ export const StoredPlan = z.strictObject({
   // Identity & Provenance
   plan_id: z.string().describe('Unique plan identifier (pln_xxx format)'),
   planner_session_id: SessionId.describe('Planner session for context continuity'),
-  created_at: z.string().datetime(),
+  created_at: z.iso.datetime(),
 
   // Status (state machine)
   status: PlanStatus,
