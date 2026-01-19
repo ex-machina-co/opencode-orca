@@ -44,7 +44,6 @@ export const AgentConfig = z
       .describe('Whether this agent requires approval before dispatch'),
     accepts: z
       .array(QuestionMessage.shape.type.or(TaskMessage.shape.type))
-      .default([])
       .optional()
       .describe(dedent`
         Message types this agent accepts.

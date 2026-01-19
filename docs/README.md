@@ -1,37 +1,38 @@
 # opencode-orca Documentation
 
-OpenCode plugin for safe agent orchestration with human-in-the-loop supervision.
+OpenCode plugin for multi-agent orchestration with plan-based execution and human-in-the-loop supervision.
 
 ## What is opencode-orca?
 
-A plugin that adds multi-agent orchestration to OpenCode with:
+A plugin that adds intelligent agent orchestration to OpenCode with:
 
-- **Supervised execution** - Checkpoint-based approval gates before agent actions
+- **Plan-based execution** - Planner creates structured plans, users approve before execution
+- **HITL supervision** - Human-in-the-loop approval for plans and deviation handling
 - **Built-in specialists** - Coder, Tester, Reviewer, Researcher, Document Writer, Architect
 - **Custom agents** - Define project-specific agents via `orca.json`
-- **Session continuity** - State tracking across agent handoffs
+- **Context threading** - Step outputs flow to subsequent steps automatically
 
 ## Documentation
 
-| Guide | Description |
-|-------|-------------|
-| [Getting Started](getting-started.md) | Installation, first run, basic usage |
-| [Configuration](configuration.md) | `orca.json` schema and options reference |
-| [Architecture](architecture.md) | System design, message flow, state machine |
-| [Custom Agents](custom-agents.md) | Defining and configuring custom specialists |
-| [Supervision](supervision.md) | Checkpoint protocol and HITL approval model |
-| [Troubleshooting](troubleshooting.md) | Common issues and solutions |
+| Guide                                | Description                                 |
+| ------------------------------------ | ------------------------------------------- |
+| [Getting Started](getting-started.md) | Installation, first run, basic usage        |
+| [Architecture](architecture.md)       | System design, tools, plan lifecycle        |
+| [Supervision](supervision.md)         | HITL approval, deviation handling           |
+| [Custom Agents](custom-agents.md)     | Defining and configuring custom specialists |
+| [Configuration](configuration.md)     | `orca.json` schema and options reference      |
+| [Troubleshooting](troubleshooting.md) | Common issues and solutions                 |
 
 ## Quick Navigation
 
 **I want to...**
 
-- **Install the plugin** - See [Getting Started](getting-started.md)
-- **Configure agent behavior** - See [Configuration](configuration.md)
-- **Add a custom agent** - See [Custom Agents](custom-agents.md)
-- **Require approval for agents** - See [Supervision](supervision.md)
-- **Understand how it works** - See [Architecture](architecture.md)
-- **Fix an error** - See [Troubleshooting](troubleshooting.md)
+- **Install the plugin** → [Getting Started](getting-started.md)
+- **Understand how it works** → [Architecture](architecture.md)
+- **Configure plan approval** → [Supervision](supervision.md)
+- **Add a custom agent** → [Custom Agents](custom-agents.md)
+- **Configure agent behavior** → [Configuration](configuration.md)
+- **Fix an error** → [Troubleshooting](troubleshooting.md)
 
 ## Quick Install
 
