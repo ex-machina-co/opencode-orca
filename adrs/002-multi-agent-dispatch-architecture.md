@@ -36,6 +36,8 @@ Chosen option: **Multi-tool with role separation**, because it enforces clear bo
 | **Planner**     | `orca_ask_specialist` (read-only), `orca_list_plans`, `orca_describe_plan`         | Research, produce plans, answer questions, revise on failure |
 | **Specialists** | `orca_ask_specialist` (read-only), `orca_list_plans`, `orca_describe_plan`         | Execute tasks, ask questions to non-supervised agents        |
 
+Note: `orca_list_plans` and `orca_describe_plan` are allowed for the Orca agent for convenience. We may revoke these later if they result in erroneous routing.
+
 ### Plugin-Controlled HITL
 
 All human decisions use `question.ask()` with the **two-question pattern**:
