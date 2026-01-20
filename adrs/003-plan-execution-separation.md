@@ -37,7 +37,7 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         ORCA AGENT (Dumb Pipe)                              │
+│                         ORCA AGENT (Relay)                                  │
 │                                                                             │
 │  Tools (emits):                                                             │
 │  - orca_invoke        → Send message to orchestration system                │
@@ -134,7 +134,7 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
 | `orca_plans_list`| Planner              | `PlanningService.listPlans()`             | List existing plans            |
 | `orca_plans_get` | Planner, Specialists | `PlanningService.getPlan()`               | Get plan details               |
 
-**Key design decision**: Orca is a "dumb pipe" with only `orca_invoke`. The service layer routes to the planner, and the planner handles all query types (including "list my plans", "show plan X", etc.) because it has the tools and context to do so.
+**Key design decision**: Orca is a relay agent with only `orca_invoke`. The service layer routes to the planner, and the planner handles all query types (including "list my plans", "show plan X", etc.) because it has the tools and context to do so.
 
 **Note**: There is no `orca_exec_*` tool. Execution is entirely service-layer orchestrated:
 1. Planner emits a Plan (structured output)
@@ -282,9 +282,9 @@ Each task receives a `TaskContext` with:
 
 Specialists can emit `orca_plans_get` to fetch full plan details if needed.
 
-### Why Orca is a "Dumb Pipe"
+### Why Orca is a Relay Agent
 
-The simplest possible Orca agent has one tool: `orca_invoke`. This design:
+The simplest possible Orca agent has one tool: `orca_invoke`. This relay design:
 
 1. **Removes tool selection from the LLM** — Orca doesn't decide "should I list plans or invoke the planner?" It just forwards everything.
 
