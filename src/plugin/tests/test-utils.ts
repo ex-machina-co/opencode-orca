@@ -1,6 +1,6 @@
 import { mock, spyOn } from 'bun:test'
-import type { Logger } from '../log'
-import * as logModule from '../log'
+import type { Logger } from '../../common/log'
+import * as logModule from '../../common/log'
 
 export type MockLogger = {
   [K in keyof Logger]: ReturnType<typeof mock<Logger[K]>>

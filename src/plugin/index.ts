@@ -1,14 +1,11 @@
 import { join } from 'node:path'
 import { type Plugin, tool } from '@opencode-ai/plugin'
 import type { Event, QuestionAnswer } from '@opencode-ai/sdk/v2'
-import { DispatchPayload } from '../schemas/messages'
+import { initLogger } from '../common/log'
+import { OrcaService } from '../orca/service'
 import { DEFAULT_AGENTS, mergeAgentConfigs } from './agents'
 import { loadUserConfig } from './config'
-import { type DispatchContext, dispatchToAgent } from './dispatch'
-import { initLogger } from './log'
-import { handleQuestionRejected, handleQuestionReplied } from './question'
 import { ensureSchema } from './schema'
-import { resolveValidationConfig } from './types'
 import { runUpdateNotifier } from './update-notifier'
 import { getPluginVersion } from './version'
 
@@ -18,6 +15,13 @@ export const createOrcaPlugin = (): Plugin => {
 
     // Initialize logger first
     const log = initLogger(clientNext)
+
+    // Initialize orchestration service (holds HITL, planning, execution services)
+    const orca = new OrcaService({
+      client: clientNext,
+      directory,
+      logger: log,
+    })
 
     let userConfig: Awaited<ReturnType<typeof loadUserConfig>>
     let configLoadError: string | undefined
@@ -35,7 +39,6 @@ export const createOrcaPlugin = (): Plugin => {
       planner: userConfig?.planner,
       agents: userConfig?.agents,
     })
-    const validationConfig = resolveValidationConfig(userConfig?.settings)
 
     // Ensure schema file exists for editor autocomplete (silent failure)
     ensureSchema(join(directory, '.opencode'))
@@ -46,24 +49,12 @@ export const createOrcaPlugin = (): Plugin => {
 
     return {
       tool: {
-        orca_dispatch: tool({
-          description:
-            'Dispatches a message to a specified agent with an optional session ID to maintain long conversations.',
-          args: DispatchPayload.shape,
-          execute: async (args, ctx) => {
-            const dispatchCtx: DispatchContext = {
-              client,
-              clientNext,
-              agents,
-              validationConfig,
-              settings: userConfig?.settings,
-              abort: ctx.abort,
-              parentSessionId: ctx.sessionID,
-            }
-
-            return dispatchToAgent(args, dispatchCtx)
-          },
-        }),
+        // TODO: New tools will be added here:
+        // - orca_ask_planner: Send user messages to planner
+        // - orca_ask_agent: Ask read-only questions to agents
+        // - orca_ask_user: HITL user questions tool
+        // - orca_list_plans: List existing plans
+        // - orca_describe_plan: Get details about a specific plan
       },
       async config(config) {
         config.agent = config.agent ?? {}
@@ -87,14 +78,14 @@ export const createOrcaPlugin = (): Plugin => {
             requestID: props.requestID,
             answers: props.answers,
           })
-          handleQuestionReplied(props.requestID, props.answers)
+          orca.hitl.handleQuestionReplied(props.requestID, props.answers)
           return
         }
 
         if (event.type === 'question.rejected') {
           const props = event.properties as { requestID: string }
           log.info('question.rejected event received', { requestID: props.requestID })
-          handleQuestionRejected(props.requestID)
+          orca.hitl.handleQuestionRejected(props.requestID)
           return
         }
 
