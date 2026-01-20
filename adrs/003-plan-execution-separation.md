@@ -102,7 +102,7 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
 │                                                                             │
 │  DispatchService:                                                           │
 │  - dispatchTask()    → Send task to specialist                              │
-│  - dispatchQuestion → Send question to specialist                           │
+│  - dispatchQuestion() → Send question to specialist                         │
 │                                                                             │
 │  HITLService:                                                               │
 │  - askUser()          → Present question to user, await response            │
