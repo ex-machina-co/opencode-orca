@@ -1,10 +1,17 @@
 ---
 status: superseded by ADR-002
 date: 2026-01-04
-decision-makers: julian (@eXamadeus)
+decision-makers: julian
 ---
 
 # Per-Agent Supervision Instead of Autonomy Levels
+
+## Status History
+
+| status                 | date       | decision-makers      | github                                     |
+|------------------------|------------|----------------------|--------------------------------------------|
+| accepted               | 2026-01-04 | julian               | [@eXamadeus](https://github.com/eXamadeus) |
+| superseded by ADR-002  | 2026-01-19 | julian               | [@eXamadeus](https://github.com/eXamadeus) |
 
 > [!IMPORTANT]
 > This ADR is superseded by [ADR-002](./002-multi-agent-dispatch-architecture.md), which incorporates per-agent supervision into the broader multi-tool dispatch architecture with plugin-controlled HITL.

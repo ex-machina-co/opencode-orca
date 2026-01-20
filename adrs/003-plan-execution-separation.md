@@ -1,14 +1,20 @@
 ---
 status: proposed
 date: 2026-01-20
-decision-makers: julian (@eXamadeus)
+decision-makers: julian
 ---
 
 # Plan/Execution Separation with Service-Layer Orchestration
 
+## Status History
+
+| status   | date       | decision-makers | github                                     |
+|----------|------------|-----------------|--------------------------------------------|
+| proposed | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
+
 ## Context and Problem Statement
 
-ADR-002 proposed a unified plan lifecycle with 6 states (`drafting → pending_approval → approved → in_progress → completed/failed`) and 4 tools for agent communication. During implementation, we discovered that conflating "what to do" (plan definition) with "how it went" (execution state) created semantic confusion and prevented plan reuse after failures.
+[ADR-002](./002-multi-agent-dispatch-architecture.md) proposed a unified plan lifecycle with 6 states (`drafting → pending_approval → approved → in_progress → completed/failed`) and 4 tools for agent communication. During implementation, we discovered that conflating "what to do" (plan definition) with "how it went" (execution state) created semantic confusion and prevented plan reuse after failures.
 
 Additionally, the original tool naming (`orca_ask_planner`, `orca_ask_specialist`) didn't align well with the emerging service architecture and mixed concerns between routing, questioning, and task execution.
 
