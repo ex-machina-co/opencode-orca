@@ -1,5 +1,5 @@
 import dedent from 'dedent'
-import type { AgentConfig } from '../plugin/config'
+import type { AgentConfig } from '../../plugin/config'
 
 export const documentWriter: AgentConfig = {
   mode: 'subagent',

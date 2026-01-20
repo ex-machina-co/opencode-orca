@@ -1,16 +1,15 @@
 import { cloneDeep, merge } from 'lodash'
-import { architect } from '../agents/architect'
-import { coder } from '../agents/coder'
-import { documentWriter } from '../agents/document-writer'
-import { orca } from '../agents/orca'
-import { planner } from '../agents/planner'
-import { researcher } from '../agents/researcher'
-import { reviewer } from '../agents/reviewer'
-import { tester } from '../agents/tester'
+import { getLogger } from '../common/log'
+import { architect } from '../orca/agents/architect'
+import { coder } from '../orca/agents/coder'
+import { documentWriter } from '../orca/agents/document-writer'
+import { orca } from '../orca/agents/orca'
+import { planner } from '../orca/agents/planner'
+import { researcher } from '../orca/agents/researcher'
+import { reviewer } from '../orca/agents/reviewer'
+import { tester } from '../orca/agents/tester'
 import { AgentConfig, type OrcaAgentConfig, type PlannerAgentConfig } from './config'
 import { SPECIALIST_LIST_PLACEHOLDER } from './constants'
-import { getLogger } from './log'
-import { generateResponseFormatInstructions } from './response-format'
 
 const ORCHESTRATION_AGENTS = ['orca', 'planner'] as const
 
@@ -50,21 +49,13 @@ export const parseAgentConfig = (agentId: string, agent: AgentConfig): AgentConf
 }
 
 /**
- * Append response format instructions to an agent's prompt.
- * Uses the agent's configuration to generate appropriate examples.
+ * Parse and validate an agent config.
+ * TODO: Response format injection will be reimplemented for new message system.
  */
 function withProtocol(agentId: string, maybeAgent: AgentConfig): AgentConfig {
   // BLOW UP if our default agents don't pass a strict check
   const agent = parseAgentConfig(agentId, maybeAgent)
-
-  if (agentId === 'orca') return agent
-
-  const formatInstructions = generateResponseFormatInstructions(agentId, agent)
-
-  return {
-    ...agent,
-    prompt: agent.prompt ? `${agent.prompt}\n\n${formatInstructions}` : formatInstructions,
-  }
+  return agent
 }
 
 /**

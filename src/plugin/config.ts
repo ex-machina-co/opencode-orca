@@ -3,8 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import dedent from 'dedent'
 import { z } from 'zod'
-import { AgentId } from '../schemas/common'
-import { MessageType, QuestionMessage, TaskMessage } from '../schemas/messages'
+import { AgentId } from '../common/agent-id'
 
 export const PermissionConfig = z
   .strictObject({
@@ -43,7 +42,7 @@ export const AgentConfig = z
       .optional()
       .describe('Whether this agent requires approval before dispatch'),
     accepts: z
-      .array(QuestionMessage.shape.type.or(TaskMessage.shape.type))
+      .array(z.enum(['question', 'task']))
       .optional()
       .describe(dedent`
         Message types this agent accepts.

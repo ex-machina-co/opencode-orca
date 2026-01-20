@@ -1,12 +1,10 @@
 import dedent from 'dedent'
-import type { AgentConfig } from '../plugin/config'
-import { SPECIALIST_LIST_PLACEHOLDER } from '../plugin/constants'
-import { extractFieldDocs, formatFieldDocsAsMarkdownList } from '../schemas/jsonschema'
-import { PlanMessage } from '../schemas/messages'
+import { extractFieldDocs, formatFieldDocsAsMarkdownList } from '../../common/schema-docs'
+import type { AgentConfig } from '../../plugin/config'
+import { SPECIALIST_LIST_PLACEHOLDER } from '../../plugin/constants'
+import { Plan } from '../schemas'
 
-const planOutputDocs = formatFieldDocsAsMarkdownList(
-  extractFieldDocs(PlanMessage, { exclude: ['type', 'timestamp', 'agent_id'] }),
-)
+const planOutputDocs = formatFieldDocsAsMarkdownList(extractFieldDocs(Plan, { exclude: ['type'] }))
 
 export const planner: AgentConfig = {
   mode: 'subagent',

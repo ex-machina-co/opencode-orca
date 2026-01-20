@@ -9,7 +9,6 @@ import {
 } from '../agents'
 import type { AgentConfig, OrcaAgentConfig, PlannerAgentConfig } from '../config'
 import { SPECIALIST_LIST_PLACEHOLDER } from '../constants'
-import { RESPONSE_FORMAT_INJECTION_HEADER } from '../response-format'
 import { type MockLogger, mockLogger } from './test-utils'
 
 describe('DEFAULT_AGENTS', () => {
@@ -53,15 +52,9 @@ describe('DEFAULT_AGENTS', () => {
     }
   })
 
-  test('all subagents have prompts with response format injection', () => {
+  test('all agents have prompts', () => {
     for (const [id, config] of Object.entries(DEFAULT_AGENTS)) {
       expect(config.prompt).toBeDefined()
-      if (id === 'orca') {
-        // Orca doesn't get response format injection
-        expect(config.prompt).not.toContain(RESPONSE_FORMAT_INJECTION_HEADER)
-      } else {
-        expect(config.prompt).toContain(RESPONSE_FORMAT_INJECTION_HEADER)
-      }
     }
   })
 
@@ -80,13 +73,6 @@ describe('DEFAULT_AGENTS', () => {
 })
 
 describe('Orca agent prompt', () => {
-  test('documents checkpoint handling for supervised agents', () => {
-    const orcaPrompt = DEFAULT_AGENTS.orca.prompt ?? ''
-    expect(orcaPrompt).toContain('Checkpoint Handling')
-    expect(orcaPrompt).toContain('supervised')
-    expect(orcaPrompt).toContain('approved_remaining')
-  })
-
   test('does not contain hardcoded specialist list', () => {
     const orcaPrompt = DEFAULT_AGENTS.orca.prompt ?? ''
     // Should not have the old hardcoded "Available specialists:" section
@@ -101,12 +87,12 @@ describe('Orca agent prompt', () => {
 describe('Planner agent prompt', () => {
   test('contains specialist list placeholder before injection', () => {
     // Import the raw planner config before DEFAULT_AGENTS processing
-    const { planner } = require('../../agents/planner')
+    const { planner } = require('../../orca/agents/planner')
     expect(planner.prompt).toContain(SPECIALIST_LIST_PLACEHOLDER)
   })
 
   test('contains instruction to only use listed specialists', () => {
-    const { planner } = require('../../agents/planner')
+    const { planner } = require('../../orca/agents/planner')
     expect(planner.prompt).toContain('You may ONLY assign steps to the following specialists')
     expect(planner.prompt).toContain('Do NOT reference agents outside this list')
   })
