@@ -1,7 +1,7 @@
 ---
 status: proposed
 date: 2026-01-20
-decision-makers: eXamadeus, julian
+decision-makers: julian (@eXamadeus)
 ---
 
 # Plan/Execution Separation with Service-Layer Orchestration
