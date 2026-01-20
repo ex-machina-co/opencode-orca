@@ -37,17 +37,25 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         ORCA AGENT                                          │
+│                         ORCA AGENT (Dumb Pipe)                              │
 │                                                                             │
 │  Tools (emits):                                                             │
-│  - orca_invoke        → Send user message to planner                        │
-│  - orca_plans_list    → List existing plans                                 │
-│  - orca_plans_get     → Get plan details                                    │
+│  - orca_invoke        → Send message to orchestration system                │
 │                                                                             │
 │  Responsibilities:                                                          │
-│  - Route ALL user messages to planner via orca_invoke                       │
-│  - Help user find/resume existing plans                                     │
+│  - Forward ALL user messages via orca_invoke                                │
 │  - Report results back to user                                              │
+│  - Nothing else — Orca has no domain knowledge                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PLUGIN SERVICE LAYER (Router)                            │
+│                                                                             │
+│  OrcaService.invoke():                                                      │
+│  - Routes ALL messages to Planner (single entry point)                      │
+│  - Planner has context to handle any query type                             │
+│  - Future: could add fast-paths for simple queries                          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
@@ -64,15 +72,16 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
 │  - Plan               → Validated and persisted by plugin                   │
 │                                                                             │
 │  Responsibilities:                                                          │
+│  - Answer simple queries directly (e.g., "list my plans")                   │
 │  - Research via orca_ask_agent                                              │
 │  - Clarify requirements via orca_ask_user                                   │
-│  - Produce structured plans                                                 │
+│  - Produce structured plans for complex work                                │
 │  - Revise plans when execution fails                                        │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    PLUGIN SERVICE LAYER                                     │
+│                    PLUGIN SERVICE LAYER (Orchestration)                     │
 │                                                                             │
 │  PlanningService:                                                           │
 │  - createProposal()   → Persist new plan                                    │
@@ -117,13 +126,15 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
 
 ### Tool Definitions
 
-| Tool | Who Emits | Service Layer | Purpose |
-|------|-----------|---------------|---------|
-| `orca_invoke` | Orca | `DispatchService` → Planner | Send user message to planner |
-| `orca_ask_user` | Planner, Specialists | `HITLService.askUser()` | HITL question to user |
-| `orca_ask_agent` | Planner, Specialists | `DispatchService.dispatch(AgentQuestion)` | Read-only question to agent |
-| `orca_plans_list` | Orca, Planner | `PlanningService.listPlans()` | List existing plans |
-| `orca_plans_get` | Orca, Planner, Specialists | `PlanningService.getPlan()` | Get plan details |
+| Tool             | Who Emits            | Handler                                   | Purpose                        |
+| ---------------- | -------------------- | ----------------------------------------- | ------------------------------ |
+| `orca_invoke`    | Orca                 | `OrcaService.invoke()`                    | Send message to orchestration  |
+| `orca_ask_user`  | Planner, Specialists | `HITLService.askUser()`                   | HITL question to user          |
+| `orca_ask_agent` | Planner, Specialists | `DispatchService.dispatch(AgentQuestion)` | Read-only question to agent    |
+| `orca_plans_list`| Planner              | `PlanningService.listPlans()`             | List existing plans            |
+| `orca_plans_get` | Planner, Specialists | `PlanningService.getPlan()`               | Get plan details               |
+
+**Key design decision**: Orca is a "dumb pipe" with only `orca_invoke`. The service layer routes to the planner, and the planner handles all query types (including "list my plans", "show plan X", etc.) because it has the tools and context to do so.
 
 **Note**: There is no `orca_exec_*` tool. Execution is entirely service-layer orchestrated:
 1. Planner emits a Plan (structured output)
@@ -174,9 +185,11 @@ pending ──► running ──┬──► completed
 * Good, because plans can have multiple executions (retry entire plan without replanning)
 * Good, because task-level granularity enables partial completion and targeted retry
 * Good, because discriminated unions make invalid states unrepresentable
-* Good, because tool names align with service concepts
+* Good, because Orca's single tool removes "which tool?" decisions from the LLM
 * Good, because execution orchestration is deterministic (service-controlled, not LLM-emitted)
+* Good, because routing logic lives in the service layer where it can evolve without changing tools
 * Neutral, because more complex storage structure (plan + execution files)
+* Neutral, because planner handles all query types (centralizes responsibility but planner has the context)
 * Bad, because requires joining plan + execution for full view
 
 ### Confirmation
@@ -189,6 +202,7 @@ Implementation status:
 | `ExecutionService` | ✅ Complete |
 | `DispatchService` | 🚧 Parsing placeholder |
 | `HITLService` | ✅ Complete |
+| `OrcaService.invoke()` | ❌ Not implemented |
 | `orca_invoke` tool | ❌ Not implemented |
 | `orca_ask_user` tool | ❌ Not implemented |
 | `orca_ask_agent` tool | ❌ Not implemented |
@@ -267,6 +281,23 @@ Each task receives a `TaskContext` with:
 - `previous_attempts` for retry scenarios (includes error + user guidance)
 
 Specialists can emit `orca_plans_get` to fetch full plan details if needed.
+
+### Why Orca is a "Dumb Pipe"
+
+The simplest possible Orca agent has one tool: `orca_invoke`. This design:
+
+1. **Removes tool selection from the LLM** — Orca doesn't decide "should I list plans or invoke the planner?" It just forwards everything.
+
+2. **Centralizes routing in the service layer** — `OrcaService.invoke()` routes to the planner, which has the context and tools to handle any query type.
+
+3. **Makes the planner the intent router** — The planner can answer "list my plans" directly (via `orca_plans_list`), or decide a request needs a full plan. This is appropriate because the planner already has LLM reasoning to understand intent.
+
+4. **Enables future flexibility** — The service layer could add fast-paths (e.g., pattern matching for "resume execution X") without changing Orca's tool surface.
+
+**Trade-off**: All queries route through the planner, which adds latency for simple requests. This is acceptable because:
+- Consistency matters more than microseconds
+- If the orchestration system is degraded, partial functionality is misleading
+- The planner can answer simple queries without producing a plan
 
 ### Terminology
 
