@@ -90,31 +90,18 @@ export class ExecutionService {
       return null
     }
 
+    // Find first claimable task (pending or failed), skip running/completed
+    const claimableIndex = execution.tasks.findIndex(
+      (t) => t.status === 'pending' || t.status === 'failed',
+    )
+    if (claimableIndex === -1) return null
+
     const plan = await this.planningService.getPlanOrThrow(this.planId)
-
-    const pendingIndex = execution.tasks.findIndex((t) => t.status === 'pending')
-    if (pendingIndex === -1) return null
-
-    const task = execution.tasks[pendingIndex]
-    const retryCount = task.status === 'failed' ? (task as FailedTask).retry_count + 1 : 0
-
-    const runningTask: RunningTask = {
-      step_index: pendingIndex,
-      status: 'running',
-      started_at: new Date().toISOString(),
-      context,
-      retry_count: retryCount,
-    }
-
-    const tasks = [...execution.tasks]
-    tasks[pendingIndex] = runningTask
-
-    const updated: PlanExecution = { ...execution, tasks }
-    await writeExecution(this.workingDir, this.planId, updated)
+    const updated = await this.startTask(executionId, claimableIndex, context)
 
     return {
-      record: runningTask,
-      definition: plan.steps[pendingIndex],
+      record: updated.tasks[claimableIndex],
+      definition: plan.steps[claimableIndex],
     }
   }
 

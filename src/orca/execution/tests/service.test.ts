@@ -135,6 +135,39 @@ describe('ExecutionService', () => {
       const task = await service.claimNextTask(execution.execution_id, makeContext(0))
       expect(task).toBeNull()
     })
+
+    test('claims failed task for retry', async () => {
+      const service = new ExecutionService(tempDir, planId)
+      const execution = await service.create()
+      await service.start(execution.execution_id)
+
+      // First attempt - claim and fail
+      await service.claimNextTask(execution.execution_id, makeContext(0))
+      await service.failTask(execution.execution_id, 0, 'First failure')
+
+      // Claim again - should pick up the failed task
+      const task = await service.claimNextTask(execution.execution_id, makeContext(0))
+
+      expect(task).not.toBeNull()
+      expect(task?.record.status).toBe('running')
+      expect(task?.record.step_index).toBe(0)
+      expect((task?.record as { retry_count: number }).retry_count).toBe(1)
+    })
+
+    test('skips running tasks', async () => {
+      const service = new ExecutionService(tempDir, planId)
+      const execution = await service.create()
+      await service.start(execution.execution_id)
+
+      // Claim first task (now running)
+      await service.claimNextTask(execution.execution_id, makeContext(0))
+
+      // Claim again - should skip running task 0, get task 1
+      const task = await service.claimNextTask(execution.execution_id, makeContext(1))
+
+      expect(task).not.toBeNull()
+      expect(task?.record.step_index).toBe(1)
+    })
   })
 
   describe('completeTask', () => {
