@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { AgentId } from '../../common/agent-id'
-import Identifier from '../../common/identifier'
+import * as Identifier from '../../common/identifier'
 
 // ============================================================================
 // Plan Step

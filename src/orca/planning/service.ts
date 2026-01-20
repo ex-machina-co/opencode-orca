@@ -1,4 +1,4 @@
-import Identifier from '../../common/identifier'
+import * as Identifier from '../../common/identifier'
 import type { PlanStep, PlanSummary, StoredPlan } from './schemas'
 import { StoredPlan as StoredPlanSchema } from './schemas'
 import { deletePlan, hasExecutions, listPlanIds, readPlan, writePlan } from './storage'

@@ -1,4 +1,4 @@
-import Identifier from '../../common/identifier'
+import * as Identifier from '../../common/identifier'
 import type { PlanStep } from '../planning/schemas'
 import { PlanningService } from '../planning/service'
 import {

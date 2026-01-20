@@ -1,164 +1,154 @@
 import type { OpencodeClient as OpencodeClientV2 } from '@opencode-ai/sdk/v2'
-import Identifier from '../../common/identifier'
+import type { z } from 'zod'
+import * as Identifier from '../../common/identifier'
 import type { Logger } from '../../common/log'
 import { getLogger } from '../../common/log'
-import type { ExecutionService } from '../execution/service'
-import type { HITLService } from '../hitl/service'
-import type { PlanningService } from '../planning/service'
-import type {
-  AgentAnswer,
-  AgentQuestion,
-  OrcaDispatch,
-  OrcaResponse,
-  TaskDispatch,
-  TaskResponse,
-} from './schemas'
+import * as Dispatch from './schemas'
 
-export interface DispatcherDeps {
+export interface DispatchServiceDeps {
   client: OpencodeClientV2
   directory: string
-  planningService: PlanningService
-  executionService: ExecutionService
-  hitlService: HITLService
   logger?: Logger
 }
 
+export interface SendOptions<TResult extends z.ZodType> {
+  agent: string
+  message: string
+  resultSchema: TResult
+  sessionId?: string
+  sessionTitle?: string
+  maxRetries?: number
+}
+
+export interface SendResult<T> {
+  result: T
+  sessionId: string
+}
+
+/**
+ * Generic dispatch service - sends messages to agents and parses responses.
+ *
+ * This is a "dumb pipe" that doesn't know about plans, tasks, or execution.
+ * It handles:
+ * - Session creation/reuse
+ * - Sending prompts to agents
+ * - Parsing responses against a provided schema
+ * - Retry logic on validation failure
+ *
+ * Usage:
+ *   const { result, sessionId } = await dispatch.send({
+ *     agent: 'coder',
+ *     message: 'Implement the feature',
+ *     resultSchema: Dispatch.Task.result,
+ *   })
+ */
 export class DispatchService {
   private readonly client: OpencodeClientV2
   private readonly directory: string
-  private readonly planningService: PlanningService
-  private readonly executionService: ExecutionService
-  private readonly hitlService: HITLService
   private readonly logger: Logger
 
-  constructor(deps: DispatcherDeps) {
+  constructor(deps: DispatchServiceDeps) {
     this.client = deps.client
     this.directory = deps.directory
-    this.planningService = deps.planningService
-    this.executionService = deps.executionService
-    this.hitlService = deps.hitlService
     this.logger = deps.logger ?? getLogger()
   }
 
-  async dispatchToPlanner(
-    dispatch: OrcaDispatch,
-    sessionId?: string,
-  ): Promise<{ response: OrcaResponse; sessionId: string }> {
-    const targetSessionId = sessionId ?? Identifier.generateID('session')
+  /**
+   * Send a message to an agent and parse the response against a schema.
+   */
+  async send<TResult extends z.ZodType>(
+    options: SendOptions<TResult>,
+  ): Promise<SendResult<z.infer<TResult>>> {
+    const { agent, message, resultSchema, maxRetries = 2 } = options
+    const sessionId = options.sessionId ?? Identifier.generateID('session')
 
-    this.logger.info('Dispatching to planner', {
-      sessionId: targetSessionId,
-      hasPlanId: !!dispatch.plan_id,
-    })
+    this.logger.info('Dispatching to agent', { agent, sessionId })
 
-    // Create session if needed
-    if (!sessionId) {
+    // Create session if new
+    if (!options.sessionId) {
       await this.client.session.create({
         directory: this.directory,
-        parentID: targetSessionId,
-        title: 'Planner',
+        parentID: sessionId,
+        title: options.sessionTitle ?? `Dispatch to ${agent}`,
       })
     }
 
-    // Send message to planner
-    const result = await this.client.session.prompt({
-      sessionID: targetSessionId,
+    // Send message
+    const response = await this.client.session.prompt({
+      sessionID: sessionId,
       directory: this.directory,
-      agent: 'planner',
-      parts: [{ type: 'text', text: dispatch.message }],
+      agent,
+      parts: [{ type: 'text', text: message }],
     })
 
-    // Parse response
-    const response = this.parseOrcaResponse(result)
+    // Parse response with retries
+    const result = await this.parseWithRetries(response, resultSchema, sessionId, maxRetries)
 
-    return { response, sessionId: targetSessionId }
+    return { result, sessionId }
   }
 
-  async askAgent(question: AgentQuestion): Promise<{ answer: AgentAnswer; sessionId: string }> {
-    const targetSessionId = question.session_id ?? Identifier.generateID('session')
+  /**
+   * Convenience method for dispatching typed dispatch objects.
+   * Automatically uses the paired result schema.
+   */
+  async dispatch<T extends Dispatch.Any>(
+    dispatch: T,
+    options?: { sessionId?: string; sessionTitle?: string; maxRetries?: number },
+  ): Promise<SendResult<Dispatch.ResultFor<T>>> {
+    // Get the result schema based on dispatch type
+    const resultSchema = this.getResultSchema(dispatch)
 
-    this.logger.info('Asking agent', {
-      agentId: question.agent_id,
-      sessionId: targetSessionId,
+    // Get agent from dispatch (Task and AgentQuestion have it, UserQuestion doesn't)
+    const agent = this.getAgent(dispatch)
+
+    const result = await this.send({
+      agent,
+      message: this.formatMessage(dispatch),
+      resultSchema,
+      ...options,
     })
 
-    // Create session if needed
-    if (!question.session_id) {
-      await this.client.session.create({
-        directory: this.directory,
-        parentID: targetSessionId,
-        title: `Question to ${question.agent_id}`,
-      })
+    // Cast is safe because getResultSchema returns the correct schema for each dispatch type
+    return result as SendResult<Dispatch.ResultFor<T>>
+  }
+
+  private getResultSchema(dispatch: Dispatch.Any): z.ZodType {
+    switch (dispatch.type) {
+      case 'task':
+        return Dispatch.Task.result
+      case 'agent_question':
+        return Dispatch.AgentQuestion.result
+      case 'user_question':
+        return Dispatch.UserQuestion.result
     }
-
-    // Send question to agent
-    const result = await this.client.session.prompt({
-      sessionID: targetSessionId,
-      directory: this.directory,
-      agent: question.agent_id,
-      parts: [{ type: 'text', text: question.question }],
-    })
-
-    // Parse response
-    const answer = this.parseAgentAnswer(result)
-
-    return { answer, sessionId: targetSessionId }
   }
 
-  async dispatchTask(
-    task: TaskDispatch,
-    agentId: string,
-    sessionId?: string,
-  ): Promise<{ response: TaskResponse; sessionId: string }> {
-    const targetSessionId = sessionId ?? Identifier.generateID('session')
-
-    this.logger.info('Dispatching task', {
-      agentId,
-      sessionId: targetSessionId,
-      planId: task.plan_id,
-      stepIndex: task.step_index,
-    })
-
-    // Create session if needed
-    if (!sessionId) {
-      await this.client.session.create({
-        directory: this.directory,
-        parentID: targetSessionId,
-        title: `Task: ${task.description.slice(0, 50)}`,
-      })
+  private getAgent(dispatch: Dispatch.Any): string {
+    switch (dispatch.type) {
+      case 'task':
+        return dispatch.agent
+      case 'agent_question':
+        return dispatch.agent
+      case 'user_question':
+        // User questions go through HITL, not to an agent
+        // This shouldn't be called for user questions
+        throw new Error('UserQuestion dispatch should use HITL, not agent dispatch')
     }
-
-    // Build task prompt
-    const taskPrompt = this.buildTaskPrompt(task)
-
-    // Send task to specialist
-    const result = await this.client.session.prompt({
-      sessionID: targetSessionId,
-      directory: this.directory,
-      agent: agentId,
-      parts: [{ type: 'text', text: taskPrompt }],
-    })
-
-    // Parse response
-    const response = this.parseTaskResponse(result)
-
-    return { response, sessionId: targetSessionId }
   }
 
-  getHITLService(): HITLService {
-    return this.hitlService
+  private formatMessage(dispatch: Dispatch.Any): string {
+    switch (dispatch.type) {
+      case 'task':
+        return this.formatTaskMessage(dispatch)
+      case 'agent_question':
+        return dispatch.question
+      case 'user_question':
+        throw new Error('UserQuestion dispatch should use HITL, not agent dispatch')
+    }
   }
 
-  private buildTaskPrompt(task: TaskDispatch): string {
-    const lines = [
-      '## Task Assignment',
-      '',
-      `**Plan ID:** ${task.plan_id}`,
-      `**Step:** ${task.step_index + 1}`,
-      '',
-      '### Description',
-      task.description,
-    ]
+  private formatTaskMessage(task: Dispatch.Task): string {
+    const lines = ['## Task', '', task.description]
 
     if (task.command) {
       lines.push('', '### Suggested Approach', task.command)
@@ -167,56 +157,47 @@ export class DispatchService {
     return lines.join('\n')
   }
 
-  private parseOrcaResponse(result: unknown): OrcaResponse {
-    // TODO: Implement response parsing
+  private async parseWithRetries<T extends z.ZodType>(
+    response: unknown,
+    schema: T,
+    sessionId: string,
+    maxRetries: number,
+  ): Promise<z.infer<T>> {
+    // TODO: Implement response parsing with retries
     //
     // 1. Extract the assistant message content from the session response
     // 2. Try to parse as JSON (strip markdown code fences if present)
-    // 3. Validate against OrcaResponse schema (discriminated union: answer | plan | failure | interruption)
-    // 4. If validation fails, attempt retry with correction prompt (up to maxRetries)
-    // 5. If all retries exhausted, return Failure with VALIDATION_ERROR
-    //
-    // The planner agent is instructed to respond with structured JSON matching the Plan schema
-    // when creating plans, or freeform text for direct answers.
+    // 3. Validate against the provided schema
+    // 4. If validation fails, send a correction prompt and retry (up to maxRetries)
+    // 5. If all retries exhausted, throw an error
 
-    this.logger.debug('Parsing Orca response', { result })
+    this.logger.debug('Parsing response', { response, sessionId, maxRetries })
 
-    return {
+    // Placeholder - return a minimal valid response
+    // This will be replaced with actual parsing logic
+    const parsed = schema.safeParse({
       type: 'answer',
       content: 'Response parsing not yet implemented',
+    })
+
+    if (parsed.success) {
+      return parsed.data
     }
-  }
 
-  private parseAgentAnswer(result: unknown): AgentAnswer {
-    // TODO: Implement response parsing
-    //
-    // 1. Extract the assistant message content from the session response
-    // 2. For question mode, agents respond with freeform text (Answer type)
-    // 3. Wrap the content in an Answer response
-    // 4. Handle interruptions (agent aborted) and failures (agent errors)
-
-    this.logger.debug('Parsing agent answer', { result })
-
-    return {
-      type: 'answer',
-      content: 'Response parsing not yet implemented',
-    }
-  }
-
-  private parseTaskResponse(result: unknown): TaskResponse {
-    // TODO: Implement response parsing
-    //
-    // 1. Extract the assistant message content from the session response
-    // 2. Try to parse as JSON for structured Success response
-    // 3. If not JSON, wrap raw content as Success with the content as summary
-    // 4. Handle interruptions and failures
-    // 5. Success should include: summary, artifacts (files modified), verification steps
-
-    this.logger.debug('Parsing task response', { result })
-
-    return {
+    // Try success type for task results
+    const successParsed = schema.safeParse({
       type: 'success',
       summary: 'Response parsing not yet implemented',
+    })
+
+    if (successParsed.success) {
+      return successParsed.data
     }
+
+    // Fall back to answer type
+    return {
+      type: 'answer',
+      content: 'Response parsing not yet implemented',
+    } as z.infer<T>
   }
 }

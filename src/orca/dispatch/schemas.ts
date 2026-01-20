@@ -2,9 +2,8 @@ import type { QuestionInfo, QuestionOption } from '@opencode-ai/sdk/v2'
 import { z } from 'zod'
 import { AgentId } from '../../common/agent-id'
 import { ErrorCode } from '../../common/error-code'
-import Identifier from '../../common/identifier'
+import * as Identifier from '../../common/identifier'
 import type { AssertAssignable } from '../../common/types'
-import { PlanStep } from '../planning/schemas'
 
 // ============================================================================
 // HITL Schemas (aligned with OpenCode SDK)
@@ -84,52 +83,15 @@ export const Interruption = z.strictObject({
 })
 export type Interruption = z.infer<typeof Interruption>
 
-export const Plan = z.strictObject({
-  type: z.literal('plan'),
-  goal: z.string().min(1).describe('Clear statement of what we are achieving'),
-  steps: z.array(PlanStep).min(1).describe('Steps to execute'),
-  assumptions: z.array(z.string()).min(1).describe('What we are assuming'),
-  files_touched: z.array(z.string()).min(1).describe('Files that will be modified'),
-  verification: z.array(z.string()).min(1).describe('How to confirm success'),
-  risks: z.array(z.string()).min(1).describe('What could go wrong'),
-})
-export type Plan = z.infer<typeof Plan>
-
 // ============================================================================
-// Orca <-> Planner (exclusive channel)
+// Result Types (composed from building blocks)
 // ============================================================================
 
-export const OrcaDispatch = z.strictObject({
-  message: z.string().min(1).describe('User message to the planner'),
-  plan_id: Identifier.schema('plan').optional().describe('Continue working on existing plan'),
-})
-export type OrcaDispatch = z.infer<typeof OrcaDispatch>
-
-export const OrcaResponse = z.discriminatedUnion('type', [Answer, Plan, Failure, Interruption])
-export type OrcaResponse = z.infer<typeof OrcaResponse>
-
-// ============================================================================
-// Agent <-> Agent (questions)
-// ============================================================================
-
-export const AgentQuestion = z.strictObject({
-  agent_id: AgentId.describe('Target agent to ask'),
-  session_id: Identifier.schema('session').optional().describe('Continue existing conversation'),
-  question: z.string().min(1).describe('The question to ask'),
-})
-export type AgentQuestion = z.infer<typeof AgentQuestion>
+export const TaskResult = z.discriminatedUnion('type', [Success, Failure, Interruption])
+export type TaskResult = z.infer<typeof TaskResult>
 
 export const AgentAnswer = z.discriminatedUnion('type', [Answer, Failure, Interruption])
 export type AgentAnswer = z.infer<typeof AgentAnswer>
-
-// ============================================================================
-// Agent <-> User (HITL)
-// ============================================================================
-
-export const UserQuestion = z.strictObject({
-  questions: z.array(HITLQuestion).min(1).describe('Questions to ask the user'),
-})
-export type UserQuestion = z.infer<typeof UserQuestion>
 
 export const UserAnswer = z.strictObject({
   answers: z.array(z.array(z.string())).describe('Selected answers for each question'),
@@ -137,16 +99,58 @@ export const UserAnswer = z.strictObject({
 export type UserAnswer = z.infer<typeof UserAnswer>
 
 // ============================================================================
-// Task Dispatch (plan step execution)
+// Dispatch Types (import * as Dispatch from './schemas')
+//
+// Usage:
+//   Dispatch.schema.parse(input)         // any dispatch
+//   Dispatch.Task.schema.parse(input)    // specific dispatch
+//   Dispatch.Task.result.parse(response) // expected result
 // ============================================================================
 
-export const TaskDispatch = z.strictObject({
-  plan_id: Identifier.schema('plan'),
-  step_index: z.number().int().nonnegative(),
-  description: z.string().min(1).describe('What this step should accomplish'),
-  command: z.string().optional().describe('Suggested approach'),
-})
-export type TaskDispatch = z.infer<typeof TaskDispatch>
+export const Task = {
+  schema: z.strictObject({
+    type: z.literal('task'),
+    agent: AgentId,
+    description: z.string().min(1).describe('What this step should accomplish'),
+    command: z.string().optional().describe('Suggested approach'),
+  }),
+  result: TaskResult,
+}
+export type Task = z.infer<typeof Task.schema>
 
-export const TaskResponse = z.discriminatedUnion('type', [Success, Failure, Interruption])
-export type TaskResponse = z.infer<typeof TaskResponse>
+export const UserQuestion = {
+  schema: z.strictObject({
+    type: z.literal('user_question'),
+    questions: z.array(HITLQuestion).min(1).describe('Questions to ask the user'),
+  }),
+  result: UserAnswer,
+}
+export type UserQuestion = z.infer<typeof UserQuestion.schema>
+
+export const AgentQuestion = {
+  schema: z.strictObject({
+    type: z.literal('agent_question'),
+    agent: AgentId.describe('Target agent to ask'),
+    question: z.string().min(1).describe('The question to ask'),
+    session_id: Identifier.schema('session').optional().describe('Continue existing conversation'),
+  }),
+  result: AgentAnswer,
+}
+export type AgentQuestion = z.infer<typeof AgentQuestion.schema>
+
+// Union of all dispatch types
+export const schema = z.discriminatedUnion('type', [
+  Task.schema,
+  UserQuestion.schema,
+  AgentQuestion.schema,
+])
+export type Any = z.infer<typeof schema>
+
+// Type helper for getting result type from dispatch type
+export type ResultFor<T extends Any> = T extends Task
+  ? TaskResult
+  : T extends UserQuestion
+    ? UserAnswer
+    : T extends AgentQuestion
+      ? AgentAnswer
+      : never
