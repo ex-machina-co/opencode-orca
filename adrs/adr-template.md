@@ -9,6 +9,19 @@ informed: {list everyone who is kept up-to-date on progress; and with whom there
 
 # {short title, representative of solved problem and found solution}
 
+## Status History
+
+<!-- 
+  Track status changes chronologically (oldest first, most recent at bottom).
+  - "proposed" date = when the ADR was first shared for review (e.g., PR opened)
+  - "accepted" date = when the decision was agreed upon (not necessarily when PR merged)
+  - Add a new row for each status change
+-->
+
+| status | date | decision-makers | github |
+|--------|------|-----------------|--------|
+| proposed | {YYYY-MM-DD} | {name} | {[@handle](https://github.com/handle)} |
+
 ## Context and Problem Statement
 
 {Describe the context and problem statement, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in form of a question and add links to collaboration boards or issue management systems.}

@@ -4,13 +4,13 @@ date: 2026-01-20
 decision-makers: julian
 ---
 
-## Status Updates
-
-| status   | date       | decision-makers |
-|----------|------------|-----------------|
-| proposed | 2026-01-20 | julian ([@eXamadeus](https://github.com/eXamadeus)) |
-
 # Plan/Execution Separation with Service-Layer Orchestration
+
+## Status History
+
+| status   | date       | decision-makers | github                                     |
+|----------|------------|-----------------|--------------------------------------------|
+| proposed | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
 
 ## Context and Problem Statement
 

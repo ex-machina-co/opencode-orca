@@ -1,10 +1,17 @@
 ---
-status: proposed
+status: accepted
 date: 2026-01-19
-decision-makers: julian (@eXamadeus)
+decision-makers: julian
 ---
 
 # Multi-Tool Dispatch with Role Separation and Persistent Plans
+
+## Status History
+
+| status   | date       | decision-makers | github                                     |
+|----------|------------|-----------------|--------------------------------------------|
+| proposed | 2026-01-19 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
+| accepted | 2026-01-19 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
 
 ## Context and Problem Statement
 
