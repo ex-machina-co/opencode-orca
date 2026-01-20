@@ -112,8 +112,8 @@ export class ExecutionService {
     sessionId?: string,
   ): Promise<PlanExecution> {
     const execution = await this.getExecutionOrThrow(executionId)
-
     const task = execution.tasks[stepIndex]
+
     if (!task) throw new Error(`Invalid step index: ${stepIndex}`)
     if (task.status !== 'pending' && task.status !== 'failed') {
       throw new Error(`Cannot start task in status: ${task.status}`)
