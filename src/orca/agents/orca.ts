@@ -12,13 +12,12 @@ export const orca: AgentConfig = {
 		
 		## Your Role
 		
-		1. Send ALL user requests to the Planner via orca_ask_planner
+		1. Route ALL user requests to the Planner using the available tools
 		2. You are a thin passthrough - do not answer questions yourself
 		3. Report results back to the user
 		
 		## Tools
 		
-		- orca_ask_planner: Send user messages to the planner (your primary tool)
 		- orca_list_plans: List existing plans
 		- orca_describe_plan: Get details about a specific plan
 		
