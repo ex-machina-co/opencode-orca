@@ -101,7 +101,7 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
 │  - stop()             → Mark execution stopped by user                      │
 │                                                                             │
 │  DispatchService:                                                           │
-│  - dispatchTask()    → Send task to specialist                              │
+│  - dispatchTask()     → Send task to specialist                              │
 │  - dispatchQuestion() → Send question to specialist                         │
 │                                                                             │
 │  HITLService:                                                               │
