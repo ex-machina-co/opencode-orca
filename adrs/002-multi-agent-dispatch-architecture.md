@@ -1,7 +1,7 @@
 ---
 status: proposed
 date: 2026-01-19
-decision-makers: eXamadeus
+decision-makers: julian (@eXamadeus)
 ---
 
 # Multi-Tool Dispatch with Role Separation and Persistent Plans
