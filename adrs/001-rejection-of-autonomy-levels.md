@@ -1,7 +1,7 @@
 ---
 status: superseded by ADR-002
 date: 2026-01-04
-decision-makers: eXamadeus
+decision-makers: julian (@eXamadeus)
 ---
 
 # Per-Agent Supervision Instead of Autonomy Levels

@@ -1,7 +1,7 @@
 ---
 status: proposed
 date: 2026-01-19
-decision-makers: eXamadeus
+decision-makers: julian (@eXamadeus)
 ---
 
 # Multi-Tool Dispatch with Role Separation and Persistent Plans
@@ -121,3 +121,8 @@ Each step receives: plan reference, previous step summaries, key findings, accum
 - Allow: `read`, `glob`, `grep`, `list`, `webfetch`, `websearch`, `codesearch`
 
 *Source: [dispatch-refactor-v2.md](/tmp/dispatch-refactor-v2.md)*
+
+### Related ADRs
+
+- [ADR-001](./001-rejection-of-autonomy-levels.md): Rejected autonomy levels for per-agent supervision (superseded by this ADR)
+- [ADR-003](./003-plan-execution-separation.md): Refines this proposal with plan/execution separation and updated tool naming
