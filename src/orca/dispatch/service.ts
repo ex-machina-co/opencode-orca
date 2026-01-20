@@ -28,7 +28,7 @@ export interface SendResult<T> {
 /**
  * Generic dispatch service - sends messages to agents and parses responses.
  *
- * This is a "dumb pipe" that doesn't know about plans, tasks, or execution.
+ * This is a "dumb pipe" that doesn't know about plans or execution state.
  * It handles:
  * - Session creation/reuse
  * - Sending prompts to agents
@@ -36,10 +36,18 @@ export interface SendResult<T> {
  * - Retry logic on validation failure
  *
  * Usage:
- *   const { result, sessionId } = await dispatch.send({
+ *   // Dispatch a task to a specialist
+ *   const { result, sessionId } = await dispatch.dispatchTask({
+ *     type: 'task',
  *     agent: 'coder',
- *     message: 'Implement the feature',
- *     resultSchema: Dispatch.Task.result,
+ *     description: 'Implement the feature',
+ *   })
+ *
+ *   // Ask an agent a read-only question
+ *   const { result, sessionId } = await dispatch.dispatchQuestion({
+ *     type: 'agent_question',
+ *     agent: 'researcher',
+ *     question: 'What auth patterns exist in this codebase?',
  *   })
  */
 export class DispatchService {
@@ -88,63 +96,38 @@ export class DispatchService {
   }
 
   /**
-   * Convenience method for dispatching typed dispatch objects.
-   * Automatically uses the paired result schema.
+   * Dispatch a task to a specialist agent.
+   * Returns TaskResult (Success | Failure | Interruption).
    */
-  async dispatch<T extends Dispatch.Any>(
-    dispatch: T,
+  async dispatchTask(
+    task: Dispatch.Task,
     options?: { sessionId?: string; sessionTitle?: string; maxRetries?: number },
-  ): Promise<SendResult<Dispatch.ResultFor<T>>> {
-    // Get the result schema based on dispatch type
-    const resultSchema = this.getResultSchema(dispatch)
-
-    // Get agent from dispatch (Task and AgentQuestion have it, UserQuestion doesn't)
-    const agent = this.getAgent(dispatch)
-
-    const result = await this.send({
-      agent,
-      message: this.formatMessage(dispatch),
-      resultSchema,
+  ): Promise<SendResult<Dispatch.TaskResult>> {
+    return this.send({
+      agent: task.agent,
+      message: this.formatTaskMessage(task),
+      resultSchema: Dispatch.Task.result,
+      sessionTitle: options?.sessionTitle ?? `Task: ${task.description.slice(0, 50)}`,
       ...options,
     })
-
-    // Cast is safe because getResultSchema returns the correct schema for each dispatch type
-    return result as SendResult<Dispatch.ResultFor<T>>
   }
 
-  private getResultSchema(dispatch: Dispatch.Any): z.ZodType {
-    switch (dispatch.type) {
-      case 'task':
-        return Dispatch.Task.result
-      case 'agent_question':
-        return Dispatch.AgentQuestion.result
-      case 'user_question':
-        return Dispatch.UserQuestion.result
-    }
-  }
-
-  private getAgent(dispatch: Dispatch.Any): string {
-    switch (dispatch.type) {
-      case 'task':
-        return dispatch.agent
-      case 'agent_question':
-        return dispatch.agent
-      case 'user_question':
-        // User questions go through HITL, not to an agent
-        // This shouldn't be called for user questions
-        throw new Error('UserQuestion dispatch should use HITL, not agent dispatch')
-    }
-  }
-
-  private formatMessage(dispatch: Dispatch.Any): string {
-    switch (dispatch.type) {
-      case 'task':
-        return this.formatTaskMessage(dispatch)
-      case 'agent_question':
-        return dispatch.question
-      case 'user_question':
-        throw new Error('UserQuestion dispatch should use HITL, not agent dispatch')
-    }
+  /**
+   * Dispatch a read-only question to an agent.
+   * Returns AgentAnswer (Answer | Failure | Interruption).
+   */
+  async dispatchQuestion(
+    question: Dispatch.AgentQuestion,
+    options?: { sessionTitle?: string; maxRetries?: number },
+  ): Promise<SendResult<Dispatch.AgentAnswer>> {
+    return this.send({
+      agent: question.agent,
+      message: question.question,
+      resultSchema: Dispatch.AgentQuestion.result,
+      sessionId: question.session_id,
+      sessionTitle: options?.sessionTitle ?? `Question to ${question.agent}`,
+      ...options,
+    })
   }
 
   private formatTaskMessage(task: Dispatch.Task): string {

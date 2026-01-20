@@ -101,8 +101,8 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
 │  - stop()             → Mark execution stopped by user                      │
 │                                                                             │
 │  DispatchService:                                                           │
-│  - dispatch(Task)     → Send task to specialist                             │
-│  - dispatch(AgentQuestion) → Send question to specialist                    │
+│  - dispatchTask     → Send task to specialist                               │
+│  - dispatchQuestion → Send question to specialist                           │
 │                                                                             │
 │  HITLService:                                                               │
 │  - askUser()          → Present question to user, await response            │
@@ -130,7 +130,7 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
 | ---------------- | -------------------- | ----------------------------------------- | ------------------------------ |
 | `orca_invoke`    | Orca                 | `OrcaService.invoke()`                    | Send message to orchestration  |
 | `orca_ask_user`  | Planner, Specialists | `HITLService.askUser()`                   | HITL question to user          |
-| `orca_ask_agent` | Planner, Specialists | `DispatchService.dispatch(AgentQuestion)` | Read-only question to agent    |
+| `orca_ask_agent` | Planner, Specialists | `DispatchService.dispatchQuestion()`      | Read-only question to agent    |
 | `orca_plans_list`| Planner              | `PlanningService.listPlans()`             | List existing plans            |
 | `orca_plans_get` | Planner, Specialists | `PlanningService.getPlan()`               | Get plan details               |
 
@@ -141,7 +141,7 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
 2. Plugin persists via `PlanningService.createProposal()`
 3. Plugin triggers approval via `HITLService.askUser()`
 4. On approval, plugin calls `ExecutionService.create()` and `start()`
-5. Plugin loops: `claimNextTask()` → `DispatchService.dispatch(Task)` → `completeTask()`/`failTask()`
+5. Plugin loops: `claimNextTask()` → `DispatchService.dispatchTask()` → `completeTask()`/`failTask()`
 
 ### State Machines
 
