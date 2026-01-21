@@ -1,8 +1,11 @@
 import { join } from 'node:path'
-import { type Plugin, tool } from '@opencode-ai/plugin'
+import type { Plugin } from '@opencode-ai/plugin'
 import type { Event, QuestionAnswer } from '@opencode-ai/sdk/v2'
+import { AgentType } from '../common/agent'
 import { initLogger } from '../common/log'
 import { OrcaService } from '../orca/service'
+import { Tools } from '../orca/tools'
+import { buildToolPermissions } from '../orca/tools/build-tool-permissions'
 import { DEFAULT_AGENTS, mergeAgentConfigs } from './agents'
 import { loadUserConfig } from './config'
 import { ensureSchema } from './schema'
@@ -17,6 +20,8 @@ export const createOrcaPlugin = (): Plugin => {
     const log = initLogger(clientNext)
 
     // Initialize orchestration service (holds HITL, planning, execution services)
+    // Note: We pass both v1 (client) and v2 (clientNext) clients because
+    // v1 handles streaming responses from session.prompt() properly
     const orca = new OrcaService({
       client: clientNext,
       directory,
@@ -47,21 +52,54 @@ export const createOrcaPlugin = (): Plugin => {
     let pluginEntry: string | undefined
     let hasRunUpdateNotifier = false
 
+    // Tool metadata for permission management (name -> allowed agent types)
+    const toolPermissions: Array<{ name: string; agents: readonly AgentType[] }> =
+      Object.values(Tools)
+
     return {
       tool: {
-        // TODO: New tools will be added here:
-        // - orca_ask_planner: Send user messages to planner
-        // - orca_ask_agent: Ask read-only questions to agents
-        // - orca_ask_user: HITL user questions tool
-        // - orca_list_plans: List existing plans
-        // - orca_describe_plan: Get details about a specific plan
+        // Planner tools - clarification
+        [Tools.AskUser.name]: Tools.AskUser.create(orca.hitl),
+        [Tools.AskAgent.name]: Tools.AskAgent.create(orca.dispatch),
+        // Planner tools - plan building
+        [Tools.PlanCreateDraft.name]: Tools.PlanCreateDraft.create(orca.planner),
+        [Tools.PlanSetAssumptions.name]: Tools.PlanSetAssumptions.create(orca.planner),
+        [Tools.PlanSetRisks.name]: Tools.PlanSetRisks.create(orca.planner),
+        [Tools.PlanSetVerification.name]: Tools.PlanSetVerification.create(orca.planner),
+        [Tools.PlanAddStep.name]: Tools.PlanAddStep.create(orca.planner),
+        [Tools.PlanUpdateStep.name]: Tools.PlanUpdateStep.create(orca.planner),
+        [Tools.PlanRemoveStep.name]: Tools.PlanRemoveStep.create(orca.planner),
+        [Tools.PlanSubmit.name]: Tools.PlanSubmit.create(orca.planner),
+        // Orca tools
+        [Tools.OrcaInvoke.name]: Tools.OrcaInvoke.create(orca),
       },
+
       async config(config) {
         config.agent = config.agent ?? {}
 
         // Inject all Orca agents
         for (const [agentId, agentConfig] of Object.entries(agents)) {
           config.agent[agentId] = agentConfig
+        }
+
+        // Apply tool permissions: deny all orca tools by default, allow per agent type
+        const { defaults, byAgentType } = buildToolPermissions(toolPermissions)
+
+        // Deny by default (user overrides take precedence)
+        const existingPermission =
+          typeof config.permission === 'object' && config.permission ? config.permission : {}
+        config.permission = { ...defaults, ...existingPermission }
+
+        // Allow per agent type (user overrides take precedence)
+        for (const [agentId, agentConfig] of Object.entries(config.agent)) {
+          if (!agentConfig) continue
+          const result = AgentType.safeParse(agentId)
+          const agentType = result.success ? result.data : 'specialist'
+          const existingAgentPermission =
+            typeof agentConfig.permission === 'object' && agentConfig.permission
+              ? agentConfig.permission
+              : {}
+          agentConfig.permission = { ...byAgentType[agentType], ...existingAgentPermission }
         }
 
         // Find our plugin entry for update notifier

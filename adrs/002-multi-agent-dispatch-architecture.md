@@ -2,9 +2,10 @@
 status: accepted
 date: 2026-01-19
 decision-makers: julian
+supersedes: 001-rejection-of-autonomy-levels
 ---
 
-# Multi-Tool Dispatch with Role Separation and Persistent Plans
+# Multi-Agent Dispatch with Role Separation and Persistent Plans
 
 ## Status History
 
@@ -13,13 +14,19 @@ decision-makers: julian
 | proposed | 2026-01-19 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
 | accepted | 2026-01-19 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
 
+## Related ADRs
+
+- [ADR-001](superseded/001-rejection-of-autonomy-levels.md): Per-agent supervision (superseded by this ADR)
+- [ADR-003](./003-plan-execution-separation.md): Plan/execution separation (refines this ADR)
+- [ADR-004](./004-builder-pattern-for-plans.md): Builder pattern for plans (modifies ADR-003)
+
 ## Context and Problem Statement
 
-The current Orca implementation uses a single `orca_dispatch` tool for all agent communication. This creates role confusion (Orca makes decisions it shouldn't), context loss (each specialist starts fresh), plan volatility (plans exist only in conversation context), and unreliable HITL (human decisions flow through LLMs which can't be trusted as gates).
+The initial Orca implementation used a single dispatch mechanism for all agent communication. This created role confusion (the entry agent made decisions it shouldn't), context loss (each specialist started fresh), plan volatility (plans existed only in conversation context), and unreliable HITL (human decisions flowed through LLMs which can't be trusted as gates).
 
 ## Decision Drivers
 
-* Orca has access to tools it shouldn't use (file access, bash) and makes decisions it shouldn't make
+* The entry agent has access to capabilities it shouldn't use and makes decisions it shouldn't make
 * Plans are lost if a session dies — no way to resume execution
 * Specialists don't know what previous steps discovered, leading to redundant research
 * LLMs cannot be trusted as deterministic gates for approval decisions
@@ -27,30 +34,42 @@ The current Orca implementation uses a single `orca_dispatch` tool for all agent
 
 ## Considered Options
 
-* **Single dispatch tool** — Current approach with `orca_dispatch` handling everything
-* **Multi-tool with role separation** — Different tools for different roles, plugin-controlled HITL
-* **Agent-mediated HITL** — Keep current tools but route approvals through a dedicated approval agent
+* **Single dispatch mechanism** — One tool handling all agent communication
+* **Multi-tool with role separation** — Different capabilities for different roles, plugin-controlled HITL
+* **Agent-mediated HITL** — Keep current approach but route approvals through a dedicated approval agent
 
 ## Decision Outcome
 
 Chosen option: **Multi-tool with role separation**, because it enforces clear boundaries between routing, planning, and execution while ensuring HITL decisions are deterministic.
 
-### Tool Assignment by Role
+### Core Principles
 
-| Role            | Tools Available                                                                    | Responsibilities                                             |
-|-----------------|------------------------------------------------------------------------------------|--------------------------------------------------------------|
-| **Orca**        | `orca_ask_planner`, `orca_list_plans`, `orca_describe_plan`                        | Route user messages to planner, help find/resume plans       |
-| **Planner**     | `orca_ask_specialist` (read-only), `orca_list_plans`, `orca_describe_plan`         | Research, produce plans, answer questions, revise on failure |
-| **Specialists** | `orca_ask_specialist` (read-only), `orca_list_plans`, `orca_describe_plan`         | Execute tasks, ask questions to non-supervised agents        |
+1. **Role boundaries are enforced by capability, not instruction.** Agents only have access to tools appropriate for their role. The entry agent can route but not execute. The planner can research but not modify files. Specialists can execute but only within their domain.
 
-Note: `orca_list_plans` and `orca_describe_plan` are allowed for the Orca agent for convenience. We may revoke these later if they result in erroneous routing.
+2. **Plans are persistent and can be resumed.** Plans survive session death and can be picked up later. This enables retry, audit, and long-running workflows.
+
+3. **Context flows forward between steps.** Each execution step receives summaries of previous steps, key findings, and accumulated relevant files. Specialists don't start from scratch.
+
+4. **HITL decisions are deterministic, not LLM-interpreted.** The plugin presents options to the user and receives a selection. The LLM is not in the approval path.
+
+5. **Approval happens at plan level, not tool level.** Users approve entire plans before execution begins, reducing approval fatigue.
+
+### Role Separation
+
+| Role            | Capabilities                                              | Responsibilities                                             |
+|-----------------|-----------------------------------------------------------|--------------------------------------------------------------|
+| **Entry Agent** | Route to planner, help find/resume plans                  | Forward user messages, report results                        |
+| **Planner**     | Research (read-only), produce plans, ask clarifying questions | Understand intent, gather context, create execution plans    |
+| **Specialists** | Execute tasks, ask questions to other specialists         | Perform work, report results, request help when stuck        |
 
 ### Plugin-Controlled HITL
 
-All human decisions use `question.ask()` with the **two-question pattern**:
+Human decisions use a **two-question pattern**:
 
-1. **Action Question** (`custom: false`) — Deterministic choice from predefined options
-2. **Context Question** (`custom: true`) — Optional freeform input for additional guidance
+1. **Action Question** — Deterministic choice from predefined options (e.g., Approve / Request Changes / Reject)
+2. **Context Question** — Optional freeform input for additional guidance
+
+This ensures the critical decision (what action to take) is never interpreted by an LLM.
 
 | Touchpoint         | Options                            |
 |--------------------|------------------------------------|
@@ -63,38 +82,38 @@ All human decisions use `question.ask()` with the **two-question pattern**:
 * Good, because plans survive session death and can be resumed
 * Good, because context flows between steps, eliminating redundant research
 * Good, because HITL decisions are deterministic and auditable
-* Neutral, because requires OpenCode Intent Channel for full HITL (can stub with auto-approve)
-* Bad, because more complex tool surface (4 tools instead of 1)
-* Bad, because plan files require storage management (draft pruning)
+* Neutral, because requires intent channel for full HITL (can stub with auto-approve)
+* Bad, because more complex tool surface
+* Bad, because plan persistence requires storage management
 
 ### Confirmation
 
-* Orca agent prompt should only reference its three tools — no file/bash access
-* Plan files should be created in `.opencode/plans/` with state machine status
+* Entry agent prompt should only reference routing capabilities — no file/bash access
+* Plans should be persisted with state machine status
 * Integration tests should verify context threading between steps
-* HITL stubs should log decisions until Intent Channel is available
+* HITL stubs should log decisions until intent channel is available
 
 ## Pros and Cons of the Options
 
-### Single dispatch tool
+### Single dispatch mechanism
 
-Current approach where `orca_dispatch` handles all agent communication.
+One tool handling all agent communication.
 
-* Good, because simple tool surface (one tool)
-* Bad, because Orca has too much responsibility and access
+* Good, because simple tool surface
+* Bad, because entry agent has too much responsibility and access
 * Bad, because plans are volatile (lost on session death)
 * Bad, because no context threading between steps
 * Bad, because HITL flows through LLM, which is unreliable
 
 ### Multi-tool with role separation
 
-Different tools for different roles with plugin-controlled HITL.
+Different capabilities for different roles with plugin-controlled HITL.
 
 * Good, because enforces role boundaries via tool availability
 * Good, because persistent plans enable resume after failure
 * Good, because lean prompts with self-serve context access
 * Good, because deterministic HITL via plugin, not LLM
-* Neutral, because requires new plan file management
+* Neutral, because requires new plan storage management
 * Bad, because more tools to document and maintain
 
 ### Agent-mediated HITL
@@ -108,28 +127,20 @@ Keep current tools but route approvals through a dedicated approval agent.
 
 ## More Information
 
-### Plan File Schema
+### Plans
 
-Plans stored at `.opencode/plans/{plan_id}.json` with lifecycle:
-```
-drafting → pending_approval → approved → in_progress → completed
-                 ↓                              ↓
-          changes_requested                  failed
-```
+Plans will be persisted to file for durability and resumption.
 
 ### Context Threading
 
-Each step receives: plan reference, previous step summaries, key findings, accumulated relevant files. Agents can call `orca_describe_plan` for full details.
+Each step receives:
+- Plan reference and goal
+- Previous step summaries (not full outputs)
+- Key findings accumulated so far
+- Relevant files discovered by previous steps
 
-### Read-Only Permissions
+Specialists can query for full plan details if needed.
 
-`orca_ask_specialist` creates sessions with restricted permissions:
-- Deny: `edit`, `write`, `patch`, `multiedit`, `task`, dispatch tools
-- Allow: `read`, `glob`, `grep`, `list`, `webfetch`, `websearch`, `codesearch`
+### Read-Only Research
 
-*Source: [dispatch-refactor-v2.md](/tmp/dispatch-refactor-v2.md)*
-
-### Related ADRs
-
-- [ADR-001](./001-rejection-of-autonomy-levels.md): Rejected autonomy levels for per-agent supervision (superseded by this ADR)
-- [ADR-003](./003-plan-execution-separation.md): Refines this proposal with plan/execution separation and updated tool naming
+When the planner or specialists need information from another agent, they use read-only dispatch. This prevents side effects during research and planning phases.

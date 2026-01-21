@@ -6,5 +6,7 @@ export const ErrorCode = z.enum([
   'SESSION_NOT_FOUND',
   'AGENT_ERROR',
   'TIMEOUT',
+  'INTERRUPTED',
+  'PARSE_ERROR',
 ])
 export type ErrorCode = z.infer<typeof ErrorCode>

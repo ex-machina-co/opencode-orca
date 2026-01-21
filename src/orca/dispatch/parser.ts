@@ -23,10 +23,10 @@ export type ParseAttemptResult<T> =
  * Extract text content from message parts.
  * Concatenates all text parts, ignoring tool calls and other part types.
  */
-export function extractTextContent(parts: Part[]): string | null {
-  const textParts = parts.filter((part): part is Part & { type: 'text' } => part.type === 'text')
+export function extractTextContent(parts?: Part[]): string | null {
+  const textParts = parts?.filter((part): part is Part & { type: 'text' } => part.type === 'text')
 
-  if (textParts.length === 0) {
+  if (!textParts || textParts.length === 0) {
     return null
   }
 

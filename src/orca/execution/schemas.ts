@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AgentId } from '../../common/agent-id'
+import { AgentId } from '../../common/agent'
 import * as Identifier from '../../common/identifier'
 
 // ============================================================================

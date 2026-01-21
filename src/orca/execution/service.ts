@@ -32,8 +32,8 @@ export class ExecutionService {
 
   async create(): Promise<PlanExecution> {
     const plan = await this.planningService.getPlanOrThrow(this.planId)
-    if (plan.status.stage !== 'approved') {
-      throw new Error(`Cannot execute plan in stage: ${plan.status.stage}`)
+    if (plan.stage !== 'approved') {
+      throw new Error(`Cannot execute plan in stage: ${plan.stage}`)
     }
 
     const now = new Date().toISOString()

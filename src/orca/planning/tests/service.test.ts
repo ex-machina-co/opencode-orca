@@ -14,7 +14,6 @@ describe('PlanningService', () => {
     goal: 'Implement feature X',
     steps: [{ description: 'Step 1', agent: 'coder' }],
     assumptions: ['Assumption 1'],
-    files_touched: ['src/foo.ts'],
     verification: ['Tests pass'],
     risks: ['Risk 1'],
   }
@@ -34,7 +33,7 @@ describe('PlanningService', () => {
 
       expect(plan.plan_id).toStartWith('plan_')
       expect(plan.planner_session_id).toBe('ses_123')
-      expect(plan.status.stage).toBe('proposal')
+      expect(plan.stage).toBe('proposal')
       expect(plan.goal).toBe('Implement feature X')
       expect(plan.steps).toHaveLength(1)
     })
@@ -62,7 +61,7 @@ describe('PlanningService', () => {
       })
 
       expect(revised.goal).toBe('Updated goal')
-      expect(revised.status.stage).toBe('proposal')
+      expect(revised.stage).toBe('proposal')
     })
 
     test('throws for non-existent plan', () => {
@@ -84,7 +83,7 @@ describe('PlanningService', () => {
       const plan = await service.createProposal('ses_123', validContent)
       const approved = await service.approve(plan.plan_id)
 
-      expect(approved.status.stage).toBe('approved')
+      expect(approved.stage).toBe('approved')
     })
 
     test('throws for non-proposal plan', async () => {
@@ -102,15 +101,15 @@ describe('PlanningService', () => {
       const plan = await service.createProposal('ses_123', validContent)
       const rejected = await service.reject(plan.plan_id, 'Not what I wanted')
 
-      expect(rejected.status.stage).toBe('rejected')
-      expect(rejected.status).toHaveProperty('reason', 'Not what I wanted')
+      expect(rejected.stage).toBe('rejected')
+      expect(rejected).toHaveProperty('rejection_reason', 'Not what I wanted')
     })
 
     test('allows rejection without reason', async () => {
       const plan = await service.createProposal('ses_123', validContent)
       const rejected = await service.reject(plan.plan_id)
 
-      expect(rejected.status.stage).toBe('rejected')
+      expect(rejected.stage).toBe('rejected')
     })
   })
 
