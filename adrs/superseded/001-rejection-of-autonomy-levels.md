@@ -1,30 +1,31 @@
 ---
-status: superseded by ADR-002
+status: superseded
 date: 2026-01-04
 decision-makers: julian
+superseded-by: 002-multi-agent-dispatch-architecture
 ---
 
 # Per-Agent Supervision Instead of Autonomy Levels
 
 ## Status History
 
-| status                 | date       | decision-makers      | github                                     |
-|------------------------|------------|----------------------|--------------------------------------------|
-| accepted               | 2026-01-04 | julian               | [@eXamadeus](https://github.com/eXamadeus) |
-| superseded by ADR-002  | 2026-01-19 | julian               | [@eXamadeus](https://github.com/eXamadeus) |
+| status                                                                   | date       | decision-makers      | github                                     |
+|--------------------------------------------------------------------------|------------|----------------------|--------------------------------------------|
+| accepted                                                                 | 2026-01-04 | julian               | [@eXamadeus](https://github.com/eXamadeus) |
+| superseded by [ADR-002](../002-multi-agent-dispatch-architecture.md)     | 2026-01-19 | julian               | [@eXamadeus](https://github.com/eXamadeus) |
 
 > [!IMPORTANT]
 > This ADR is superseded by [ADR-002](../002-multi-agent-dispatch-architecture.md), which incorporates per-agent supervision into the broader multi-tool dispatch architecture with plugin-controlled HITL.
 
 ## Context and Problem Statement
 
-The original design proposed three autonomy levels (supervised, assisted, autonomous) combined with action classification (routine, significant, dangerous) to create a 9-cell decision matrix for tool dispatch approval. During implementation of PR #26, fundamental problems emerged that made this approach unworkable.
+The original design proposed three autonomy levels (supervised, assisted, autonomous) combined with action classification (routine, significant, dangerous) to create a 9-cell decision matrix for tool dispatch approval. During implementation, fundamental problems emerged that made this approach unworkable.
 
 ## Decision Drivers
 
-* Action classification via regex is unreliable — `/\badd\b/` matches both "add a database column" (dangerous) and "add context to this discussion" (routine)
+* Action classification via pattern matching is unreliable — the same verb can be routine or dangerous depending on context
 * The 3x3 matrix creates cognitive overhead and edge cases that produce wrong decisions
-* Per-call approval creates fatigue — a 10-step plan would require 10 approval prompts
+* Per-call approval creates fatigue — a multi-step plan would require many approval prompts
 * The distinction between "assisted" and "autonomous" is unclear in practice
 
 ## Considered Options
@@ -36,32 +37,21 @@ The original design proposed three autonomy levels (supervised, assisted, autono
 
 Chosen option: **Per-agent boolean supervision**, because it eliminates classification ambiguity, reduces cognitive overhead, and moves approval to the plan level where it's more meaningful.
 
-| Concept | Old Model | New Model |
-|---------|-----------|-----------|
-| Granularity | Per-action classification | Per-agent boolean |
-| Approval | Per tool call | Per plan (before execution) |
-| Configuration | 3 levels x 3 classifications | `supervised: true/false` |
-| Checkpoint trigger | Regex pattern match | Agent is supervised |
+### Core Principles
 
-**Config shape:**
-```json
-{
-  "settings": {
-    "defaultSupervised": false
-  },
-  "agents": {
-    "coder": { "supervised": true },
-    "github": { "supervised": true },
-    "researcher": { "supervised": false }
-  }
-}
-```
+1. **Supervision is per-agent, not per-action.** Each agent is either supervised or unsupervised. No action classification.
+
+2. **Approval happens at plan level, not tool level.** Users approve entire plans before execution, not individual tool calls.
+
+3. **Behavior is configuration-driven, not heuristic-driven.** Whether an agent requires supervision is explicit configuration, not inferred from action content.
+
+4. **Binary choices are easier to reason about.** Supervised vs unsupervised is clearer than a 3x3 matrix.
 
 ### Consequences
 
 * Good, because simpler mental model (boolean per agent)
 * Good, because plan-level approval reduces fatigue
-* Good, because deterministic behavior (no regex classification)
+* Good, because deterministic behavior (no pattern-based classification)
 * Good, because config-driven, not heuristic-driven
 * Bad, because less granular control (can't approve "reads" but block "writes" for same agent)
 * Bad, because requires trust calibration per agent rather than per action
@@ -76,7 +66,7 @@ Chosen option: **Per-agent boolean supervision**, because it eliminates classifi
 ### Autonomy levels with action classification
 
 * Good, because fine-grained control over individual actions
-* Bad, because regex-based classification is fundamentally unreliable
+* Bad, because pattern-based classification is fundamentally unreliable
 * Bad, because 9-cell matrix is hard to reason about
 * Bad, because per-call approval trains users to click "yes" without reading
 
@@ -90,8 +80,6 @@ Chosen option: **Per-agent boolean supervision**, because it eliminates classifi
 
 ## More Information
 
-True HITL (checkpoint UI) requires **OpenCode Intent Channel** (opencode issue #6330) — the ability for MCP servers to send prompts to the user and receive responses. Until then:
-- Build the protocol and types
-- Stub the UI with auto-approve + logging
+True HITL (checkpoint UI) requires the ability for MCP servers to send prompts to the user and receive responses. Until then, stub the UI with auto-approve + logging.
 
 *Source: [GitHub Issue #6 Comment](https://github.com/ex-machina-co/opencode-orca/issues/6#issuecomment-3706879816)*
