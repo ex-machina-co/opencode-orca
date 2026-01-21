@@ -2,6 +2,7 @@
 status: accepted
 date: 2026-01-19
 decision-makers: julian
+supersedes: 001-rejection-of-autonomy-levels
 ---
 
 # Multi-Agent Dispatch with Role Separation and Persistent Plans
@@ -12,6 +13,12 @@ decision-makers: julian
 |----------|------------|-----------------|--------------------------------------------|
 | proposed | 2026-01-19 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
 | accepted | 2026-01-19 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
+
+## Related ADRs
+
+- [ADR-001](superseded/001-rejection-of-autonomy-levels.md): Per-agent supervision (superseded by this ADR)
+- [ADR-003](./003-plan-execution-separation.md): Plan/execution separation (refines this ADR)
+- [ADR-004](./004-builder-pattern-for-plans.md): Builder pattern for plans (modifies ADR-003)
 
 ## Context and Problem Statement
 
@@ -120,9 +127,9 @@ Keep current tools but route approvals through a dedicated approval agent.
 
 ## More Information
 
-### Plan Lifecycle
+### Plans
 
-See [ADR-004](./004-builder-pattern-for-plans.md) for more details.
+Plans will be persisted to file for durability and resumption.
 
 ### Context Threading
 
@@ -137,8 +144,3 @@ Specialists can query for full plan details if needed.
 ### Read-Only Research
 
 When the planner or specialists need information from another agent, they use read-only dispatch. This prevents side effects during research and planning phases.
-
-### Related ADRs
-
-- [ADR-001](superseded/001-rejection-of-autonomy-levels.md): Rejected autonomy levels for per-agent supervision (superseded by this ADR)
-- [ADR-003](./superseded/003-plan-execution-separation.md): Refines this proposal with plan/execution separation (superseded by ADR-004)

@@ -14,8 +14,9 @@ superseded-by: 002-multi-agent-dispatch-architecture
 | accepted                                                                 | 2026-01-04 | julian               | [@eXamadeus](https://github.com/eXamadeus) |
 | superseded by [ADR-002](../002-multi-agent-dispatch-architecture.md)     | 2026-01-19 | julian               | [@eXamadeus](https://github.com/eXamadeus) |
 
-> [!IMPORTANT]
-> This ADR is superseded by [ADR-002](../002-multi-agent-dispatch-architecture.md), which incorporates per-agent supervision into the broader multi-tool dispatch architecture with plugin-controlled HITL.
+## Related ADRs
+
+- [ADR-002](../002-multi-agent-dispatch-architecture.md): Multi-agent dispatch (supersedes this ADR)
 
 ## Context and Problem Statement
 

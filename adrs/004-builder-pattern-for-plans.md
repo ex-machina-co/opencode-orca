@@ -2,6 +2,7 @@
 status: accepted
 date: 2026-01-20
 decision-makers: julian
+modifies: 003-plan-execution-separation
 ---
 
 # Builder Pattern for Plan Creation
@@ -13,9 +14,14 @@ decision-makers: julian
 | proposed | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
 | accepted | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
 
+## Related ADRs
+
+- [ADR-002](./002-multi-agent-dispatch-architecture.md): Multi-tool dispatch architecture
+- [ADR-003](./003-plan-execution-separation.md): Plan/execution separation (modified by this ADR)
+
 ## Context and Problem Statement
 
-[ADR-003](./superseded/003-plan-execution-separation.md) established plan/execution separation with the planner emitting complete `Plan` JSON objects as structured output. During implementation, we identified that requiring LLMs to produce complex, valid JSON structures in a single response creates unnecessary fragility and doesn't align with how planning naturally occurs (incrementally, with research informing each step).
+[ADR-003](./003-plan-execution-separation.md) established plan/execution separation with the planner emitting complete plan objects as structured output. During implementation, we identified that requiring LLMs to produce complex, valid structures in a single response creates unnecessary fragility and doesn't align with how planning naturally occurs (incrementally, with research informing each step).
 
 ## Decision Drivers
 
@@ -171,4 +177,4 @@ Same as ADR-003: the plan ID serves as the continuity token. Plans store a refer
 ### Related ADRs
 
 - [ADR-002](./002-multi-agent-dispatch-architecture.md): Multi-tool dispatch architecture
-- [ADR-003](./superseded/003-plan-execution-separation.md): Plan/execution separation (superseded by this ADR for plan creation method)
+- [ADR-003](./003-plan-execution-separation.md): Plan/execution separation (this ADR modifies plan creation approach; core principles remain)

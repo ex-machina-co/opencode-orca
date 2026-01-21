@@ -1,8 +1,8 @@
 ---
-status: superseded
+status: accepted
 date: 2026-01-20
 decision-makers: julian
-superseded-by: 004-builder-pattern-for-plans
+modified-by: 004-builder-pattern-for-plans
 ---
 
 # Plan/Execution Separation with Service-Layer Orchestration
@@ -13,11 +13,16 @@ superseded-by: 004-builder-pattern-for-plans
 |----------------------------------------------------------------------|------------|-----------------|--------------------------------------------|
 | proposed                                                             | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
 | accepted                                                             | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
-| superseded by [ADR-004](../004-builder-pattern-for-plans.md)         | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
+| modified by [ADR-004](./004-builder-pattern-for-plans.md)            | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
+
+## Related ADRs
+
+- [ADR-002](./002-multi-agent-dispatch-architecture.md): Multi-tool dispatch (refined by this ADR)
+- [ADR-004](./004-builder-pattern-for-plans.md): Builder pattern for plans (modifies this ADR)
 
 ## Context and Problem Statement
 
-[ADR-002](../002-multi-agent-dispatch-architecture.md) proposed a unified plan lifecycle with 6+ states tracking both definition and runtime. During implementation, we discovered that conflating "what to do" (plan definition) with "how it went" (execution state) created semantic confusion and prevented plan reuse after failures.
+Following the guidance of [ADR-002](./002-multi-agent-dispatch-architecture.md) we designed a plan lifecycle with 6+ states tracking both definition and runtime. During implementation, we discovered that conflating "what to do" (plan definition) with "how it went" (execution state) created semantic confusion and prevented plan reuse after failures.
 
 ## Decision Drivers
 
@@ -51,6 +56,9 @@ Chosen option: **Plan/Execution separation**, because it cleanly separates immut
 6. **Make invalid states unrepresentable.** Use discriminated unions so that, for example, a "drafting" plan cannot have execution results attached.
 
 ### State Machines
+
+> [!NOTE]
+> The plan lifecycle below was extended by [ADR-004](./004-builder-pattern-for-plans.md) to include a `draft` state before `proposal`, enabling incremental plan construction.
 
 **Plan Lifecycle** (3 states):
 ```
@@ -143,9 +151,3 @@ Each task receives:
 - Previous task summaries (not full outputs — keeps context lean)
 - Accumulated relevant files
 - Previous attempts for retry scenarios (includes error + user guidance)
-
-### Related ADRs
-
-- [ADR-001](./001-rejection-of-autonomy-levels.md): Rejected autonomy levels for per-agent supervision (superseded by ADR-002)
-- [ADR-002](../002-multi-agent-dispatch-architecture.md): Original multi-tool proposal (refined by this ADR)
-- [ADR-004](../004-builder-pattern-for-plans.md): Builder pattern for plan creation (supersedes this ADR's plan creation approach)
