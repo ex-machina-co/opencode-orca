@@ -11,6 +11,7 @@ decision-makers: julian
 | status   | date       | decision-makers | github                                     |
 |----------|------------|-----------------|--------------------------------------------|
 | proposed | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
+| accepted | 2026-01-20 | julian          | [@eXamadeus](https://github.com/eXamadeus) |
 
 ## Context and Problem Statement
 
@@ -198,24 +199,6 @@ pending ──► running ──┬──► completed
 * Neutral, because planner handles all query types (centralizes responsibility but planner has the context)
 * Bad, because requires joining plan + execution for full view
 
-### Confirmation
-
-Implementation status:
-
-| Component | Status |
-|-----------|--------|
-| `PlanningService` | ✅ Complete |
-| `ExecutionService` | ✅ Complete |
-| `DispatchService` | 🚧 Parsing placeholder |
-| `HITLService` | ✅ Complete |
-| `OrcaService.invoke()` | ❌ Not implemented |
-| `orca_invoke` tool | ❌ Not implemented |
-| `orca_ask_user` tool | ❌ Not implemented |
-| `orca_ask_agent` tool | ❌ Not implemented |
-| `orca_plans_list` tool | ❌ Not implemented |
-| `orca_plans_get` tool | ❌ Not implemented |
-| Orchestration loop | ❌ Not implemented |
-
 ## Pros and Cons of the Options
 
 ### Unified plan entity
@@ -313,5 +296,5 @@ The simplest possible Orca agent has one tool: `orca_invoke`. This relay design:
 
 ### Related ADRs
 
-- [ADR-001](./001-rejection-of-autonomy-levels.md): Rejected autonomy levels for per-agent supervision (superseded by ADR-002)
+- [ADR-001](superseded/001-rejection-of-autonomy-levels.md): Rejected autonomy levels for per-agent supervision (superseded by ADR-002)
 - [ADR-002](./002-multi-agent-dispatch-architecture.md): Original multi-tool proposal (partially implemented, refined by this ADR)

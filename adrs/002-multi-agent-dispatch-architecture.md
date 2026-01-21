@@ -131,5 +131,5 @@ Each step receives: plan reference, previous step summaries, key findings, accum
 
 ### Related ADRs
 
-- [ADR-001](./001-rejection-of-autonomy-levels.md): Rejected autonomy levels for per-agent supervision (superseded by this ADR)
+- [ADR-001](superseded/001-rejection-of-autonomy-levels.md): Rejected autonomy levels for per-agent supervision (superseded by this ADR)
 - [ADR-003](./003-plan-execution-separation.md): Refines this proposal with plan/execution separation and updated tool naming

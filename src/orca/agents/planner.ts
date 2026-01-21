@@ -2,7 +2,7 @@ import dedent from 'dedent'
 import { extractFieldDocs, formatFieldDocsAsMarkdownList } from '../../common/schema-docs'
 import type { AgentConfig } from '../../plugin/config'
 import { SPECIALIST_LIST_PLACEHOLDER } from '../../plugin/constants'
-import { Plan } from '../schemas'
+import { Plan } from '../planning/schemas'
 
 const planOutputDocs = formatFieldDocsAsMarkdownList(extractFieldDocs(Plan, { exclude: ['type'] }))
 

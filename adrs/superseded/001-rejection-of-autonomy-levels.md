@@ -14,7 +14,7 @@ decision-makers: julian
 | superseded by ADR-002  | 2026-01-19 | julian               | [@eXamadeus](https://github.com/eXamadeus) |
 
 > [!IMPORTANT]
-> This ADR is superseded by [ADR-002](./002-multi-agent-dispatch-architecture.md), which incorporates per-agent supervision into the broader multi-tool dispatch architecture with plugin-controlled HITL.
+> This ADR is superseded by [ADR-002](../002-multi-agent-dispatch-architecture.md), which incorporates per-agent supervision into the broader multi-tool dispatch architecture with plugin-controlled HITL.
 
 ## Context and Problem Statement
 

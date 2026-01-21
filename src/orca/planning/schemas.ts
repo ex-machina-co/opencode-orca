@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { AgentId } from '../../common/agent-id'
 import * as Identifier from '../../common/identifier'
+import { Answer, Failure, Interruption } from '../../common/response'
 
 // ============================================================================
 // Plan Step
@@ -12,6 +13,28 @@ export const PlanStep = z.strictObject({
   command: z.string().optional().describe('Suggested approach or command'),
 })
 export type PlanStep = z.infer<typeof PlanStep>
+
+// ============================================================================
+// Plan (output from planner)
+// ============================================================================
+
+export const Plan = z.strictObject({
+  type: z.literal('plan'),
+  goal: z.string().min(1).describe('Clear statement of what we are achieving'),
+  steps: z.array(PlanStep).min(1).describe('Steps to execute'),
+  assumptions: z.array(z.string()).min(1).describe('What we are assuming'),
+  files_touched: z.array(z.string()).min(1).describe('Files that will be modified'),
+  verification: z.array(z.string()).min(1).describe('How to confirm success'),
+  risks: z.array(z.string()).min(1).describe('What could go wrong'),
+})
+export type Plan = z.infer<typeof Plan>
+
+// ============================================================================
+// Planner Response (used by OrcaService.invoke)
+// ============================================================================
+
+export const PlannerResponse = z.discriminatedUnion('type', [Answer, Plan, Failure, Interruption])
+export type PlannerResponse = z.infer<typeof PlannerResponse>
 
 // ============================================================================
 // Plan Status - Discriminated Union

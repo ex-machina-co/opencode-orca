@@ -4,6 +4,11 @@
 - Do not use barrel exports unless there is a reason.
 - Comments should be for exceptional or confusing things...not normal code. Be sparing with them.
 
+## Architecture
+
+- ADRs are located in `ards/` and contain all the architecture decisions for the project
+- Whenever thinking about architecture, please consult the ADRs first
+
 ## TypeScript Best Practices
 
 - Use `unknown` instead of `any`.
