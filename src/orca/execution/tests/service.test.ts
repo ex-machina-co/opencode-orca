@@ -19,7 +19,6 @@ describe('ExecutionService', () => {
       { description: 'Step 2', agent: 'tester' },
     ],
     assumptions: ['Assumption 1'],
-    files_touched: ['src/foo.ts'],
     verification: ['Tests pass'],
     risks: ['Risk 1'],
   }

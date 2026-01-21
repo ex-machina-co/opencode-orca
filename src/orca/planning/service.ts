@@ -1,6 +1,5 @@
 import * as Identifier from '../../common/identifier'
-import type { PlanStep, PlanSummary, ProposalPlan, StoredPlan } from './schemas'
-import { StoredPlan as StoredPlanSchema } from './schemas'
+import { DraftPlan, type PlanStep, type PlanSummary, ProposalPlan, StoredPlan } from './schemas'
 import { deletePlan, hasExecutions, listPlanIds, readPlan, writePlan } from './storage'
 
 export interface PlanContent {
@@ -8,13 +7,150 @@ export interface PlanContent {
   summary?: string
   steps: PlanStep[]
   assumptions: string[]
-  files_touched: string[]
   verification: string[]
   risks: string[]
 }
 
 export class PlanningService {
   constructor(private workingDir: string) {}
+
+  // ==================== DRAFT OPERATIONS ====================
+
+  async createDraft(sessionId: string, goal: string): Promise<DraftPlan> {
+    const now = new Date().toISOString()
+    const plan = DraftPlan.parse({
+      plan_id: Identifier.generateID('plan'),
+      planner_session_id: sessionId,
+      created_at: now,
+      updated_at: now,
+      stage: 'draft',
+      goal,
+    })
+
+    await writePlan(this.workingDir, plan)
+    return plan
+  }
+
+  async setPlanAssumptions(planId: string, assumptions: string[]): Promise<DraftPlan> {
+    const plan = await this.getDraftOrThrow(planId)
+
+    const updated = DraftPlan.parse({
+      ...plan,
+      updated_at: new Date().toISOString(),
+      assumptions,
+    })
+
+    await writePlan(this.workingDir, updated)
+    return updated
+  }
+
+  async setPlanRisks(planId: string, risks: string[]): Promise<DraftPlan> {
+    const plan = await this.getDraftOrThrow(planId)
+
+    const updated = DraftPlan.parse({
+      ...plan,
+      updated_at: new Date().toISOString(),
+      risks,
+    })
+
+    await writePlan(this.workingDir, updated)
+    return updated
+  }
+
+  async setPlanVerification(planId: string, verification: string[]): Promise<DraftPlan> {
+    const plan = await this.getDraftOrThrow(planId)
+
+    const updated = DraftPlan.parse({
+      ...plan,
+      updated_at: new Date().toISOString(),
+      verification,
+    })
+
+    await writePlan(this.workingDir, updated)
+    return updated
+  }
+
+  async addStep(planId: string, step: PlanStep, position?: number): Promise<DraftPlan> {
+    const plan = await this.getDraftOrThrow(planId)
+    const steps = [...plan.steps]
+
+    if (position !== undefined && position >= 0 && position <= steps.length) {
+      steps.splice(position, 0, step)
+    } else {
+      steps.push(step)
+    }
+
+    const updated = DraftPlan.parse({
+      ...plan,
+      updated_at: new Date().toISOString(),
+      steps,
+    })
+
+    await writePlan(this.workingDir, updated)
+    return updated
+  }
+
+  async updateStep(planId: string, index: number, updates: Partial<PlanStep>): Promise<DraftPlan> {
+    const plan = await this.getDraftOrThrow(planId)
+    if (index < 0 || index >= plan.steps.length) {
+      throw new Error(`Step index ${index} out of bounds (0-${plan.steps.length - 1})`)
+    }
+
+    const steps = [...plan.steps]
+    steps[index] = { ...steps[index], ...updates }
+
+    const updated = DraftPlan.parse({
+      ...plan,
+      updated_at: new Date().toISOString(),
+      steps,
+    })
+
+    await writePlan(this.workingDir, updated)
+    return updated
+  }
+
+  async removeStep(planId: string, index: number): Promise<DraftPlan> {
+    const plan = await this.getDraftOrThrow(planId)
+    if (index < 0 || index >= plan.steps.length) {
+      throw new Error(`Step index ${index} out of bounds (0-${plan.steps.length - 1})`)
+    }
+
+    const steps = plan.steps.filter((_, i) => i !== index)
+
+    const updated = DraftPlan.parse({
+      ...plan,
+      updated_at: new Date().toISOString(),
+      steps,
+    })
+
+    await writePlan(this.workingDir, updated)
+    return updated
+  }
+
+  async submit(planId: string, summary?: string): Promise<ProposalPlan> {
+    const plan = await this.getDraftOrThrow(planId)
+
+    const proposal = ProposalPlan.parse({
+      ...plan,
+      updated_at: new Date().toISOString(),
+      stage: 'proposal',
+      summary,
+    })
+
+    await writePlan(this.workingDir, proposal)
+    return proposal
+  }
+
+  private async getDraftOrThrow(planId: string): Promise<DraftPlan> {
+    const plan = await this.getPlan(planId)
+    if (!plan) throw new Error(`Plan not found: ${planId}`)
+    if (plan.stage !== 'draft') {
+      throw new Error(`Plan ${planId} is not a draft (current stage: ${plan.stage})`)
+    }
+    return plan as DraftPlan
+  }
+
+  // ==================== PROPOSAL OPERATIONS ====================
 
   async createProposal(sessionId: string, content: PlanContent): Promise<ProposalPlan> {
     const now = new Date().toISOString()
@@ -28,12 +164,11 @@ export class PlanningService {
       summary: content.summary,
       steps: content.steps,
       assumptions: content.assumptions,
-      files_touched: content.files_touched,
       verification: content.verification,
       risks: content.risks,
     }
 
-    StoredPlanSchema.parse(plan)
+    StoredPlan.parse(plan)
     await writePlan(this.workingDir, plan)
     return plan
   }
@@ -52,7 +187,6 @@ export class PlanningService {
       summary: content.summary,
       steps: content.steps,
       assumptions: content.assumptions,
-      files_touched: content.files_touched,
       verification: content.verification,
       risks: content.risks,
     }
@@ -83,12 +217,12 @@ export class PlanningService {
       throw new Error(`Cannot reject plan in stage: ${plan.stage}`)
     }
 
-    const updated: StoredPlan = {
+    const updated = StoredPlan.parse({
       ...plan,
       updated_at: new Date().toISOString(),
       stage: 'rejected',
       rejection_reason: reason,
-    }
+    })
 
     await writePlan(this.workingDir, updated)
     return updated

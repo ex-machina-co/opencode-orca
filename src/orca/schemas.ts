@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import * as Identifier from '../common/identifier'
 import { Answer, Failure, Interruption } from '../common/response'
-import { Plan } from './planning/schemas'
+import { PlanReference } from './planning/schemas'
 
 // ============================================================================
 // Orca Orchestration Types (import * as Orca from './schemas')
@@ -22,5 +22,5 @@ export const Request = z.strictObject({
 export type Request = z.infer<typeof Request>
 
 // Response from the orchestration system
-export const Response = z.discriminatedUnion('type', [Answer, Plan, Failure, Interruption])
+export const Response = z.discriminatedUnion('type', [Answer, PlanReference, Failure, Interruption])
 export type Response = z.infer<typeof Response>

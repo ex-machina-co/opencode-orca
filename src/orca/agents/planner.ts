@@ -1,11 +1,8 @@
 import dedent from 'dedent'
-import { extractFieldDocs, formatFieldDocsAsMarkdownList } from '../../common/schema-docs'
 import type { AgentConfig } from '../../plugin/config'
 import { SPECIALIST_LIST_PLACEHOLDER } from '../../plugin/constants'
-import { Plan } from '../planning/schemas'
 
-const planOutputDocs = formatFieldDocsAsMarkdownList(extractFieldDocs(Plan, { exclude: ['type'] }))
-
+// TODO: Update prompt for builder pattern (Step 10)
 export const planner: AgentConfig = {
   mode: 'subagent',
   accepts: ['question'],
@@ -20,9 +17,6 @@ export const planner: AgentConfig = {
     
     Do NOT reference agents outside this list - they are not available.
 
-    Your output should include:
-    ${planOutputDocs}
-    
     Guidelines:
     - Research before planning - understand the codebase first
     - Be specific - "modify function X in file Y" not "update the code"

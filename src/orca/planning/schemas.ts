@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AgentId } from '../../common/agent-id'
+import { AgentId } from '../../common/agent'
 import * as Identifier from '../../common/identifier'
 import { Answer, Failure, Interruption } from '../../common/response'
 
@@ -11,29 +11,33 @@ export const PlanStep = z.strictObject({
   description: z.string().min(1).describe('What this step accomplishes'),
   agent: AgentId.describe('The specialist agent assigned to execute this step'),
   command: z.string().optional().describe('Suggested approach or command'),
+  assumptions: z.array(z.string()).optional().describe('Step-specific assumptions'),
+  risks: z.array(z.string()).optional().describe('Step-specific risks'),
+  verification: z.array(z.string()).optional().describe('Step-specific verification'),
 })
 export type PlanStep = z.infer<typeof PlanStep>
 
 // ============================================================================
-// Plan (output from planner) - now just a reference, not full content
+// Plan Reference (output from planner) - just ID and stage, not full content
 // ============================================================================
 
-export const Plan = z.strictObject({
+export const PlanReference = z.strictObject({
   type: z.literal('plan'),
-  goal: z.string().min(1).describe('Clear statement of what we are achieving'),
-  steps: z.array(PlanStep).min(1).describe('Steps to execute'),
-  assumptions: z.array(z.string()).min(1).describe('What we are assuming'),
-  files_touched: z.array(z.string()).min(1).describe('Files that will be modified'),
-  verification: z.array(z.string()).min(1).describe('How to confirm success'),
-  risks: z.array(z.string()).min(1).describe('What could go wrong'),
+  plan_id: Identifier.schema('plan'),
+  stage: z.enum(['draft', 'proposal']),
 })
-export type Plan = z.infer<typeof Plan>
+export type PlanReference = z.infer<typeof PlanReference>
 
 // ============================================================================
 // Planner Response (used by OrcaService.invoke)
 // ============================================================================
 
-export const PlannerResponse = z.discriminatedUnion('type', [Answer, Plan, Failure, Interruption])
+export const PlannerResponse = z.discriminatedUnion('type', [
+  Answer,
+  PlanReference,
+  Failure,
+  Interruption,
+])
 export type PlannerResponse = z.infer<typeof PlannerResponse>
 
 // ============================================================================
@@ -52,26 +56,24 @@ const PlanMetadataFields = {
   updated_at: z.iso.datetime(),
 }
 
-// Complete plan content fields (strict - require non-empty arrays)
-const PlanContentFields = {
-  goal: z.string().min(1).describe('Clear statement of what we are achieving'),
-  summary: z.string().optional().describe('Planner-provided summary'),
-  steps: z.array(PlanStep).min(1).describe('Steps to execute'),
-  assumptions: z.array(z.string()).min(1).describe('What we are assuming'),
-  files_touched: z.array(z.string()).min(1).describe('Files that will be modified'),
-  verification: z.array(z.string()).min(1).describe('How to confirm success'),
-  risks: z.array(z.string()).min(1).describe('What could go wrong'),
-}
-
-// Draft plan content fields (loose - arrays can be empty)
+// Draft plan content fields (loose - arrays can be empty, default to [])
 const DraftPlanContentFields = {
   goal: z.string().min(1).describe('Clear statement of what we are achieving'),
   summary: z.string().optional().describe('Planner-provided summary'),
-  steps: z.array(PlanStep).describe('Steps to execute'),
-  assumptions: z.array(z.string()).describe('What we are assuming'),
-  files_touched: z.array(z.string()).describe('Files that will be modified'),
-  verification: z.array(z.string()).describe('How to confirm success'),
-  risks: z.array(z.string()).describe('What could go wrong'),
+  steps: z.array(PlanStep).default([]).describe('Steps to execute'),
+  assumptions: z.array(z.string()).default([]).describe('Plan-level assumptions'),
+  verification: z.array(z.string()).default([]).describe('Plan-level verification criteria'),
+  risks: z.array(z.string()).default([]).describe('Plan-level risks'),
+}
+
+// Complete plan content fields (strict - require non-empty arrays)
+const PlanContentFields = {
+  goal: DraftPlanContentFields.goal,
+  summary: DraftPlanContentFields.summary,
+  steps: DraftPlanContentFields.steps.unwrap().min(1),
+  assumptions: DraftPlanContentFields.assumptions.unwrap().min(1),
+  verification: DraftPlanContentFields.verification.unwrap().min(1),
+  risks: DraftPlanContentFields.risks.unwrap().min(1),
 }
 
 // Draft - mutable, arrays can be empty

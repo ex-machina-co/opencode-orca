@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import dedent from 'dedent'
 import { z } from 'zod'
-import { AgentId } from '../common/agent-id'
+import { AgentId } from '../common/agent'
 
 export const PermissionConfig = z
   .strictObject({

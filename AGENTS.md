@@ -22,6 +22,7 @@
     export const ExampleForAgents = z.object({ foo: z.string() });
     export type ExampleForAgents = z.infer<typeof Example>;
     ```
+  - When importing a Zod schema with the same name as an imported type DO NOT break apart the type import from the schema import, import the schema and the type will be available too
 - Prefer inferred types when possible, unless there's a specific reason to use a type annotation.
 - Prefer string literal union types over enums (unless using Zod enums, which are fine)
 - **Make invalid states unrepresentable**: Use discriminated unions instead of objects with many optional fields. Each variant should contain exactly the fields meaningful for that state - no more, no less. This eliminates impossible states at the type level.

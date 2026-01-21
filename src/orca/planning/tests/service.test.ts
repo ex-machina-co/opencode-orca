@@ -14,7 +14,6 @@ describe('PlanningService', () => {
     goal: 'Implement feature X',
     steps: [{ description: 'Step 1', agent: 'coder' }],
     assumptions: ['Assumption 1'],
-    files_touched: ['src/foo.ts'],
     verification: ['Tests pass'],
     risks: ['Risk 1'],
   }

@@ -1,6 +1,6 @@
 import type { QuestionInfo, QuestionOption } from '@opencode-ai/sdk/v2'
 import { z } from 'zod'
-import { AgentId } from '../../common/agent-id'
+import { AgentId } from '../../common/agent'
 import * as Identifier from '../../common/identifier'
 import { Answer, Failure, Interruption, Success } from '../../common/response'
 import type { AssertAssignable } from '../../common/types'
