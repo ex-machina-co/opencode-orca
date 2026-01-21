@@ -399,30 +399,25 @@ gh pr list --head <BRANCH_NAME> --state open
 
 **If PR already exists:** Skip PR creation, just report the existing PR URL.
 
-### Create PR (if none exists)
+### Delegate to Product Manager
 
-**Delegate to `product-manager` agent** to craft the PR description:
+**The `product-manager` agent is the single point of contact for GitHub and ZenHub operations.**
 
 Provide the PM with:
 - ISSUE_NUMBER and ISSUE_TITLE
 - ISSUE_BODY (including acceptance criteria)
-- Commits on branch: `git log origin/main..HEAD --oneline`
+- ISSUE_LABELS
+- Commits: `git log origin/main..HEAD --oneline`
 - Files changed: `git diff origin/main..HEAD --stat`
-- Branch name and labels
+- Branch name
+- Whether PR already exists (and URL if so)
 
-The PM will:
-1. Write a professional PR description that:
-   - Links to and quotes the user story from the issue
-   - Shows acceptance criteria with checkmarks for completed items
-   - Summarizes what was implemented
-   - Groups changes by category (not raw file lists)
-   - Highlights any bonus/extra work beyond the issue scope
-2. Delegate to the `github` agent to create the PR with:
-   - **Title**: ISSUE_TITLE verbatim
-   - **Head branch**: current branch name
-   - **Base branch**: `main`
-   - **Labels**: From ISSUE_LABELS (filter to: `feature`, `bug`, `enhancement`)
-   - **Body**: The crafted description
+**Request the PM to:**
+
+1. **Create PR** (if none exists) with professional description
+2. **Update ZenHub** - move issue to "In Progress" if not already
+
+**Proceed to Phase 7**
 
 ---
 
@@ -462,7 +457,9 @@ The PM will:
 2. Craft a comprehensive PR description
 3. Propose a PR title
 4. **Confirm with user** before creating
-5. Delegate to `github` agent to create the PR
+5. Create the PR
+
+**Note:** No ZenHub update for bonus work (no linked issue).
 
 **Proceed to Phase 7**
 

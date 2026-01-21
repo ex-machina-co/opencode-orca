@@ -179,4 +179,4 @@ For PRs and releases, use `gh` CLI for reads:
 - `gh pr list`, `gh pr view`
 - `gh release list`, `gh release view`
 
-For PR/release creation, provide the user with the command or delegate to appropriate agent.
+For PR/release creation, ensure you confirm with the user before creating or updating either.
