@@ -1,7 +1,9 @@
-import type { OpencodeClient as OpencodeClientV2 } from '@opencode-ai/sdk/v2'
+import type { ToolContext } from '@opencode-ai/plugin'
+import type { OpencodeClient as OpencodeClientV2, Session } from '@opencode-ai/sdk/v2'
 import type { ZodError, ZodType, z } from 'zod'
-import * as Identifier from '../../common/identifier'
 import * as Logging from '../../common/log'
+import { PlannerResponse } from '../planning/schemas'
+import type { InvokeInput } from '../tools/invoke'
 import * as Parser from './parser'
 import * as Dispatch from './schemas'
 
@@ -17,7 +19,8 @@ export interface SendOptions<TResult extends z.ZodType> {
   agent: string
   message: string
   resultSchema: TResult
-  sessionId?: string
+  parentSessionId: string
+  targetSessionId?: string
   sessionTitle?: string
   maxRetries?: number
 }
@@ -63,28 +66,55 @@ export class DispatchService {
   }
 
   async dispatchTask(
+    ctx: ToolContext,
     task: Dispatch.Task,
-    options?: { sessionId?: string; sessionTitle?: string; maxRetries?: number },
+    options?: {
+      sessionTitle?: string
+      maxRetries?: number
+    },
   ): Promise<SendResult<Dispatch.TaskResult>> {
     return this.send({
       agent: task.agent,
       message: this.formatTaskMessage(task),
       resultSchema: Dispatch.Task.result,
+      targetSessionId: task.session_id,
+      parentSessionId: ctx.sessionID,
       sessionTitle: options?.sessionTitle ?? `Task: ${task.description.slice(0, 50)}`,
       ...options,
     })
   }
 
   async dispatchQuestion(
+    ctx: ToolContext,
     question: Dispatch.AgentQuestion,
-    options?: { sessionTitle?: string; maxRetries?: number },
+    options?: {
+      sessionTitle?: string
+      maxRetries?: number
+    },
   ): Promise<SendResult<Dispatch.AgentAnswer>> {
     return this.send({
       agent: question.agent,
       message: question.question,
       resultSchema: Dispatch.AgentQuestion.result,
-      sessionId: question.session_id,
+      targetSessionId: question.session_id,
+      parentSessionId: ctx.sessionID,
       sessionTitle: options?.sessionTitle ?? `Question to ${question.agent}`,
+      ...options,
+    })
+  }
+
+  async dispatchUserMessage(
+    ctx: ToolContext,
+    input: InvokeInput,
+    options?: { maxRetries?: number },
+  ): Promise<SendResult<PlannerResponse>> {
+    return this.send({
+      agent: 'planner',
+      message: input.message,
+      targetSessionId: input.session_id,
+      resultSchema: PlannerResponse,
+      sessionTitle: 'Planner session',
+      parentSessionId: ctx.sessionID,
       ...options,
     })
   }
@@ -103,29 +133,47 @@ export class DispatchService {
     options: SendOptions<TResult>,
   ): Promise<SendResult<z.infer<TResult>>> {
     const { agent, message, resultSchema, maxRetries = 2 } = options
-    const sessionId = options.sessionId ?? Identifier.generateID('session')
 
-    this.logger.info('Dispatching to agent', { agent, sessionId })
+    this.logger.info('Dispatching to agent', { agent, sessionId: options.targetSessionId })
 
-    if (!options.sessionId) {
-      await this.client.session.create({
+    const session = await (async (): Promise<Session> => {
+      if (options.targetSessionId) {
+        const found = await this.client.session
+          .get({ sessionID: options.targetSessionId })
+          .catch(() => {})
+        if (found?.data) return found.data
+      }
+
+      const response = await this.client.session.create({
+        parentID: options.parentSessionId,
         directory: this.directory,
-        parentID: sessionId,
         title: options.sessionTitle ?? `Dispatch to ${agent}`,
       })
-    }
+
+      if (!response.data) {
+        throw new Error('No session data in response')
+      }
+
+      return response.data
+    })()
 
     // Send message
     const response = await this.client.session.prompt({
-      sessionID: sessionId,
+      sessionID: session.id,
       directory: this.directory,
       agent,
       parts: [{ type: 'text', text: message }],
     })
 
-    const result = await this.parseWithRetries(response, resultSchema, sessionId, agent, maxRetries)
+    const result = await this.parseWithRetries(
+      response,
+      resultSchema,
+      session.id,
+      agent,
+      maxRetries,
+    )
 
-    return { result, sessionId }
+    return { result, sessionId: session.id }
   }
 
   private async parseWithRetries<T extends ZodType>(

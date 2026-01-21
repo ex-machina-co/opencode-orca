@@ -168,6 +168,7 @@ export class PlanningService {
       risks: content.risks,
     }
 
+    // TODO: why do we have a proposal plan vs StoredPlan dichotomy?
     StoredPlan.parse(plan)
     await writePlan(this.workingDir, plan)
     return plan

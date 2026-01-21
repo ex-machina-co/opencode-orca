@@ -60,6 +60,9 @@ export const Task = {
     agent: AgentId,
     description: z.string().min(1).describe('What this step should accomplish'),
     command: z.string().optional().describe('Suggested approach'),
+    session_id: Identifier.schema('session')
+      .optional()
+      .describe('Continue existing conversation with target agent'),
   }),
   result: TaskResult,
 }
@@ -79,7 +82,9 @@ export const AgentQuestion = {
     type: z.literal('agent_question'),
     agent: AgentId.describe('Target agent to ask'),
     question: z.string().min(1).describe('The question to ask'),
-    session_id: Identifier.schema('session').optional().describe('Continue existing conversation'),
+    session_id: Identifier.schema('session')
+      .optional()
+      .describe('Continue existing conversation with target agent'),
   }),
   result: AgentAnswer,
 }

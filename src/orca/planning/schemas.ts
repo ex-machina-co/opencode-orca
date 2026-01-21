@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { AgentId } from '../../common/agent'
 import * as Identifier from '../../common/identifier'
-import { Answer, Failure, Interruption } from '../../common/response'
+import { Answer, Failure } from '../../common/response'
 
 // ============================================================================
 // Plan Step
@@ -32,12 +32,7 @@ export type PlanReference = z.infer<typeof PlanReference>
 // Planner Response (used by OrcaService.invoke)
 // ============================================================================
 
-export const PlannerResponse = z.discriminatedUnion('type', [
-  Answer,
-  PlanReference,
-  Failure,
-  Interruption,
-])
+export const PlannerResponse = z.discriminatedUnion('type', [Answer, PlanReference, Failure])
 export type PlannerResponse = z.infer<typeof PlannerResponse>
 
 // ============================================================================

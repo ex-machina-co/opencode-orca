@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
+import type { ToolContext } from '@opencode-ai/plugin'
 import type { OpencodeClient, Part, TextPart } from '@opencode-ai/sdk/v2'
 import { DispatchService, ParseError } from '../service'
 
@@ -40,18 +41,29 @@ const makeErrorResponse = () => ({
   response: new Response(),
 })
 
+const makeSessionResponse = (id: string) => ({
+  data: { id },
+  error: undefined,
+})
+
 function createMockClient() {
   return {
     session: {
-      create: mock(() => Promise.resolve({ data: { id: 'ses_1' } })),
+      get: mock(() => Promise.resolve({ data: undefined })),
+      create: mock(() => Promise.resolve(makeSessionResponse('ses_new'))),
       prompt: mock(() => Promise.resolve(makePromptResponse([]))),
     },
   } as unknown as OpencodeClient
 }
 
+function createMockContext(sessionID = 'session_parent123'): ToolContext {
+  return { sessionID } as ToolContext
+}
+
 describe('DispatchService', () => {
   let mockClient: OpencodeClient
   let service: DispatchService
+  let ctx: ToolContext
 
   beforeEach(() => {
     mockClient = createMockClient()
@@ -59,6 +71,7 @@ describe('DispatchService', () => {
       client: mockClient,
       directory: '/tmp/test',
     })
+    ctx = createMockContext()
   })
 
   describe('dispatchTask', () => {
@@ -68,7 +81,7 @@ describe('DispatchService', () => {
         makePromptResponse([makeTextPart(validJson)]),
       )
 
-      const { result } = await service.dispatchTask({
+      const { result } = await service.dispatchTask(ctx, {
         type: 'task',
         agent: 'coder',
         description: 'Do something',
@@ -83,7 +96,7 @@ describe('DispatchService', () => {
         makePromptResponse([makeTextPart(wrappedJson)]),
       )
 
-      const { result } = await service.dispatchTask({
+      const { result } = await service.dispatchTask(ctx, {
         type: 'task',
         agent: 'coder',
         description: 'Do something',
@@ -92,33 +105,65 @@ describe('DispatchService', () => {
       expect(result).toEqual({ type: 'success', summary: 'Done' })
     })
 
-    test('creates session when sessionId not provided', async () => {
+    test('creates session with parentSessionId from context', async () => {
       const validJson = '{"type": "success", "summary": "Done"}'
       ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(
         makePromptResponse([makeTextPart(validJson)]),
       )
 
-      await service.dispatchTask({
+      await service.dispatchTask(ctx, {
         type: 'task',
         agent: 'coder',
         description: 'Do something',
       })
 
       expect(mockClient.session.create).toHaveBeenCalledTimes(1)
+      expect(mockClient.session.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          parentID: 'session_parent123',
+        }),
+      )
     })
 
-    test('skips session creation when sessionId provided', async () => {
+    test('reuses existing session when session_id provided and found', async () => {
       const validJson = '{"type": "success", "summary": "Done"}'
+      ;(mockClient.session.get as ReturnType<typeof mock>).mockResolvedValueOnce({
+        data: { id: 'session_existing456' },
+      })
       ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(
         makePromptResponse([makeTextPart(validJson)]),
       )
 
-      await service.dispatchTask(
-        { type: 'task', agent: 'coder', description: 'Do something' },
-        { sessionId: 'existing_session' },
+      const { sessionId } = await service.dispatchTask(ctx, {
+        type: 'task',
+        agent: 'coder',
+        description: 'Do something',
+        session_id: 'session_existing456',
+      })
+
+      expect(mockClient.session.get).toHaveBeenCalledWith({ sessionID: 'session_existing456' })
+      expect(mockClient.session.create).not.toHaveBeenCalled()
+      expect(sessionId).toBe('session_existing456')
+    })
+
+    test('creates new session when session_id provided but not found', async () => {
+      const validJson = '{"type": "success", "summary": "Done"}'
+      ;(mockClient.session.get as ReturnType<typeof mock>).mockResolvedValueOnce({
+        data: undefined,
+      })
+      ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(
+        makePromptResponse([makeTextPart(validJson)]),
       )
 
-      expect(mockClient.session.create).not.toHaveBeenCalled()
+      await service.dispatchTask(ctx, {
+        type: 'task',
+        agent: 'coder',
+        description: 'Do something',
+        session_id: 'session_notfound',
+      })
+
+      expect(mockClient.session.get).toHaveBeenCalledWith({ sessionID: 'session_notfound' })
+      expect(mockClient.session.create).toHaveBeenCalledTimes(1)
     })
 
     test('formats task message correctly', async () => {
@@ -127,7 +172,7 @@ describe('DispatchService', () => {
         makePromptResponse([makeTextPart(validJson)]),
       )
 
-      await service.dispatchTask({
+      await service.dispatchTask(ctx, {
         type: 'task',
         agent: 'coder',
         description: 'Implement feature X',
@@ -144,7 +189,7 @@ describe('DispatchService', () => {
         makePromptResponse([makeTextPart(validJson)]),
       )
 
-      await service.dispatchTask({
+      await service.dispatchTask(ctx, {
         type: 'task',
         agent: 'coder',
         description: 'Implement feature X',
@@ -164,7 +209,7 @@ describe('DispatchService', () => {
         makePromptResponse([makeTextPart(validJson)]),
       )
 
-      const { result } = await service.dispatchQuestion({
+      const { result } = await service.dispatchQuestion(ctx, {
         type: 'agent_question',
         agent: 'researcher',
         question: 'What is the meaning of life?',
@@ -179,7 +224,7 @@ describe('DispatchService', () => {
         makePromptResponse([makeTextPart(validJson)]),
       )
 
-      await service.dispatchQuestion({
+      await service.dispatchQuestion(ctx, {
         type: 'agent_question',
         agent: 'researcher',
         question: 'What is the meaning of life?',
@@ -190,13 +235,16 @@ describe('DispatchService', () => {
       expect(promptCall.parts[0].text).toBe('What is the meaning of life?')
     })
 
-    test('reuses session_id when provided', async () => {
+    test('reuses session_id when provided and found', async () => {
       const validJson = '{"type": "answer", "content": "Follow-up answer"}'
+      ;(mockClient.session.get as ReturnType<typeof mock>).mockResolvedValueOnce({
+        data: { id: 'session_existing123' },
+      })
       ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(
         makePromptResponse([makeTextPart(validJson)]),
       )
 
-      await service.dispatchQuestion({
+      const { sessionId } = await service.dispatchQuestion(ctx, {
         type: 'agent_question',
         agent: 'researcher',
         question: 'Follow-up question',
@@ -204,8 +252,7 @@ describe('DispatchService', () => {
       })
 
       expect(mockClient.session.create).not.toHaveBeenCalled()
-      const promptCall = (mockClient.session.prompt as ReturnType<typeof mock>).mock.calls[0][0]
-      expect(promptCall.sessionID).toBe('session_existing123')
+      expect(sessionId).toBe('session_existing123')
     })
   })
 
@@ -218,6 +265,7 @@ describe('DispatchService', () => {
         .mockResolvedValueOnce(makePromptResponse([makeTextPart(validJson)]))
 
       const { result } = await service.dispatchTask(
+        ctx,
         { type: 'task', agent: 'coder', description: 'Do something' },
         { maxRetries: 1 },
       )
@@ -234,6 +282,7 @@ describe('DispatchService', () => {
         .mockResolvedValueOnce(makePromptResponse([makeTextPart(validJson)]))
 
       const { result } = await service.dispatchTask(
+        ctx,
         { type: 'task', agent: 'coder', description: 'Do something' },
         { maxRetries: 1 },
       )
@@ -250,6 +299,7 @@ describe('DispatchService', () => {
         .mockResolvedValueOnce(makePromptResponse([makeTextPart(validJson)]))
 
       await service.dispatchTask(
+        ctx,
         { type: 'task', agent: 'coder', description: 'Do something' },
         { maxRetries: 1 },
       )
@@ -267,6 +317,7 @@ describe('DispatchService', () => {
 
       const error = await service
         .dispatchTask(
+          ctx,
           { type: 'task', agent: 'coder', description: 'Do something' },
           { maxRetries: 1 },
         )
@@ -285,6 +336,7 @@ describe('DispatchService', () => {
 
       const error = await service
         .dispatchTask(
+          ctx,
           { type: 'task', agent: 'coder', description: 'Do something' },
           { maxRetries: 1 },
         )
@@ -302,7 +354,7 @@ describe('DispatchService', () => {
       )
 
       const error = await service
-        .dispatchTask({ type: 'task', agent: 'coder', description: 'Do something' })
+        .dispatchTask(ctx, { type: 'task', agent: 'coder', description: 'Do something' })
         .catch((e) => e)
 
       expect(error).toBeInstanceOf(ParseError)
@@ -318,7 +370,7 @@ describe('DispatchService', () => {
       )
 
       const error = await service
-        .dispatchTask({ type: 'task', agent: 'coder', description: 'Do something' })
+        .dispatchTask(ctx, { type: 'task', agent: 'coder', description: 'Do something' })
         .catch((e) => e)
 
       expect(error).toBeInstanceOf(ParseError)
@@ -330,7 +382,7 @@ describe('DispatchService', () => {
       )
 
       const error = await service
-        .dispatchTask({ type: 'task', agent: 'coder', description: 'Do something' })
+        .dispatchTask(ctx, { type: 'task', agent: 'coder', description: 'Do something' })
         .catch((e) => e)
 
       expect(error).toBeInstanceOf(ParseError)

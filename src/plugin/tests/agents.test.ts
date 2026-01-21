@@ -93,7 +93,7 @@ describe('Planner agent prompt', () => {
 
   test('contains instruction to only use listed specialists', () => {
     const { planner } = require('../../orca/agents/planner')
-    expect(planner.prompt).toContain('You may ONLY assign steps to the following specialists')
+    expect(planner.prompt).toContain('You may ONLY assign steps to:')
     expect(planner.prompt).toContain('Do NOT reference agents outside this list')
   })
 })
