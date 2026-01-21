@@ -1,5 +1,5 @@
 import * as Identifier from '../../common/identifier'
-import type { PlanStep, PlanSummary, StoredPlan } from './schemas'
+import type { PlanStep, PlanSummary, ProposalPlan, StoredPlan } from './schemas'
 import { StoredPlan as StoredPlanSchema } from './schemas'
 import { deletePlan, hasExecutions, listPlanIds, readPlan, writePlan } from './storage'
 
@@ -16,13 +16,14 @@ export interface PlanContent {
 export class PlanningService {
   constructor(private workingDir: string) {}
 
-  async createProposal(sessionId: string, content: PlanContent): Promise<StoredPlan> {
+  async createProposal(sessionId: string, content: PlanContent): Promise<ProposalPlan> {
     const now = new Date().toISOString()
-    const plan: StoredPlan = {
+    const plan: ProposalPlan = {
       plan_id: Identifier.generateID('plan'),
       planner_session_id: sessionId,
       created_at: now,
-      status: { stage: 'proposal', updated_at: now },
+      updated_at: now,
+      stage: 'proposal',
       goal: content.goal,
       summary: content.summary,
       steps: content.steps,
@@ -37,15 +38,16 @@ export class PlanningService {
     return plan
   }
 
-  async revise(planId: string, content: PlanContent): Promise<StoredPlan> {
+  async revise(planId: string, content: PlanContent): Promise<ProposalPlan> {
     const plan = await this.getPlanOrThrow(planId)
-    if (plan.status.stage !== 'proposal') {
-      throw new Error(`Cannot revise plan in stage: ${plan.status.stage}`)
+    if (plan.stage !== 'proposal') {
+      throw new Error(`Cannot revise plan in stage: ${plan.stage}`)
     }
 
-    const updated: StoredPlan = {
+    const updated: ProposalPlan = {
       ...plan,
-      status: { stage: 'proposal', updated_at: new Date().toISOString() },
+      updated_at: new Date().toISOString(),
+      stage: 'proposal',
       goal: content.goal,
       summary: content.summary,
       steps: content.steps,
@@ -61,13 +63,14 @@ export class PlanningService {
 
   async approve(planId: string): Promise<StoredPlan> {
     const plan = await this.getPlanOrThrow(planId)
-    if (plan.status.stage !== 'proposal') {
-      throw new Error(`Cannot approve plan in stage: ${plan.status.stage}`)
+    if (plan.stage !== 'proposal') {
+      throw new Error(`Cannot approve plan in stage: ${plan.stage}`)
     }
 
     const updated: StoredPlan = {
       ...plan,
-      status: { stage: 'approved', updated_at: new Date().toISOString() },
+      updated_at: new Date().toISOString(),
+      stage: 'approved',
     }
 
     await writePlan(this.workingDir, updated)
@@ -76,13 +79,15 @@ export class PlanningService {
 
   async reject(planId: string, reason?: string): Promise<StoredPlan> {
     const plan = await this.getPlanOrThrow(planId)
-    if (plan.status.stage !== 'proposal') {
-      throw new Error(`Cannot reject plan in stage: ${plan.status.stage}`)
+    if (plan.stage !== 'proposal') {
+      throw new Error(`Cannot reject plan in stage: ${plan.stage}`)
     }
 
     const updated: StoredPlan = {
       ...plan,
-      status: { stage: 'rejected', reason, updated_at: new Date().toISOString() },
+      updated_at: new Date().toISOString(),
+      stage: 'rejected',
+      rejection_reason: reason,
     }
 
     await writePlan(this.workingDir, updated)
@@ -110,7 +115,7 @@ export class PlanningService {
       summaries.push({
         plan_id: plan.plan_id,
         goal: plan.goal,
-        stage: plan.status.stage,
+        stage: plan.stage,
         created_at: plan.created_at,
         step_count: plan.steps.length,
         has_executions: await hasExecutions(this.workingDir, planId),
