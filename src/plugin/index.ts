@@ -16,8 +16,8 @@ export const createOrcaPlugin = (): Plugin => {
   return async (input) => {
     const { client, clientNext, directory } = input
 
-    // Initialize logger first
-    const log = initLogger(clientNext)
+    // Initialize logger (no-op for now)
+    const log = initLogger()
 
     // Initialize orchestration service (holds HITL, planning, execution services)
     // Note: We pass both v1 (client) and v2 (clientNext) clients because

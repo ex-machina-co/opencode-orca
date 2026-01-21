@@ -1,7 +1,9 @@
 import { tool } from '@opencode-ai/plugin'
+import type { ToolPart } from '@opencode-ai/sdk/v2'
 import { z } from 'zod'
 import { ErrorCode } from '../../common/error-code'
 import * as Identifier from '../../common/identifier'
+import { getLogger } from '../../common/log'
 import type { OrcaService } from '../service'
 import { defineTool } from './common'
 
@@ -48,6 +50,31 @@ export const InvokeOutput = z.discriminatedUnion('type', [
 export type InvokeOutput = z.infer<typeof InvokeOutput>
 
 // ============================================================================
+// Tool Part Summary (for metadata display)
+// ============================================================================
+
+interface ToolPartSummary {
+  id: string
+  tool: string
+  state: {
+    status: string
+    title?: string
+  }
+}
+
+function summarizeToolPart(part: ToolPart): ToolPartSummary {
+  return {
+    id: part.id,
+    tool: part.tool,
+    state: {
+      status: part.state.status,
+      title:
+        part.state.status === 'completed' ? (part.state as { title?: string }).title : undefined,
+    },
+  }
+}
+
+// ============================================================================
 // Tool
 // ============================================================================
 
@@ -72,10 +99,29 @@ export const OrcaInvoke = defineTool({
       description: 'Send a user message to the planner for planning or direct answers',
       args: InvokeInput.shape,
       async execute(args, ctx) {
-        const result = await orca.invoke(args, ctx)
+        const log = getLogger()
+        const parts: Record<string, ToolPartSummary> = {}
+
+        const result = await orca.invoke(args, ctx, {
+          onToolPartUpdated: async (part) => {
+            parts[part.id] = summarizeToolPart(part)
+            const summary = Object.values(parts).sort((a, b) => a.id.localeCompare(b.id))
+            log.info('Calling ctx.metadata()', { partCount: summary.length, tool: part.tool })
+            await ctx.metadata({
+              title: 'Processing...',
+              metadata: { summary },
+            })
+          },
+        })
+
+        const summary = Object.values(parts).sort((a, b) => a.id.localeCompare(b.id))
+
         return {
           title: formatTitle(result),
-          metadata: { sessionId: ctx.sessionID, result },
+          metadata: {
+            summary,
+            sessionId: result.session_id,
+          },
           output: JSON.stringify(result),
         }
       },
