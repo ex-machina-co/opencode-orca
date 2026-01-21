@@ -69,7 +69,7 @@ A thin orchestrator that routes all user messages to the planner. Orca is intent
 | `orca_list_plans`    | List existing plans with status   |
 | `orca_describe_plan` | Get details about a specific plan |
 
-**Key behavior**: Orca is a "dumb pipe". It forwards everything to the planner and reports results back to the user. All decisions (plan approval, deviation handling) happen via HITL inside the plugin, not through Orca.
+**Key behavior**: Orca is a "simple relay". It forwards everything to the planner and reports results back to the user. All decisions (plan approval, deviation handling) happen via HITL inside the plugin, not through Orca.
 
 ### Planner
 

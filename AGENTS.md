@@ -22,3 +22,11 @@
 - **Make invalid states unrepresentable**: Use discriminated unions instead of objects with many optional fields. Each variant should contain exactly the fields meaningful for that state - no more, no less. This eliminates impossible states at the type level.
   - Bad: `{ status: string, error?: string, output?: string, startedAt?: string }` (allows `error` with `status: 'pending'`)
   - Good: Discriminated union where `error` only exists on `failed` variant, `output` only on `completed`, etc.
+
+## Testing Best Practices
+
+- Do not `await expect(...).rejects.toThrow()` blocks...they do not need the await, since bun handles it
+  - Use `expect(...).rejects.toThrow('...')` instead
+- Use `expect(...).toMatchInlineSnapshot()` for things that are text based (like error messages)
+- Prefer inline snapshots over multiple expect checks when the data is deterministic
+- If the data is non-deterministic, use `expect(...).toMatch({...})` with appropriate expect matchers for fields that vary

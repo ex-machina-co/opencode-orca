@@ -1,14 +1,16 @@
 import type { OpencodeClient as OpencodeClientV2 } from '@opencode-ai/sdk/v2'
-import type { z } from 'zod'
+import type { ZodError, ZodType, z } from 'zod'
 import * as Identifier from '../../common/identifier'
-import type { Logger } from '../../common/log'
-import { getLogger } from '../../common/log'
+import * as Logging from '../../common/log'
+import * as Parser from './parser'
 import * as Dispatch from './schemas'
+
+export { ParseError } from './parser'
 
 export interface DispatchServiceDeps {
   client: OpencodeClientV2
   directory: string
-  logger?: Logger
+  logger?: Logging.Logger
 }
 
 export interface SendOptions<TResult extends z.ZodType> {
@@ -28,7 +30,6 @@ export interface SendResult<T> {
 /**
  * Generic dispatch service - sends messages to agents and parses responses.
  *
- * This is a "dumb pipe" that doesn't know about plans or execution state.
  * It handles:
  * - Session creation/reuse
  * - Sending prompts to agents
@@ -53,52 +54,14 @@ export interface SendResult<T> {
 export class DispatchService {
   private readonly client: OpencodeClientV2
   private readonly directory: string
-  private readonly logger: Logger
+  private readonly logger: Logging.Logger
 
   constructor(deps: DispatchServiceDeps) {
     this.client = deps.client
     this.directory = deps.directory
-    this.logger = deps.logger ?? getLogger()
+    this.logger = deps.logger ?? Logging.getLogger()
   }
 
-  /**
-   * Send a message to an agent and parse the response against a schema.
-   */
-  async send<TResult extends z.ZodType>(
-    options: SendOptions<TResult>,
-  ): Promise<SendResult<z.infer<TResult>>> {
-    const { agent, message, resultSchema, maxRetries = 2 } = options
-    const sessionId = options.sessionId ?? Identifier.generateID('session')
-
-    this.logger.info('Dispatching to agent', { agent, sessionId })
-
-    // Create session if new
-    if (!options.sessionId) {
-      await this.client.session.create({
-        directory: this.directory,
-        parentID: sessionId,
-        title: options.sessionTitle ?? `Dispatch to ${agent}`,
-      })
-    }
-
-    // Send message
-    const response = await this.client.session.prompt({
-      sessionID: sessionId,
-      directory: this.directory,
-      agent,
-      parts: [{ type: 'text', text: message }],
-    })
-
-    // Parse response with retries
-    const result = await this.parseWithRetries(response, resultSchema, sessionId, maxRetries)
-
-    return { result, sessionId }
-  }
-
-  /**
-   * Dispatch a task to a specialist agent.
-   * Returns TaskResult (Success | Failure | Interruption).
-   */
   async dispatchTask(
     task: Dispatch.Task,
     options?: { sessionId?: string; sessionTitle?: string; maxRetries?: number },
@@ -112,10 +75,6 @@ export class DispatchService {
     })
   }
 
-  /**
-   * Dispatch a read-only question to an agent.
-   * Returns AgentAnswer (Answer | Failure | Interruption).
-   */
   async dispatchQuestion(
     question: Dispatch.AgentQuestion,
     options?: { sessionTitle?: string; maxRetries?: number },
@@ -140,47 +99,141 @@ export class DispatchService {
     return lines.join('\n')
   }
 
-  private async parseWithRetries<T extends z.ZodType>(
-    response: unknown,
+  private async send<TResult extends z.ZodType>(
+    options: SendOptions<TResult>,
+  ): Promise<SendResult<z.infer<TResult>>> {
+    const { agent, message, resultSchema, maxRetries = 2 } = options
+    const sessionId = options.sessionId ?? Identifier.generateID('session')
+
+    this.logger.info('Dispatching to agent', { agent, sessionId })
+
+    if (!options.sessionId) {
+      await this.client.session.create({
+        directory: this.directory,
+        parentID: sessionId,
+        title: options.sessionTitle ?? `Dispatch to ${agent}`,
+      })
+    }
+
+    // Send message
+    const response = await this.client.session.prompt({
+      sessionID: sessionId,
+      directory: this.directory,
+      agent,
+      parts: [{ type: 'text', text: message }],
+    })
+
+    const result = await this.parseWithRetries(response, resultSchema, sessionId, agent, maxRetries)
+
+    return { result, sessionId }
+  }
+
+  private async parseWithRetries<T extends ZodType>(
+    response: Awaited<ReturnType<OpencodeClientV2['session']['prompt']>>,
     schema: T,
     sessionId: string,
+    agent: string,
     maxRetries: number,
   ): Promise<z.infer<T>> {
-    // TODO: Implement response parsing with retries
-    //
-    // 1. Extract the assistant message content from the session response
-    // 2. Try to parse as JSON (strip markdown code fences if present)
-    // 3. Validate against the provided schema
-    // 4. If validation fails, send a correction prompt and retry (up to maxRetries)
-    // 5. If all retries exhausted, throw an error
-
-    this.logger.debug('Parsing response', { response, sessionId, maxRetries })
-
-    // Placeholder - return a minimal valid response
-    // This will be replaced with actual parsing logic
-    const parsed = schema.safeParse({
-      type: 'answer',
-      content: 'Response parsing not yet implemented',
-    })
-
-    if (parsed.success) {
-      return parsed.data
+    if (!response.data) {
+      const errorInfo = 'error' in response ? response.error : 'Unknown error'
+      throw new Parser.ParseError(`SDK error: ${JSON.stringify(errorInfo)}`, '')
     }
 
-    // Try success type for task results
-    const successParsed = schema.safeParse({
-      type: 'success',
-      summary: 'Response parsing not yet implemented',
-    })
+    const textContent = Parser.extractTextContent(response.data.parts)
 
-    if (successParsed.success) {
-      return successParsed.data
+    if (!textContent) {
+      throw new Parser.ParseError('No text content in response', textContent ?? '')
     }
 
-    // Fall back to answer type
-    return {
-      type: 'answer',
-      content: 'Response parsing not yet implemented',
-    } as z.infer<T>
+    let lastError: ZodError | undefined
+    let currentContent = textContent
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      const jsonContent = Parser.stripMarkdownCodeFences(currentContent)
+
+      // Try to parse as JSON
+      let parsed: unknown
+      try {
+        parsed = JSON.parse(jsonContent)
+      } catch {
+        const error = new Parser.ParseError(
+          `Invalid JSON in response (attempt ${attempt + 1}/${maxRetries + 1})`,
+          currentContent,
+        )
+
+        if (attempt === maxRetries) {
+          throw error
+        }
+
+        this.logger.warn('JSON parse failed, requesting correction', {
+          sessionId,
+          attempt: attempt + 1,
+        })
+
+        currentContent = await this.requestCorrection(
+          sessionId,
+          agent,
+          Parser.formatJsonErrorPrompt(currentContent),
+        )
+        continue
+      }
+
+      // Validate against schema
+      const result = schema.safeParse(parsed)
+
+      if (result.success) {
+        return result.data
+      }
+
+      lastError = result.error
+
+      if (attempt === maxRetries) {
+        throw new Parser.ParseError(
+          `Schema validation failed after ${maxRetries + 1} attempts`,
+          currentContent,
+          lastError,
+        )
+      }
+
+      this.logger.warn('Schema validation failed, requesting correction', {
+        sessionId,
+        attempt: attempt + 1,
+        issues: result.error.issues,
+      })
+
+      currentContent = await this.requestCorrection(
+        sessionId,
+        agent,
+        Parser.formatCorrectionPrompt(result.error),
+      )
+    }
+
+    // TypeScript requires this, but we'll never reach here
+    throw new Parser.ParseError('Unexpected parse error', currentContent, lastError)
+  }
+
+  private async requestCorrection(
+    sessionId: string,
+    agent: string,
+    correctionPrompt: string,
+  ): Promise<string> {
+    const response = await this.client.session.prompt({
+      sessionID: sessionId,
+      directory: this.directory,
+      agent,
+      parts: [{ type: 'text', text: correctionPrompt }],
+    })
+
+    if (!response.data) {
+      throw new Parser.ParseError('No data in correction response', '')
+    }
+
+    const content = Parser.extractTextContent(response.data.parts)
+    if (!content) {
+      throw new Parser.ParseError('No text content in correction response', '')
+    }
+
+    return content
   }
 }
