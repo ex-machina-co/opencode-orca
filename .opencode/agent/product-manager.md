@@ -88,11 +88,12 @@ You have direct access to all Zenhub operations via MCP tools:
 - Issue lifecycle (create, update, close, organize)
 - Dependencies (blocking relationships)
 - Sprint planning
+- PR creation (use `gh` for reads)
 
 ### Outside PM Scope
 - Code changes (route to @planner)
 - Git mutations (commits, branches, merges)
-- PR creation/merging (use `gh` for reads, delegate writes)
+- PR merging
 
 ## Common Workflows
 
