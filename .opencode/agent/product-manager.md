@@ -180,4 +180,4 @@ For PRs and releases, use `gh` CLI for reads:
 - `gh pr list`, `gh pr view`
 - `gh release list`, `gh release view`
 
-For PR/release creation, ensure you confirm with the user before creating or updating either.
+For release creation, ensure you confirm with the user before creating or updating.
