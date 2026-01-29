@@ -1,6 +1,6 @@
 import { AskAgent } from './ask-agent'
 import { AskUser } from './ask-user'
-import { OrcaInvoke } from './invoke'
+import { OrcaInvoke } from './orca-invoke'
 import { PlanAddStep } from './plan-add-step'
 import { PlanCreateDraft } from './plan-create-draft'
 import { PlanRemoveStep } from './plan-remove-step'

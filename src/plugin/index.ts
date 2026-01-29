@@ -8,6 +8,7 @@ import { Tools } from '../orca/tools'
 import { buildToolPermissions } from '../orca/tools/build-tool-permissions'
 import { DEFAULT_AGENTS, mergeAgentConfigs } from './agents'
 import { loadUserConfig } from './config'
+import { ORCA_HOST_TOOLS_DENY_LIST } from './orca-restrictions'
 import { ensureSchema } from './schema'
 import { runUpdateNotifier } from './update-notifier'
 import { getPluginVersion } from './version'
@@ -16,8 +17,8 @@ export const createOrcaPlugin = (): Plugin => {
   return async (input) => {
     const { client, clientNext, directory } = input
 
-    // Initialize logger first
-    const log = initLogger(clientNext)
+    // Initialize logger (no-op for now)
+    const log = initLogger()
 
     // Initialize orchestration service (holds HITL, planning, execution services)
     // Note: We pass both v1 (client) and v2 (clientNext) clients because
@@ -43,6 +44,7 @@ export const createOrcaPlugin = (): Plugin => {
       orca: userConfig?.orca,
       planner: userConfig?.planner,
       agents: userConfig?.agents,
+      settings: userConfig?.settings,
     })
 
     // Ensure schema file exists for editor autocomplete (silent failure)
@@ -100,6 +102,16 @@ export const createOrcaPlugin = (): Plugin => {
               ? agentConfig.permission
               : {}
           agentConfig.permission = { ...byAgentType[agentType], ...existingAgentPermission }
+        }
+
+        // Deny all host tools for Orca agent (belt-and-suspenders with permission denies)
+        // Orca should ONLY have access to orca-invoke; no file/bash/web access
+        const orcaAgent = config.agent.orca
+        if (orcaAgent) {
+          const existingTools =
+            typeof orcaAgent.tools === 'object' && orcaAgent.tools ? orcaAgent.tools : {}
+          // Host tool denies take precedence (cannot be overridden by user config)
+          orcaAgent.tools = { ...existingTools, ...ORCA_HOST_TOOLS_DENY_LIST, 'orca-invoke': true }
         }
 
         // Find our plugin entry for update notifier

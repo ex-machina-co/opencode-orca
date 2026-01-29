@@ -1,6 +1,6 @@
 {
   "name": "@ex-machina/opencode-orca",
-  "version": "0.0.1-alpha.3",
+  "version": "0.1.0",
   "description": "OpenCode plugin for Orca + Specialists agent orchestration",
   "main": "dist/index.js",
   "type": "module",
@@ -12,6 +12,7 @@
     "build": "tsup && bun scripts/generate-schema.ts",
     "generate:schema": "bun scripts/generate-schema.ts",
     "typecheck": "tsc --noEmit",
+    "types": "bun run typecheck -- --pretty --noErrorTruncation",
     "lint": "biome check .",
     "lint:staged": "biome check --staged --fix --no-errors-on-unmatched",
     "format": "biome check . --fix --unsafe",
@@ -54,7 +55,7 @@
     "@opencode-ai/sdk": "npm:@ex-machina/opencode-sdk@1.1.25-exmachina.4",
     "comment-json": "^4.5.1",
     "dedent": "^1.7.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "zod": "4.1.8"
   },
   "files": [

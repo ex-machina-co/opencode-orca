@@ -1,9 +1,14 @@
 import type { ToolContext } from '@opencode-ai/plugin'
-import type { OpencodeClient as OpencodeClientV2, Session } from '@opencode-ai/sdk/v2'
+import type {
+  Event,
+  OpencodeClient as OpencodeClientV2,
+  Session,
+  ToolPart,
+} from '@opencode-ai/sdk/v2'
 import type { ZodError, ZodType, z } from 'zod'
 import * as Logging from '../../common/log'
 import { PlannerResponse } from '../planning/schemas'
-import type { InvokeInput } from '../tools/invoke'
+import type { InvokeInput } from '../tools/orca-invoke'
 import * as Parser from './parser'
 import * as Dispatch from './schemas'
 
@@ -23,6 +28,8 @@ export interface SendOptions<TResult extends z.ZodType> {
   targetSessionId?: string
   sessionTitle?: string
   maxRetries?: number
+  onSessionCreated?: (sessionId: string) => void
+  onToolPartUpdated?: (part: ToolPart) => void | Promise<void>
 }
 
 export interface SendResult<T> {
@@ -106,7 +113,11 @@ export class DispatchService {
   async dispatchUserMessage(
     ctx: ToolContext,
     input: InvokeInput,
-    options?: { maxRetries?: number },
+    options?: {
+      maxRetries?: number
+      onSessionCreated?: (sessionId: string) => void | Promise<void>
+      onToolPartUpdated?: (part: ToolPart) => void | Promise<void>
+    },
   ): Promise<SendResult<PlannerResponse>> {
     return this.send({
       agent: 'planner',
@@ -132,7 +143,7 @@ export class DispatchService {
   private async send<TResult extends z.ZodType>(
     options: SendOptions<TResult>,
   ): Promise<SendResult<z.infer<TResult>>> {
-    const { agent, message, resultSchema, maxRetries = 2 } = options
+    const { agent, message, resultSchema, maxRetries = 2, onToolPartUpdated } = options
 
     this.logger.info('Dispatching to agent', { agent, sessionId: options.targetSessionId })
 
@@ -157,23 +168,87 @@ export class DispatchService {
       return response.data
     })()
 
-    // Send message
-    const response = await this.client.session.prompt({
-      sessionID: session.id,
-      directory: this.directory,
-      agent,
-      parts: [{ type: 'text', text: message }],
-    })
+    // Notify caller of session ID
+    await options.onSessionCreated?.(session.id)
 
-    const result = await this.parseWithRetries(
-      response,
-      resultSchema,
-      session.id,
-      agent,
-      maxRetries,
-    )
+    // Set up event subscription if callback provided
+    let stopEventStream: (() => void) | undefined
+    if (onToolPartUpdated) {
+      stopEventStream = this.subscribeToToolParts(session.id, onToolPartUpdated)
+    }
 
-    return { result, sessionId: session.id }
+    try {
+      // Send message
+      const response = await this.client.session.prompt({
+        sessionID: session.id,
+        directory: this.directory,
+        agent,
+        parts: [{ type: 'text', text: message }],
+      })
+
+      const result = await this.parseWithRetries(
+        response,
+        resultSchema,
+        session.id,
+        agent,
+        maxRetries,
+      )
+
+      return { result, sessionId: session.id }
+    } finally {
+      stopEventStream?.()
+    }
+  }
+
+  private subscribeToToolParts(
+    sessionId: string,
+    onToolPartUpdated: (part: ToolPart) => void | Promise<void>,
+  ): () => void {
+    let stopped = false
+
+    const processEvents = async () => {
+      try {
+        this.logger.info('Starting event stream subscription', { sessionId })
+        const eventStream = await this.client.event.subscribe({ directory: this.directory })
+        this.logger.info('Event stream connected', { sessionId })
+
+        for await (const event of eventStream.stream) {
+          if (stopped) {
+            this.logger.info('Event stream stopped', { sessionId })
+            break
+          }
+
+          this.logger.debug('Event received', { type: event.type, sessionId })
+
+          if (this.isToolPartUpdateEvent(event, sessionId)) {
+            this.logger.info('Tool part update', { partId: event.properties.part.id, sessionId })
+            await onToolPartUpdated(event.properties.part as ToolPart)
+          }
+        }
+      } catch (error) {
+        if (!stopped) {
+          this.logger.warn('Event stream error', { error, sessionId })
+        }
+      }
+    }
+
+    processEvents()
+
+    return () => {
+      stopped = true
+    }
+  }
+
+  private isToolPartUpdateEvent(
+    event: Event,
+    sessionId: string,
+  ): event is Event & {
+    type: 'message.part.updated'
+    properties: { part: ToolPart }
+  } {
+    if (event.type !== 'message.part.updated') return false
+    const part = event.properties.part
+    return part.sessionID === sessionId && part.type === 'tool'
   }
 
   private async parseWithRetries<T extends ZodType>(

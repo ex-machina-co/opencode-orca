@@ -1,12 +1,17 @@
 import type { ToolContext } from '@opencode-ai/plugin'
-import type { OpencodeClient as OpencodeClientV2 } from '@opencode-ai/sdk/v2'
+import type { OpencodeClient as OpencodeClientV2, ToolPart } from '@opencode-ai/sdk/v2'
 import type { Logger } from '../common/log'
 import { getLogger } from '../common/log'
 import { DispatchService, ParseError } from './dispatch/service'
 import { HITLService } from './hitl/service'
 import type { PlannerResponse } from './planning/schemas'
 import { PlanningService } from './planning/service'
-import type { InvokeInput, InvokeOutput } from './tools/invoke'
+import type { InvokeInput, InvokeOutput } from './tools/orca-invoke'
+
+export interface InvokeOptions {
+  onSessionCreated?: (sessionId: string) => void | Promise<void>
+  onToolPartUpdated?: (part: ToolPart) => void | Promise<void>
+}
 
 export interface OrcaServiceDeps {
   client: OpencodeClientV2
@@ -15,8 +20,9 @@ export interface OrcaServiceDeps {
 }
 
 export class OrcaService {
-  private readonly client: OpencodeClientV2
-  private readonly directory: string
+  public readonly client: OpencodeClientV2
+  public readonly directory: string
+
   private readonly logger: Logger
   private readonly planningService: PlanningService
   private readonly hitlService: HITLService
@@ -48,9 +54,16 @@ export class OrcaService {
     return this.planningService
   }
 
-  async invoke(input: InvokeInput, ctx: ToolContext): Promise<InvokeOutput> {
+  async invoke(
+    input: InvokeInput,
+    ctx: ToolContext,
+    options?: InvokeOptions,
+  ): Promise<InvokeOutput> {
     try {
-      const { result, sessionId } = await this.dispatchService.dispatchUserMessage(ctx, input)
+      const { result, sessionId } = await this.dispatchService.dispatchUserMessage(ctx, input, {
+        onSessionCreated: options?.onSessionCreated,
+        onToolPartUpdated: options?.onToolPartUpdated,
+      })
       return this.transformResponse(result, sessionId)
     } catch (error) {
       return this.handleInvokeError(error, input.session_id)

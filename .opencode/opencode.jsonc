@@ -1,4 +1,5 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@ex-machina/opencode-orca"]
+  "plugin": ["@ex-machina/opencode-orca"],
+  "autoupdate": true
 }

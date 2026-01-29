@@ -118,6 +118,7 @@ export type UserAgentConfig = {
   orca?: OrcaAgentConfig
   planner?: PlannerAgentConfig
   agents?: Record<string, AgentConfig>
+  settings?: { defaultModel?: string }
 }
 
 /**
@@ -195,18 +196,28 @@ export function mergeAgentConfigs(
 
   // Add any new agents from user config (not in defaults)
   if (userAgents) {
-    for (const [agentId, userConfig] of Object.entries(userAgents)) {
+    for (const [agentId, agentConf] of Object.entries(userAgents)) {
       if (agentId in defaults) continue // Already processed
-      if (userConfig.disable) continue // Skip disabled (legacy)
-      if (userConfig.enabled === false) continue // Skip disabled
+      if (agentConf.disable) continue // Skip disabled (legacy)
+      if (agentConf.enabled === false) continue // Skip disabled
 
       // User-defined agents default to specialist: false
       const config: AgentConfig = {
         specialist: false, // Default for user agents
-        ...userConfig,
+        ...agentConf,
       }
 
       result[agentId] = parseAgentConfig(agentId, config)
+    }
+  }
+
+  // Apply settings.defaultModel as fallback for agents without explicit model
+  const defaultModel = userConfig?.settings?.defaultModel
+  if (defaultModel) {
+    for (const agentConfig of Object.values(result)) {
+      if (!agentConfig.model) {
+        agentConfig.model = defaultModel
+      }
     }
   }
 
