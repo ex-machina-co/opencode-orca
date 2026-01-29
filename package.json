@@ -12,6 +12,7 @@
     "build": "tsup && bun scripts/generate-schema.ts",
     "generate:schema": "bun scripts/generate-schema.ts",
     "typecheck": "tsc --noEmit",
+    "types": "bun run typecheck -- --pretty --noErrorTruncation",
     "lint": "biome check .",
     "lint:staged": "biome check --staged --fix --no-errors-on-unmatched",
     "format": "biome check . --fix --unsafe",
