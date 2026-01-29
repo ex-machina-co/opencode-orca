@@ -68,15 +68,21 @@ function summarizeToolPart(part: ToolPart): ToolPartSummary {
     tool: part.tool,
     state: {
       status: part.state.status,
-      title:
-        part.state.status === 'completed' ? (part.state as { title?: string }).title : undefined,
+      title: part.state.status === 'completed' ? part.state.title : undefined,
     },
   }
 }
 
 // ============================================================================
-// Tool
+// Helpers
 // ============================================================================
+
+const DESCRIPTION_MAX_LENGTH = 50
+
+function truncateDescription(message: string): string {
+  if (message.length <= DESCRIPTION_MAX_LENGTH) return message
+  return `${message.slice(0, DESCRIPTION_MAX_LENGTH)}...`
+}
 
 function formatTitle(result: InvokeOutput): string {
   switch (result.type) {
@@ -103,12 +109,14 @@ export const OrcaInvoke = defineTool({
         const parts: Record<string, ToolPartSummary> = {}
         const startTime = Date.now()
 
+        const description = truncateDescription(args.message)
+
         // Build augmented input with display fields for Task UI
         const augmentedInput = {
           message: args.message,
           session_id: args.session_id,
           subagent_type: 'planner',
-          description: args.message.slice(0, 50) + (args.message.length > 50 ? '...' : ''),
+          description,
         }
 
         // Fetch our tool part to get the partID for updates
@@ -132,6 +140,35 @@ export const OrcaInvoke = defineTool({
             childSessionId = id
             // Update with sessionId so Task card appears immediately
             if (ourPart) {
+              try {
+                await orca.client.part.update({
+                  sessionID: ctx.sessionID,
+                  messageID: ctx.messageID,
+                  partID: ourPart.id,
+                  directory: orca.directory,
+                  part: {
+                    ...ourPart,
+                    state: {
+                      status: 'running',
+                      input: augmentedInput,
+                      title: 'Processing...',
+                      metadata: { sessionId: childSessionId },
+                      time: { start: startTime },
+                    },
+                  },
+                })
+              } catch (err) {
+                log.warn('Failed to update part on session created', { error: err })
+              }
+            }
+          },
+          onToolPartUpdated: async (part) => {
+            if (!ourPart) return
+
+            parts[part.id] = summarizeToolPart(part)
+            const summary = Object.values(parts).sort((a, b) => a.id.localeCompare(b.id))
+
+            try {
               await orca.client.part.update({
                 sessionID: ctx.sessionID,
                 messageID: ctx.messageID,
@@ -143,35 +180,14 @@ export const OrcaInvoke = defineTool({
                     status: 'running',
                     input: augmentedInput,
                     title: 'Processing...',
-                    metadata: { sessionId: childSessionId },
+                    metadata: { summary, sessionId: childSessionId },
                     time: { start: startTime },
                   },
                 },
               })
+            } catch (err) {
+              log.warn('Failed to update part on tool part updated', { error: err })
             }
-          },
-          onToolPartUpdated: async (part) => {
-            if (!ourPart) return
-
-            parts[part.id] = summarizeToolPart(part)
-            const summary = Object.values(parts).sort((a, b) => a.id.localeCompare(b.id))
-
-            await orca.client.part.update({
-              sessionID: ctx.sessionID,
-              messageID: ctx.messageID,
-              partID: ourPart.id,
-              directory: orca.directory,
-              part: {
-                ...ourPart,
-                state: {
-                  status: 'running',
-                  input: augmentedInput,
-                  title: 'Processing...',
-                  metadata: { summary, sessionId: childSessionId },
-                  time: { start: startTime },
-                },
-              },
-            })
           },
         })
 
@@ -183,7 +199,7 @@ export const OrcaInvoke = defineTool({
             summary,
             sessionId: result.session_id,
             subagent_type: 'planner',
-            description: args.message.slice(0, 50) + (args.message.length > 50 ? '...' : ''),
+            description,
           },
           output: JSON.stringify(result),
         }

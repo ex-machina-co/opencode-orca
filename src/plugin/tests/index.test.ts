@@ -3,6 +3,7 @@ import type { PluginInput } from '@opencode-ai/plugin'
 import type { Config } from '@opencode-ai/sdk'
 import { DEFAULT_AGENTS } from '../agents'
 import { createOrcaPlugin } from '../index'
+import { ORCA_HOST_TOOLS_DENY_LIST } from '../orca-restrictions'
 
 // Mock the plugin input - using type assertion to avoid needing full mock
 const createMockInput = (directory: string): PluginInput =>
@@ -153,16 +154,10 @@ describe('createOrcaPlugin', () => {
 
       const orcaTools = config.agent?.orca?.tools ?? {}
 
-      // All host tools should be explicitly disabled
-      expect(orcaTools.read).toBe(false)
-      expect(orcaTools.glob).toBe(false)
-      expect(orcaTools.grep).toBe(false)
-      expect(orcaTools.bash).toBe(false)
-      expect(orcaTools.edit).toBe(false)
-      expect(orcaTools.write).toBe(false)
-      expect(orcaTools.webfetch).toBe(false)
-      expect(orcaTools.task).toBe(false)
-      expect(orcaTools.apply_patch).toBe(false)
+      // All host tools from deny list should be explicitly disabled
+      for (const [tool, value] of Object.entries(ORCA_HOST_TOOLS_DENY_LIST)) {
+        expect(orcaTools[tool]).toBe(value)
+      }
 
       // Only orca-invoke should be enabled
       expect(orcaTools['orca-invoke']).toBe(true)
@@ -172,15 +167,14 @@ describe('createOrcaPlugin', () => {
       const plugin = createOrcaPlugin()
       const hooks = await plugin(createMockInput('/tmp/test-project'))
 
-      // Simulate user trying to enable host tools for orca
+      // Simulate user trying to enable all denied host tools for orca
+      const userOverrides = Object.fromEntries(
+        Object.keys(ORCA_HOST_TOOLS_DENY_LIST).map((tool) => [tool, true]),
+      )
       const config: Partial<Config> = {
         agent: {
           orca: {
-            tools: {
-              read: true,
-              bash: true,
-              edit: true,
-            },
+            tools: userOverrides,
           },
         },
       }
@@ -190,10 +184,10 @@ describe('createOrcaPlugin', () => {
 
       const orcaTools = config.agent?.orca?.tools ?? {}
 
-      // Host tools should still be denied despite user config
-      expect(orcaTools.read).toBe(false)
-      expect(orcaTools.bash).toBe(false)
-      expect(orcaTools.edit).toBe(false)
+      // Host tools should still be denied despite user config attempting to enable them
+      for (const [tool, value] of Object.entries(ORCA_HOST_TOOLS_DENY_LIST)) {
+        expect(orcaTools[tool]).toBe(value)
+      }
     })
   })
 })

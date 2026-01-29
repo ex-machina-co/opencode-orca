@@ -8,6 +8,7 @@ import { Tools } from '../orca/tools'
 import { buildToolPermissions } from '../orca/tools/build-tool-permissions'
 import { DEFAULT_AGENTS, mergeAgentConfigs } from './agents'
 import { loadUserConfig } from './config'
+import { ORCA_HOST_TOOLS_DENY_LIST } from './orca-restrictions'
 import { ensureSchema } from './schema'
 import { runUpdateNotifier } from './update-notifier'
 import { getPluginVersion } from './version'
@@ -107,21 +108,10 @@ export const createOrcaPlugin = (): Plugin => {
         // Orca should ONLY have access to orca-invoke; no file/bash/web access
         const orcaAgent = config.agent.orca
         if (orcaAgent) {
-          const hostToolsDenyList = {
-            read: false,
-            glob: false,
-            grep: false,
-            bash: false,
-            edit: false,
-            write: false,
-            webfetch: false,
-            task: false,
-            apply_patch: false,
-          }
           const existingTools =
             typeof orcaAgent.tools === 'object' && orcaAgent.tools ? orcaAgent.tools : {}
           // Host tool denies take precedence (cannot be overridden by user config)
-          orcaAgent.tools = { ...existingTools, ...hostToolsDenyList, 'orca-invoke': true }
+          orcaAgent.tools = { ...existingTools, ...ORCA_HOST_TOOLS_DENY_LIST, 'orca-invoke': true }
         }
 
         // Find our plugin entry for update notifier
