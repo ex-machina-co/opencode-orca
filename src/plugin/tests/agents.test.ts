@@ -689,6 +689,144 @@ describe('injectSpecialistList', () => {
   })
 })
 
+describe('defaultModel in settings', () => {
+  test('applies defaultModel to agents without explicit model', () => {
+    const defaults: Record<string, AgentConfig> = {
+      coder: { mode: 'subagent', prompt: 'Coder' },
+      tester: { mode: 'subagent', prompt: 'Tester' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      settings: { defaultModel: 'anthropic/claude-opus-4-5' },
+    })
+
+    expect(result.coder.model).toBe('anthropic/claude-opus-4-5')
+    expect(result.tester.model).toBe('anthropic/claude-opus-4-5')
+  })
+
+  test('explicit model in agent config takes precedence over defaultModel', () => {
+    const defaults: Record<string, AgentConfig> = {
+      coder: { mode: 'subagent', prompt: 'Coder' },
+      tester: { mode: 'subagent', prompt: 'Tester', model: 'openai/gpt-4o' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      settings: { defaultModel: 'anthropic/claude-opus-4-5' },
+    })
+
+    expect(result.coder.model).toBe('anthropic/claude-opus-4-5')
+    expect(result.tester.model).toBe('openai/gpt-4o')
+  })
+
+  test('applies defaultModel to orca via top-level key', () => {
+    const defaults: Record<string, AgentConfig> = {
+      orca: { mode: 'primary', prompt: 'Orca' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      settings: { defaultModel: 'anthropic/claude-opus-4-5' },
+    })
+
+    expect(result.orca.model).toBe('anthropic/claude-opus-4-5')
+  })
+
+  test('applies defaultModel to planner via top-level key', () => {
+    const defaults: Record<string, AgentConfig> = {
+      planner: { mode: 'subagent', prompt: 'Planner' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      settings: { defaultModel: 'anthropic/claude-opus-4-5' },
+    })
+
+    expect(result.planner.model).toBe('anthropic/claude-opus-4-5')
+  })
+
+  test('explicit model in orca top-level config takes precedence', () => {
+    const defaults: Record<string, AgentConfig> = {
+      orca: { mode: 'primary', prompt: 'Orca' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      orca: { model: 'openai/gpt-4o' },
+      settings: { defaultModel: 'anthropic/claude-opus-4-5' },
+    })
+
+    expect(result.orca.model).toBe('openai/gpt-4o')
+  })
+
+  test('explicit model in planner top-level config takes precedence', () => {
+    const defaults: Record<string, AgentConfig> = {
+      planner: { mode: 'subagent', prompt: 'Planner' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      planner: { model: 'openai/gpt-4o' },
+      settings: { defaultModel: 'anthropic/claude-opus-4-5' },
+    })
+
+    expect(result.planner.model).toBe('openai/gpt-4o')
+  })
+
+  test('applies defaultModel to new custom agents', () => {
+    const defaults: Record<string, AgentConfig> = {
+      coder: { mode: 'subagent' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      agents: {
+        'my-specialist': { mode: 'subagent', prompt: 'Custom' },
+      },
+      settings: { defaultModel: 'anthropic/claude-opus-4-5' },
+    })
+
+    expect(result['my-specialist'].model).toBe('anthropic/claude-opus-4-5')
+  })
+
+  test('explicit model in custom agent takes precedence', () => {
+    const defaults: Record<string, AgentConfig> = {
+      coder: { mode: 'subagent' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      agents: {
+        'my-specialist': { mode: 'subagent', prompt: 'Custom', model: 'openai/gpt-4o' },
+      },
+      settings: { defaultModel: 'anthropic/claude-opus-4-5' },
+    })
+
+    expect(result['my-specialist'].model).toBe('openai/gpt-4o')
+  })
+
+  test('no change when defaultModel not configured', () => {
+    const defaults: Record<string, AgentConfig> = {
+      coder: { mode: 'subagent', prompt: 'Coder' },
+      tester: { mode: 'subagent', prompt: 'Tester', model: 'openai/gpt-4o' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      settings: {},
+    })
+
+    expect(result.coder.model).toBeUndefined()
+    expect(result.tester.model).toBe('openai/gpt-4o')
+  })
+
+  test('no change when settings not provided', () => {
+    const defaults: Record<string, AgentConfig> = {
+      coder: { mode: 'subagent', prompt: 'Coder' },
+    }
+    const result = mergeAgentConfigs(defaults, {})
+
+    expect(result.coder.model).toBeUndefined()
+  })
+
+  test('user agent override model takes precedence over defaultModel', () => {
+    const defaults: Record<string, AgentConfig> = {
+      coder: { mode: 'subagent', prompt: 'Coder' },
+    }
+    const result = mergeAgentConfigs(defaults, {
+      agents: {
+        coder: { model: 'openai/gpt-4o' },
+      },
+      settings: { defaultModel: 'anthropic/claude-opus-4-5' },
+    })
+
+    expect(result.coder.model).toBe('openai/gpt-4o')
+  })
+})
+
 describe('parseAgentConfig', () => {
   describe('orca agent', () => {
     test('defaults supervised to false', () => {

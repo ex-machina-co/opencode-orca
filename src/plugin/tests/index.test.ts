@@ -140,4 +140,60 @@ describe('createOrcaPlugin', () => {
       expect(typeof hooks.tool).toBe('object')
     })
   })
+
+  describe('orca agent tool restrictions', () => {
+    test('denies all host tools for orca agent', async () => {
+      const plugin = createOrcaPlugin()
+      const hooks = await plugin(createMockInput('/tmp/test-project'))
+
+      const config: Partial<Config> = {}
+      if (hooks.config) {
+        await hooks.config(config as Config)
+      }
+
+      const orcaTools = config.agent?.orca?.tools ?? {}
+
+      // All host tools should be explicitly disabled
+      expect(orcaTools.read).toBe(false)
+      expect(orcaTools.glob).toBe(false)
+      expect(orcaTools.grep).toBe(false)
+      expect(orcaTools.bash).toBe(false)
+      expect(orcaTools.edit).toBe(false)
+      expect(orcaTools.write).toBe(false)
+      expect(orcaTools.webfetch).toBe(false)
+      expect(orcaTools.task).toBe(false)
+      expect(orcaTools.apply_patch).toBe(false)
+
+      // Only orca-invoke should be enabled
+      expect(orcaTools['orca-invoke']).toBe(true)
+    })
+
+    test('host tool denies cannot be overridden by user config', async () => {
+      const plugin = createOrcaPlugin()
+      const hooks = await plugin(createMockInput('/tmp/test-project'))
+
+      // Simulate user trying to enable host tools for orca
+      const config: Partial<Config> = {
+        agent: {
+          orca: {
+            tools: {
+              read: true,
+              bash: true,
+              edit: true,
+            },
+          },
+        },
+      }
+      if (hooks.config) {
+        await hooks.config(config as Config)
+      }
+
+      const orcaTools = config.agent?.orca?.tools ?? {}
+
+      // Host tools should still be denied despite user config
+      expect(orcaTools.read).toBe(false)
+      expect(orcaTools.bash).toBe(false)
+      expect(orcaTools.edit).toBe(false)
+    })
+  })
 })

@@ -43,6 +43,7 @@ export const createOrcaPlugin = (): Plugin => {
       orca: userConfig?.orca,
       planner: userConfig?.planner,
       agents: userConfig?.agents,
+      settings: userConfig?.settings,
     })
 
     // Ensure schema file exists for editor autocomplete (silent failure)
@@ -100,6 +101,27 @@ export const createOrcaPlugin = (): Plugin => {
               ? agentConfig.permission
               : {}
           agentConfig.permission = { ...byAgentType[agentType], ...existingAgentPermission }
+        }
+
+        // Deny all host tools for Orca agent (belt-and-suspenders with permission denies)
+        // Orca should ONLY have access to orca-invoke; no file/bash/web access
+        const orcaAgent = config.agent.orca
+        if (orcaAgent) {
+          const hostToolsDenyList = {
+            read: false,
+            glob: false,
+            grep: false,
+            bash: false,
+            edit: false,
+            write: false,
+            webfetch: false,
+            task: false,
+            apply_patch: false,
+          }
+          const existingTools =
+            typeof orcaAgent.tools === 'object' && orcaAgent.tools ? orcaAgent.tools : {}
+          // Host tool denies take precedence (cannot be overridden by user config)
+          orcaAgent.tools = { ...existingTools, ...hostToolsDenyList, 'orca-invoke': true }
         }
 
         // Find our plugin entry for update notifier
