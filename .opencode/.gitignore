@@ -3,3 +3,4 @@ package.json
 bun.lock
 user-config
 orca.schema.json
+plans/

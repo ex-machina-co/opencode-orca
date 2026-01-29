@@ -28,6 +28,7 @@ export interface SendOptions<TResult extends z.ZodType> {
   targetSessionId?: string
   sessionTitle?: string
   maxRetries?: number
+  onSessionCreated?: (sessionId: string) => void
   onToolPartUpdated?: (part: ToolPart) => void | Promise<void>
 }
 
@@ -112,7 +113,11 @@ export class DispatchService {
   async dispatchUserMessage(
     ctx: ToolContext,
     input: InvokeInput,
-    options?: { maxRetries?: number; onToolPartUpdated?: (part: ToolPart) => void | Promise<void> },
+    options?: {
+      maxRetries?: number
+      onSessionCreated?: (sessionId: string) => void | Promise<void>
+      onToolPartUpdated?: (part: ToolPart) => void | Promise<void>
+    },
   ): Promise<SendResult<PlannerResponse>> {
     return this.send({
       agent: 'planner',
@@ -162,6 +167,9 @@ export class DispatchService {
 
       return response.data
     })()
+
+    // Notify caller of session ID
+    await options.onSessionCreated?.(session.id)
 
     // Set up event subscription if callback provided
     let stopEventStream: (() => void) | undefined

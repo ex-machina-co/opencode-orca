@@ -9,6 +9,7 @@ import { PlanningService } from './planning/service'
 import type { InvokeInput, InvokeOutput } from './tools/orca-invoke'
 
 export interface InvokeOptions {
+  onSessionCreated?: (sessionId: string) => void | Promise<void>
   onToolPartUpdated?: (part: ToolPart) => void | Promise<void>
 }
 
@@ -19,8 +20,9 @@ export interface OrcaServiceDeps {
 }
 
 export class OrcaService {
-  private readonly client: OpencodeClientV2
-  private readonly directory: string
+  public readonly client: OpencodeClientV2
+  public readonly directory: string
+
   private readonly logger: Logger
   private readonly planningService: PlanningService
   private readonly hitlService: HITLService
@@ -52,14 +54,6 @@ export class OrcaService {
     return this.planningService
   }
 
-  getClient(): OpencodeClientV2 {
-    return this.client
-  }
-
-  getDirectory(): string {
-    return this.directory
-  }
-
   async invoke(
     input: InvokeInput,
     ctx: ToolContext,
@@ -67,6 +61,7 @@ export class OrcaService {
   ): Promise<InvokeOutput> {
     try {
       const { result, sessionId } = await this.dispatchService.dispatchUserMessage(ctx, input, {
+        onSessionCreated: options?.onSessionCreated,
         onToolPartUpdated: options?.onToolPartUpdated,
       })
       return this.transformResponse(result, sessionId)
