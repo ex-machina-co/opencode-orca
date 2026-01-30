@@ -45,28 +45,36 @@ export function bumpVersion(version: string, type: BumpType): string {
   }
 }
 
-const pkg = await Bun.file(PACKAGE_JSON).json()
-const current = pkg.version as string
-const bumpType: BumpType = major ? 'major' : minor ? 'minor' : 'patch'
-const bumped = bumpVersion(current, bumpType)
+async function main() {
+  const pkg = await Bun.file(PACKAGE_JSON).json()
+  const current = pkg.version as string
+  const bumpType: BumpType = major ? 'major' : minor ? 'minor' : 'patch'
+  const bumped = bumpVersion(current, bumpType)
 
-log(`Bump ${bumpType}: ${current} => ${bumped}`)
+  log(`Bump ${bumpType}: ${current} => ${bumped}`)
 
-if (!dry) {
-  pkg.version = bumped
-  await Bun.write(PACKAGE_JSON, `${JSON.stringify(pkg, null, 2)}\n`)
+  if (!dry) {
+    pkg.version = bumped
+    await Bun.write(PACKAGE_JSON, `${JSON.stringify(pkg, null, 2)}\n`)
 
-  const commit = Bun.spawnSync(['git', 'commit', '-am', `chore: bump to ${bumped}`], { cwd: ROOT })
-  if (commit.exitCode !== 0) {
-    console.error('Commit failed:', commit.stderr.toString())
-    process.exit(1)
+    const commit = Bun.spawnSync(['git', 'commit', '-am', `chore: bump to ${bumped}`], {
+      cwd: ROOT,
+    })
+    if (commit.exitCode !== 0) {
+      console.error('Commit failed:', commit.stderr.toString())
+      process.exit(1)
+    }
+
+    const push = Bun.spawnSync(['git', 'push'], { cwd: ROOT })
+    if (push.exitCode !== 0) {
+      console.error('Push failed:', push.stderr.toString())
+      process.exit(1)
+    }
   }
 
-  const push = Bun.spawnSync(['git', 'push'], { cwd: ROOT })
-  if (push.exitCode !== 0) {
-    console.error('Push failed:', push.stderr.toString())
-    process.exit(1)
-  }
+  log('Done!')
 }
 
-log('Done!')
+if (import.meta.main) {
+  main()
+}
