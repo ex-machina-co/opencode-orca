@@ -1,8 +1,13 @@
-- We use the dedent library for TypeScript multiline string formatting, meaning leading spaces and line breaks are trimmed. Check for examples in the code.
-- This is a PLUGIN, not a library. We don't need to maintain backwards API compatibility.
+# IMPORTANT RULES FOR AGENTS
+
+## Best Practices and Context
 - Remove deprecated code instead of keeping aliases.
+- This is a PLUGIN, not a library. We don't need to maintain backwards API compatibility.
 - Do not use barrel exports unless there is a reason.
 - Comments should be for exceptional or confusing things...not normal code. Be sparing with them.
+  - Seriously, comments are liars. We should avoid them whenever possible, ONLY using them in EXCEPTIONAL circumstances.
+- Never execute a plan without user approval, assume you're always read only unless given explicit permission.
+  - Remember to always ask for permission, too.
 
 ## Architecture
 

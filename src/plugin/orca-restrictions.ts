@@ -1,23 +1,15 @@
 /**
- * Host tools that the Orca agent is explicitly denied access to.
+ * Tool restrictions for the Orca agent.
  *
- * This is a security measure to ensure the Orca orchestrator agent can only
- * use `orca-invoke` to communicate with the planner. It should not have
- * direct access to file system, bash, or web tools.
+ * Orca should ONLY have access to `orca-invoke`. All other tools are denied
+ * using a wildcard pattern, then `orca-invoke` is explicitly allowed.
  *
- * These denies are applied AFTER user config merge, so they cannot be
- * overridden by user configuration.
+ * OpenCode evaluates tool rules with "last matching rule wins" semantics,
+ * so `*: false` followed by `orca-invoke: true` gives us whitelist behavior.
  */
-export const ORCA_HOST_TOOLS_DENY_LIST = {
-  read: false,
-  glob: false,
-  grep: false,
-  bash: false,
-  edit: false,
-  write: false,
-  webfetch: false,
-  task: false,
-  apply_patch: false,
+export const ORCA_TOOL_RESTRICTIONS = {
+  '*': false,
+  'orca-invoke': true,
 } as const
 
-export type OrcaHostToolsDenyList = typeof ORCA_HOST_TOOLS_DENY_LIST
+export type OrcaToolRestrictions = typeof ORCA_TOOL_RESTRICTIONS
