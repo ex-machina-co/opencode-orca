@@ -21,7 +21,8 @@
     "wt:list": "bash scripts/worktree/list.sh",
     "wt:rm": "bash scripts/worktree/rm.sh",
     "prepare": "husky",
-    "validate": "conc --names LINT,TSC,TEST,BUILD -c cyan,blue,green,magenta 'bun run build' 'bun test' 'bun lint' 'bun typecheck'"
+    "validate": "conc --names LINT,TSC,TEST,BUILD -c cyan,blue,green,magenta 'bun run build' 'bun test' 'bun lint' 'bun typecheck'",
+    "bump": "bun scripts/bump.ts"
   },
   "repository": {
     "type": "git",
