@@ -7,7 +7,7 @@
  */
 
 import { resolve } from 'node:path'
-import { generateSchema, writeSchema } from '../src/plugin/schema'
+import { writeSchema } from '../src/plugin/schema'
 
 const outputPath = resolve(process.cwd(), 'dist', 'orca.schema.json')
 
