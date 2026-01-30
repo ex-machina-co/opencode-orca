@@ -26,9 +26,9 @@ if (minor && major) {
 
 const log = (msg: string) => console.log(dry ? `[DRY RUN] ${msg}` : msg)
 
-type BumpType = 'patch' | 'minor' | 'major'
+export type BumpType = 'patch' | 'minor' | 'major'
 
-function bumpVersion(version: string, type: BumpType): string {
+export function bumpVersion(version: string, type: BumpType): string {
   const parts = version.split('.').map(Number)
   if (parts.length !== 3 || parts.some(Number.isNaN)) {
     throw new Error(`Invalid semver version: ${version}`)
@@ -55,9 +55,7 @@ log(`Bump ${bumpType}: ${current} => ${bumped}`)
 if (!dry) {
   pkg.version = bumped
   await Bun.write(PACKAGE_JSON, `${JSON.stringify(pkg, null, 2)}\n`)
-}
 
-if (!dry) {
   const commit = Bun.spawnSync(['git', 'commit', '-am', `chore: bump to ${bumped}`], { cwd: ROOT })
   if (commit.exitCode !== 0) {
     console.error('Commit failed:', commit.stderr.toString())
