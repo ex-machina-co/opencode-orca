@@ -5,18 +5,16 @@ import dedent from 'dedent'
 import { z } from 'zod'
 import { AgentId } from '../common/agent'
 
+const PermissionConfigValue = z.enum(['ask', 'allow', 'deny'])
+
 export const PermissionConfig = z
   .strictObject({
-    edit: z.enum(['ask', 'allow', 'deny']).optional(),
-    bash: z
-      .union([
-        z.enum(['ask', 'allow', 'deny']),
-        z.record(z.string(), z.enum(['ask', 'allow', 'deny'])),
-      ])
-      .optional(),
-    webfetch: z.enum(['ask', 'allow', 'deny']).optional(),
-    doom_loop: z.enum(['ask', 'allow', 'deny']).optional(),
-    external_directory: z.enum(['ask', 'allow', 'deny']).optional(),
+    edit: PermissionConfigValue.optional(),
+    bash: z.union([PermissionConfigValue, z.record(z.string(), PermissionConfigValue)]).optional(),
+    webfetch: PermissionConfigValue.optional(),
+    doom_loop: PermissionConfigValue.optional(),
+    external_directory: PermissionConfigValue.optional(),
+    task: PermissionConfigValue.optional(),
   })
   .describe('Permission settings for agent actions')
 export type PermissionConfig = z.infer<typeof PermissionConfig>
