@@ -17,26 +17,21 @@ const noopLogger: Logger = {
   error: () => {},
 }
 
-export interface LoggerClients {
-  client: OpencodeClient
-  clientNext: OpencodeClientV2
-}
-
-function createLogger(clients: LoggerClients): Logger {
-  const { client, clientNext } = clients
-
+function createLogger(client: OpencodeClientV2): Logger {
   const log = (
     level: 'debug' | 'info' | 'warn' | 'error',
     message: string,
     extra?: Record<string, unknown>,
   ): void => {
-    clientNext.app
+    client.app
       .log({
         service: SERVICE_NAME,
         level,
         message,
         extra,
       })
+      // Fire-and-forget: logging must never block agent execution.
+      // Errors are intentionally swallowed to prevent any interruption.
       .catch(() => {})
   }
 
@@ -46,7 +41,7 @@ function createLogger(clients: LoggerClients): Logger {
     warn: (message, extra) => log('warn', message, extra),
     error: (message, extra) => {
       log('error', message, extra)
-      clientNext.tui
+      client.tui
         .showToast({
           title: 'Orca Error',
           message,
@@ -60,8 +55,8 @@ function createLogger(clients: LoggerClients): Logger {
 
 let globalLogger: Logger = noopLogger
 
-export function initLogger(clients?: LoggerClients): Logger {
-  globalLogger = clients ? createLogger(clients) : noopLogger
+export function initLogger(client?: OpencodeClientV2): Logger {
+  globalLogger = client ? createLogger(client) : noopLogger
   return globalLogger
 }
 
