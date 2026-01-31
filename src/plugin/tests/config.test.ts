@@ -22,7 +22,7 @@ describe('config', () => {
           'git *': 'allow' as const,
           'rm *': 'deny' as const,
         },
-      }
+      } satisfies PermissionConfig
       expect(PermissionConfig.parse(config)).toEqual(config)
     })
 
