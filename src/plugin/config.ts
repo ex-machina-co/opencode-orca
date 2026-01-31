@@ -9,14 +9,22 @@ const PermissionConfigValue = z.enum(['ask', 'allow', 'deny'])
 
 export const PermissionConfig = z
   .strictObject({
+    read: PermissionConfigValue.optional(),
     edit: PermissionConfigValue.optional(),
+    glob: PermissionConfigValue.optional(),
+    grep: PermissionConfigValue.optional(),
+    list: PermissionConfigValue.optional(),
     bash: z.union([PermissionConfigValue, z.record(z.string(), PermissionConfigValue)]).optional(),
-    webfetch: PermissionConfigValue.optional(),
-    doom_loop: PermissionConfigValue.optional(),
-    external_directory: PermissionConfigValue.optional(),
     task: PermissionConfigValue.optional(),
+    skill: PermissionConfigValue.optional(),
+    lsp: PermissionConfigValue.optional(),
+    todoread: PermissionConfigValue.optional(),
+    todowrite: PermissionConfigValue.optional(),
+    webfetch: PermissionConfigValue.optional(),
+    external_directory: PermissionConfigValue.optional(),
+    doom_loop: PermissionConfigValue.optional(),
+    '*': PermissionConfigValue.optional(),
   })
-  .catchall(PermissionConfigValue.optional())
   .describe('Permission settings for agent actions')
 export type PermissionConfig = z.infer<typeof PermissionConfig>
 
