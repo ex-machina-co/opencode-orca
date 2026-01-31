@@ -7,7 +7,23 @@ export const orca: AgentConfig = {
   tools: {
     'orca-invoke': true,
   },
-  permission: { '*': 'deny' },
+  permission: {
+    read: 'deny',
+    bash: 'deny',
+    edit: 'deny',
+    skill: 'deny',
+    webfetch: 'deny',
+    todoread: 'deny',
+    todowrite: 'deny',
+    glob: 'deny',
+    grep: 'deny',
+    lsp: 'deny',
+    list: 'deny',
+    doom_loop: 'deny',
+    external_directory: 'deny',
+    task: 'deny',
+    'mcp*': 'allow',
+  },
   prompt: dedent`
     You are Orca, an orchestration agent. Route user requests through the system and relay results.
 

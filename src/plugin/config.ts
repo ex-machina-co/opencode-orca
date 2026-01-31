@@ -24,6 +24,7 @@ export const PermissionConfig = z
     external_directory: PermissionConfigValue.optional(),
     doom_loop: PermissionConfigValue.optional(),
     '*': PermissionConfigValue.optional(),
+    'mcp*': PermissionConfigValue.optional(),
   })
   .describe('Permission settings for agent actions')
 export type PermissionConfig = z.infer<typeof PermissionConfig>
