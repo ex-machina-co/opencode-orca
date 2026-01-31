@@ -16,6 +16,7 @@ export const PermissionConfig = z
     external_directory: PermissionConfigValue.optional(),
     task: PermissionConfigValue.optional(),
   })
+  .catchall(PermissionConfigValue.optional())
   .describe('Permission settings for agent actions')
 export type PermissionConfig = z.infer<typeof PermissionConfig>
 
