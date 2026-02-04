@@ -1,8 +1,4 @@
-import type {
-  OpencodeClient as OpencodeClientV2,
-  QuestionAnswer,
-  QuestionInfo,
-} from '@opencode-ai/sdk/v2'
+import type { OpencodeClient as OpencodeClientV2, QuestionAnswer, QuestionInfo } from '@opencode-ai/sdk/v2'
 import type { Logger } from '../../common/log'
 import { getLogger } from '../../common/log'
 import { QUESTION_TIMEOUT_MS } from '../../plugin/constants'

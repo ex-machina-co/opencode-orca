@@ -31,11 +31,7 @@ export async function readExecution(
   }
 }
 
-export async function writeExecution(
-  workingDir: string,
-  planId: string,
-  execution: PlanExecution,
-): Promise<void> {
+export async function writeExecution(workingDir: string, planId: string, execution: PlanExecution): Promise<void> {
   await ensureExecutionsDir(workingDir, planId)
   const path = getExecutionPath(workingDir, planId, execution.execution_id)
   await writeFile(path, JSON.stringify(execution, null, 2), 'utf-8')
@@ -45,19 +41,14 @@ export async function listExecutionIds(workingDir: string, planId: string): Prom
   const dir = getExecutionsDir(workingDir, planId)
   try {
     const entries = await readdir(dir, { withFileTypes: true })
-    return entries
-      .filter((e) => e.isFile() && e.name.endsWith('.json'))
-      .map((e) => e.name.replace('.json', ''))
+    return entries.filter((e) => e.isFile() && e.name.endsWith('.json')).map((e) => e.name.replace('.json', ''))
   } catch (err) {
     if (isNotFound(err)) return []
     throw err
   }
 }
 
-export async function getLatestExecutionId(
-  workingDir: string,
-  planId: string,
-): Promise<string | null> {
+export async function getLatestExecutionId(workingDir: string, planId: string): Promise<string | null> {
   const ids = await listExecutionIds(workingDir, planId)
   if (ids.length === 0) return null
 

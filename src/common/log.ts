@@ -18,11 +18,7 @@ const noopLogger: Logger = {
 }
 
 function createLogger(client: OpencodeClientV2): Logger {
-  const log = (
-    level: 'debug' | 'info' | 'warn' | 'error',
-    message: string,
-    extra?: Record<string, unknown>,
-  ): void => {
+  const log = (level: 'debug' | 'info' | 'warn' | 'error', message: string, extra?: Record<string, unknown>): void => {
     client.app
       .log({
         service: SERVICE_NAME,

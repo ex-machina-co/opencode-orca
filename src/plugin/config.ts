@@ -45,10 +45,7 @@ export const AgentConfig = z
       .optional(),
     maxSteps: z.number().int().positive().optional(),
     permission: PermissionConfig.optional(),
-    supervised: z
-      .boolean()
-      .optional()
-      .describe('Whether this agent requires approval before dispatch'),
+    supervised: z.boolean().optional().describe('Whether this agent requires approval before dispatch'),
     accepts: z
       .array(z.enum(['question', 'task']))
       .optional()
@@ -72,25 +69,13 @@ export type AgentConfig = z.infer<typeof AgentConfig>
 
 export const OrcaSettings = z
   .strictObject({
-    defaultSupervised: z
-      .boolean()
-      .optional()
-      .describe('Whether agents require approval by default'),
+    defaultSupervised: z.boolean().optional().describe('Whether agents require approval by default'),
     defaultModel: z.string().optional().describe("Default model for agents that don't specify one"),
     validation: z
       .strictObject({
-        maxRetries: z
-          .number()
-          .int()
-          .min(0)
-          .max(10)
-          .optional()
-          .describe('Max retries for validation failures'),
+        maxRetries: z.number().int().min(0).max(10).optional().describe('Max retries for validation failures'),
 
-        wrapPlainText: z
-          .boolean()
-          .optional()
-          .describe('Wrap plain text responses in result messages'),
+        wrapPlainText: z.boolean().optional().describe('Wrap plain text responses in result messages'),
       })
       .optional()
       .describe('Validation settings'),
@@ -132,9 +117,7 @@ export const OrcaUserConfig = z
   .strictObject({
     $schema: z.string().optional().describe('JSON Schema reference for editor support'),
     orca: OrcaAgentConfig.optional().describe('Configuration overrides for the orca orchestrator'),
-    planner: PlannerAgentConfig.optional().describe(
-      'Configuration overrides for the planner agent',
-    ),
+    planner: PlannerAgentConfig.optional().describe('Configuration overrides for the planner agent'),
     agents: z
       .record(AgentId, AgentConfig)
       .default({})
@@ -177,17 +160,13 @@ export async function loadUserConfig(directory: string): Promise<OrcaUserConfig 
     const content = await readFile(configPath, 'utf-8')
     raw = JSON.parse(content)
   } catch (err) {
-    throw new Error(
-      `Failed to parse ${USER_CONFIG_PATH}: ${err instanceof Error ? err.message : 'Invalid JSON'}`,
-    )
+    throw new Error(`Failed to parse ${USER_CONFIG_PATH}: ${err instanceof Error ? err.message : 'Invalid JSON'}`)
   }
 
   // Validate with Zod
   const result = OrcaUserConfig.safeParse(raw)
   if (!result.success) {
-    const issues = result.error.issues
-      .map((i) => `  - ${i.path.join('.')}: ${i.message}`)
-      .join('\n')
+    const issues = result.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n')
     throw new Error(`Invalid ${USER_CONFIG_PATH}:\n${issues}`)
   }
 

@@ -54,15 +54,16 @@ export const createOrcaPlugin = (): Plugin => {
     let hasRunUpdateNotifier = false
 
     // Tool metadata for permission management (name -> allowed agent types)
-    const toolPermissions: Array<{ name: string; agents: readonly AgentType[] }> =
-      Object.values(Tools)
+    const toolPermissions: Array<{ name: string; agents: readonly AgentType[] }> = Object.values(Tools)
 
     return {
       tool: {
-        // Planner tools - clarification
+        // Ask tools
         [Tools.AskUser.name]: Tools.AskUser.create(orca.hitl),
         [Tools.AskAgent.name]: Tools.AskAgent.create(orca.dispatch),
-        // Planner tools - plan building
+        // Planner tools
+        [Tools.PlanList.name]: Tools.PlanList.create(orca.planner),
+        [Tools.PlanDescribe.name]: Tools.PlanDescribe.create(orca.planner),
         [Tools.PlanCreateDraft.name]: Tools.PlanCreateDraft.create(orca.planner),
         [Tools.PlanSetAssumptions.name]: Tools.PlanSetAssumptions.create(orca.planner),
         [Tools.PlanSetRisks.name]: Tools.PlanSetRisks.create(orca.planner),
@@ -71,7 +72,13 @@ export const createOrcaPlugin = (): Plugin => {
         [Tools.PlanUpdateStep.name]: Tools.PlanUpdateStep.create(orca.planner),
         [Tools.PlanRemoveStep.name]: Tools.PlanRemoveStep.create(orca.planner),
         [Tools.PlanSubmit.name]: Tools.PlanSubmit.create(orca.planner),
-        // Orca tools
+        // Execution tools
+        [Tools.ExecutionList.name]: Tools.ExecutionList.create({ directory, planningService: orca.planner }),
+        [Tools.ExecutionDescribe.name]: Tools.ExecutionDescribe.create({
+          directory: directory,
+          planningService: orca.planner,
+        }),
+        // Orca
         [Tools.OrcaInvoke.name]: Tools.OrcaInvoke.create(orca),
       },
 
@@ -87,8 +94,7 @@ export const createOrcaPlugin = (): Plugin => {
         const { defaults, byAgentType } = buildToolPermissions(toolPermissions)
 
         // Deny by default (user overrides take precedence)
-        const existingPermission =
-          typeof config.permission === 'object' && config.permission ? config.permission : {}
+        const existingPermission = typeof config.permission === 'object' && config.permission ? config.permission : {}
         config.permission = { ...defaults, ...existingPermission }
 
         // Allow per agent type (user overrides take precedence)
@@ -97,9 +103,7 @@ export const createOrcaPlugin = (): Plugin => {
           const result = AgentType.safeParse(agentId)
           const agentType = result.success ? result.data : 'specialist'
           const existingAgentPermission =
-            typeof agentConfig.permission === 'object' && agentConfig.permission
-              ? agentConfig.permission
-              : {}
+            typeof agentConfig.permission === 'object' && agentConfig.permission ? agentConfig.permission : {}
           agentConfig.permission = { ...byAgentType[agentType], ...existingAgentPermission }
         }
 

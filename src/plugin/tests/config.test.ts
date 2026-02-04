@@ -4,8 +4,7 @@ import { AgentConfig, OrcaSettings, OrcaUserConfig, PermissionConfig } from '../
 
 describe('config', () => {
   describe('PermissionConfig', () => {
-    const withDefaults = (config: Partial<PermissionConfig>) =>
-      merge(PermissionConfig.parse({}), config)
+    const withDefaults = (config: Partial<PermissionConfig>) => merge(PermissionConfig.parse({}), config)
 
     test('accepts valid permission config', () => {
       const config = {
@@ -214,8 +213,7 @@ describe('config', () => {
   })
 
   describe('OrcaUserConfig', () => {
-    const withDefaults = (config: Partial<OrcaUserConfig>) =>
-      merge(OrcaUserConfig.parse({}), config)
+    const withDefaults = (config: Partial<OrcaUserConfig>) => merge(OrcaUserConfig.parse({}), config)
 
     test('accepts minimal config (empty object)', () => {
       expect(OrcaUserConfig.parse({})).toMatchInlineSnapshot(`

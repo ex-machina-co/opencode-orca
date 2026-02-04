@@ -298,11 +298,7 @@ describe('DispatchService', () => {
         .mockResolvedValueOnce(makePromptResponse([makeTextPart(invalidJson)]))
         .mockResolvedValueOnce(makePromptResponse([makeTextPart(validJson)]))
 
-      await service.dispatchTask(
-        ctx,
-        { type: 'task', agent: 'coder', description: 'Do something' },
-        { maxRetries: 1 },
-      )
+      await service.dispatchTask(ctx, { type: 'task', agent: 'coder', description: 'Do something' }, { maxRetries: 1 })
 
       // Second call is the correction request - should include agent
       const correctionCall = (mockClient.session.prompt as ReturnType<typeof mock>).mock.calls[1][0]
@@ -316,11 +312,7 @@ describe('DispatchService', () => {
       )
 
       const error = await service
-        .dispatchTask(
-          ctx,
-          { type: 'task', agent: 'coder', description: 'Do something' },
-          { maxRetries: 1 },
-        )
+        .dispatchTask(ctx, { type: 'task', agent: 'coder', description: 'Do something' }, { maxRetries: 1 })
         .catch((e) => e)
 
       expect(error).toBeInstanceOf(ParseError)
@@ -335,11 +327,7 @@ describe('DispatchService', () => {
       )
 
       const error = await service
-        .dispatchTask(
-          ctx,
-          { type: 'task', agent: 'coder', description: 'Do something' },
-          { maxRetries: 1 },
-        )
+        .dispatchTask(ctx, { type: 'task', agent: 'coder', description: 'Do something' }, { maxRetries: 1 })
         .catch((e) => e)
 
       expect(error).toBeInstanceOf(ParseError)
@@ -365,9 +353,7 @@ describe('DispatchService', () => {
 
   describe('error handling', () => {
     test('throws when SDK returns error instead of data', async () => {
-      ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(
-        makeErrorResponse(),
-      )
+      ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(makeErrorResponse())
 
       const error = await service
         .dispatchTask(ctx, { type: 'task', agent: 'coder', description: 'Do something' })
@@ -377,9 +363,7 @@ describe('DispatchService', () => {
     })
 
     test('throws when response has no text parts', async () => {
-      ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(
-        makePromptResponse([]),
-      )
+      ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(makePromptResponse([]))
 
       const error = await service
         .dispatchTask(ctx, { type: 'task', agent: 'coder', description: 'Do something' })

@@ -59,9 +59,7 @@ describe('DEFAULT_AGENTS', () => {
   })
 
   test('all subagents have specialist: true', () => {
-    const subagents = Object.entries(DEFAULT_AGENTS).filter(
-      ([id]) => id !== 'orca' && id !== 'planner',
-    )
+    const subagents = Object.entries(DEFAULT_AGENTS).filter(([id]) => id !== 'orca' && id !== 'planner')
     for (const [id, config] of subagents) {
       expect(config.specialist).toBe(true)
     }

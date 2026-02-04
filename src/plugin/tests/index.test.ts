@@ -59,15 +59,7 @@ describe('createOrcaPlugin', () => {
       }
 
       const agents = config.agent ?? {}
-      const specialists = [
-        'planner',
-        'coder',
-        'tester',
-        'reviewer',
-        'researcher',
-        'document-writer',
-        'architect',
-      ]
+      const specialists = ['planner', 'coder', 'tester', 'reviewer', 'researcher', 'document-writer', 'architect']
       for (const specialist of specialists) {
         expect(agents[specialist]?.mode).toBe('subagent')
       }

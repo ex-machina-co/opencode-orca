@@ -1,10 +1,5 @@
 import type { ToolContext } from '@opencode-ai/plugin'
-import type {
-  Event,
-  OpencodeClient as OpencodeClientV2,
-  Session,
-  ToolPart,
-} from '@opencode-ai/sdk/v2'
+import type { Event, OpencodeClient as OpencodeClientV2, Session, ToolPart } from '@opencode-ai/sdk/v2'
 import type { ZodError, ZodType, z } from 'zod'
 import * as Logging from '../../common/log'
 import { PlannerResponse } from '../planning/schemas'
@@ -140,18 +135,14 @@ export class DispatchService {
     return lines.join('\n')
   }
 
-  private async send<TResult extends z.ZodType>(
-    options: SendOptions<TResult>,
-  ): Promise<SendResult<z.infer<TResult>>> {
+  private async send<TResult extends z.ZodType>(options: SendOptions<TResult>): Promise<SendResult<z.infer<TResult>>> {
     const { agent, message, resultSchema, maxRetries = 2, onToolPartUpdated } = options
 
     this.logger.info('Dispatching to agent', { agent, sessionId: options.targetSessionId })
 
     const session = await (async (): Promise<Session> => {
       if (options.targetSessionId) {
-        const found = await this.client.session
-          .get({ sessionID: options.targetSessionId })
-          .catch(() => {})
+        const found = await this.client.session.get({ sessionID: options.targetSessionId }).catch(() => {})
         if (found?.data) return found.data
       }
 
@@ -186,13 +177,7 @@ export class DispatchService {
         parts: [{ type: 'text', text: message }],
       })
 
-      const result = await this.parseWithRetries(
-        response,
-        resultSchema,
-        session.id,
-        agent,
-        maxRetries,
-      )
+      const result = await this.parseWithRetries(response, resultSchema, session.id, agent, maxRetries)
 
       return { result, sessionId: session.id }
     } finally {
@@ -294,11 +279,7 @@ export class DispatchService {
           attempt: attempt + 1,
         })
 
-        currentContent = await this.requestCorrection(
-          sessionId,
-          agent,
-          Parser.formatJsonErrorPrompt(currentContent),
-        )
+        currentContent = await this.requestCorrection(sessionId, agent, Parser.formatJsonErrorPrompt(currentContent))
         continue
       }
 
@@ -325,22 +306,14 @@ export class DispatchService {
         issues: result.error.issues,
       })
 
-      currentContent = await this.requestCorrection(
-        sessionId,
-        agent,
-        Parser.formatCorrectionPrompt(result.error),
-      )
+      currentContent = await this.requestCorrection(sessionId, agent, Parser.formatCorrectionPrompt(result.error))
     }
 
     // TypeScript requires this, but we'll never reach here
     throw new Parser.ParseError('Unexpected parse error', currentContent, lastError)
   }
 
-  private async requestCorrection(
-    sessionId: string,
-    agent: string,
-    correctionPrompt: string,
-  ): Promise<string> {
+  private async requestCorrection(sessionId: string, agent: string, correctionPrompt: string): Promise<string> {
     const response = await this.client.session.prompt({
       sessionID: sessionId,
       directory: this.directory,
