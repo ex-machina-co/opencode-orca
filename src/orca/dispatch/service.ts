@@ -1,10 +1,17 @@
 import type { ToolContext } from '@opencode-ai/plugin'
-import type { Event, OpencodeClient as OpencodeClientV2, Session, ToolPart } from '@opencode-ai/sdk/v2'
+import type {
+  Event,
+  OpencodeClient as OpencodeClientV2,
+  PermissionRuleset,
+  Session,
+  ToolPart,
+} from '@opencode-ai/sdk/v2'
 import type { ZodError, ZodType, z } from 'zod'
 import * as Logging from '../../common/log'
 import { PlannerResponse } from '../planning/schemas'
 import type { InvokeInput } from '../tools/orca-invoke'
 import * as Parser from './parser'
+import { READ_ONLY_PERMISSIONS } from './permissions'
 import * as Dispatch from './schemas'
 
 export { ParseError } from './parser'
@@ -23,6 +30,7 @@ export interface SendOptions<TResult extends z.ZodType> {
   targetSessionId?: string
   sessionTitle?: string
   maxRetries?: number
+  permission?: PermissionRuleset
   onSessionCreated?: (sessionId: string) => void
   onToolPartUpdated?: (part: ToolPart) => void | Promise<void>
 }
@@ -101,6 +109,7 @@ export class DispatchService {
       targetSessionId: question.session_id,
       parentSessionId: ctx.sessionID,
       sessionTitle: options?.sessionTitle ?? `Question to ${question.agent}`,
+      permission: READ_ONLY_PERMISSIONS,
       ...options,
     })
   }
@@ -150,6 +159,7 @@ export class DispatchService {
         parentID: options.parentSessionId,
         directory: this.directory,
         title: options.sessionTitle ?? `Dispatch to ${agent}`,
+        permission: options.permission,
       })
 
       if (!response.data) {

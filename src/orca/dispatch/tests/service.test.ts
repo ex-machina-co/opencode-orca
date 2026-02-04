@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
 import type { ToolContext } from '@opencode-ai/plugin'
 import type { OpencodeClient, Part, TextPart } from '@opencode-ai/sdk/v2'
+import { READ_ONLY_PERMISSIONS } from '../permissions'
 import { DispatchService, ParseError } from '../service'
 
 const makeTextPart = (text: string): TextPart => ({
@@ -200,6 +201,23 @@ describe('DispatchService', () => {
       expect(promptCall.parts[0].text).toContain('### Suggested Approach')
       expect(promptCall.parts[0].text).toContain('Start with the tests')
     })
+
+    test('does NOT pass permission parameter when creating session', async () => {
+      const validJson = '{"type": "success", "summary": "Done"}'
+      ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(
+        makePromptResponse([makeTextPart(validJson)]),
+      )
+
+      await service.dispatchTask(ctx, {
+        type: 'task',
+        agent: 'coder',
+        description: 'Do something',
+      })
+
+      expect(mockClient.session.create).toHaveBeenCalledTimes(1)
+      const createCall = (mockClient.session.create as ReturnType<typeof mock>).mock.calls[0][0]
+      expect(createCall.permission).toBeUndefined()
+    })
   })
 
   describe('dispatchQuestion', () => {
@@ -253,6 +271,43 @@ describe('DispatchService', () => {
 
       expect(mockClient.session.create).not.toHaveBeenCalled()
       expect(sessionId).toBe('session_existing123')
+    })
+
+    test('passes READ_ONLY_PERMISSIONS when creating new session', async () => {
+      const validJson = '{"type": "answer", "content": "The answer"}'
+      ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(
+        makePromptResponse([makeTextPart(validJson)]),
+      )
+
+      await service.dispatchQuestion(ctx, {
+        type: 'agent_question',
+        agent: 'researcher',
+        question: 'What is the answer?',
+      })
+
+      expect(mockClient.session.create).toHaveBeenCalledTimes(1)
+      const createCall = (mockClient.session.create as ReturnType<typeof mock>).mock.calls[0][0]
+      expect(createCall.permission).toBe(READ_ONLY_PERMISSIONS)
+    })
+
+    test('skips session.create when reusing existing session (permissions already applied)', async () => {
+      const validJson = '{"type": "answer", "content": "Follow-up answer"}'
+      ;(mockClient.session.get as ReturnType<typeof mock>).mockResolvedValueOnce({
+        data: { id: 'session_existing_readonly' },
+      })
+      ;(mockClient.session.prompt as ReturnType<typeof mock>).mockResolvedValueOnce(
+        makePromptResponse([makeTextPart(validJson)]),
+      )
+
+      await service.dispatchQuestion(ctx, {
+        type: 'agent_question',
+        agent: 'researcher',
+        question: 'Follow-up question',
+        session_id: 'session_existing_readonly',
+      })
+
+      expect(mockClient.session.get).toHaveBeenCalledWith({ sessionID: 'session_existing_readonly' })
+      expect(mockClient.session.create).not.toHaveBeenCalled()
     })
   })
 

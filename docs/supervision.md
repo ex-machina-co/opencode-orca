@@ -188,29 +188,19 @@ The **emitter** (agent or plugin) provides all fields. The HITL system passes th
 
 ## Read-Only Sessions
 
-When agents use `orca_ask_specialist` to ask questions mid-task, the target agent runs in a **read-only session**:
+When agents use `orca_ask_agent` to ask questions mid-task, the target agent runs in a **read-only session**. The `DispatchService.dispatchQuestion()` method applies `READ_ONLY_PERMISSIONS` (defined in `src/orca/dispatch/permissions.ts`) to enforce restrictions at runtime.
 
-- File write operations are denied
-- Bash commands default to `ask` (user approval required)
-- Known-safe commands (ls, cat, git status, etc.) are auto-allowed
-- Dispatch tools are blocked (prevents recursion)
+**Tool permissions:**
+
+| Permission | Action | Notes |
+|------------|--------|-------|
+| `edit` | deny | File modifications blocked |
+| `task` | deny | Prevents dispatch recursion |
+| `read`, `glob`, `grep`, `list` | allow | All read operations permitted |
+| `bash` (safe commands) | allow | `ls*`, `cat*`, `git status*`, `git log*`, `git diff*`, `git show*` |
+| `bash` (other) | ask | User approval required |
 
 This allows safe research without risk of side effects.
-
-```typescript
-// Permissions applied to read-only sessions
-const READ_ONLY_PERMISSIONS = [
-  { permission: 'write', pattern: '*', action: 'deny' },
-  { permission: 'edit', pattern: '*', action: 'deny' },
-  { permission: 'bash', pattern: '*', action: 'ask' },
-  { permission: 'bash', pattern: 'ls*', action: 'allow' },
-  { permission: 'bash', pattern: 'git status*', action: 'allow' },
-  // ... other safe read commands
-  { permission: 'read', pattern: '*', action: 'allow' },
-  { permission: 'glob', pattern: '*', action: 'allow' },
-  { permission: 'grep', pattern: '*', action: 'allow' },
-]
-```
 
 ## Future: Automated Supervision
 
