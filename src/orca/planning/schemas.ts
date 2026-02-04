@@ -127,6 +127,6 @@ export const PlanSummary = z.strictObject({
   stage: PlanStage,
   created_at: z.string(),
   step_count: z.number(),
-  has_executions: z.boolean(),
+  execution_count: z.number(),
 })
 export type PlanSummary = z.infer<typeof PlanSummary>

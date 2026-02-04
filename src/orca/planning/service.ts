@@ -1,6 +1,6 @@
 import * as Identifier from '../../common/identifier'
 import { DraftPlan, type PlanStep, type PlanSummary, ProposalPlan, StoredPlan } from './schemas'
-import { deletePlan, hasExecutions, listPlanIds, readPlan, writePlan } from './storage'
+import { countExecutions, deletePlan, listPlanIds, readPlan, writePlan } from './storage'
 
 export interface PlanContent {
   goal: string
@@ -253,7 +253,7 @@ export class PlanningService {
         stage: plan.stage,
         created_at: plan.created_at,
         step_count: plan.steps.length,
-        has_executions: await hasExecutions(this.workingDir, planId),
+        execution_count: await countExecutions(this.workingDir, planId),
       })
     }
 

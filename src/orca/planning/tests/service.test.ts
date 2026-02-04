@@ -141,12 +141,12 @@ describe('PlanningService', () => {
       expect(plans[1].goal).toBe('First')
     })
 
-    test('includes has_executions field', async () => {
+    test('includes execution_count field', async () => {
       const plan = await service.createProposal('ses_1', validContent)
       const plans = await service.listPlans()
 
       expect(plans[0].plan_id).toBe(plan.plan_id)
-      expect(plans[0].has_executions).toBe(false)
+      expect(plans[0].execution_count).toBe(0)
     })
   })
 

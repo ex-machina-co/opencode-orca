@@ -59,7 +59,13 @@ export async function listPlanIds(workingDir: string): Promise<string[]> {
   }
 }
 
-export async function hasExecutions(workingDir: string, planId: string): Promise<boolean> {
-  const execDir = getExecutionsDir(workingDir, planId)
-  return exists(execDir)
+export async function countExecutions(workingDir: string, planId: string): Promise<number> {
+  const dir = getExecutionsDir(workingDir, planId)
+  try {
+    const entries = await readdir(dir, { withFileTypes: true })
+    return entries.filter((e) => e.isFile() && e.name.endsWith('.json')).length
+  } catch (err) {
+    if (isNotFound(err)) return 0
+    throw err
+  }
 }

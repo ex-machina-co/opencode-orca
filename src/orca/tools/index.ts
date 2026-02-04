@@ -1,8 +1,12 @@
 import { AskAgent } from './ask-agent'
 import { AskUser } from './ask-user'
+import { ExecutionDescribe } from './execution-describe'
+import { ExecutionList } from './execution-list'
 import { OrcaInvoke } from './orca-invoke'
 import { PlanAddStep } from './plan-add-step'
 import { PlanCreateDraft } from './plan-create-draft'
+import { PlanDescribe } from './plan-describe'
+import { PlanList } from './plan-list'
 import { PlanRemoveStep } from './plan-remove-step'
 import { PlanSetAssumptions } from './plan-set-assumptions'
 import { PlanSetRisks } from './plan-set-risks'
@@ -21,5 +25,9 @@ export const Tools = {
   PlanUpdateStep,
   PlanRemoveStep,
   PlanSubmit,
+  PlanList,
+  PlanDescribe,
+  ExecutionList,
+  ExecutionDescribe,
   OrcaInvoke,
 }

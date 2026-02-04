@@ -71,6 +71,17 @@ export const createOrcaPlugin = (): Plugin => {
         [Tools.PlanUpdateStep.name]: Tools.PlanUpdateStep.create(orca.planner),
         [Tools.PlanRemoveStep.name]: Tools.PlanRemoveStep.create(orca.planner),
         [Tools.PlanSubmit.name]: Tools.PlanSubmit.create(orca.planner),
+        // Discovery tools - available to all agents
+        [Tools.PlanList.name]: Tools.PlanList.create(orca.planner),
+        [Tools.PlanDescribe.name]: Tools.PlanDescribe.create(orca.planner),
+        [Tools.ExecutionList.name]: Tools.ExecutionList.create({
+          workingDir: directory,
+          planningService: orca.planner,
+        }),
+        [Tools.ExecutionDescribe.name]: Tools.ExecutionDescribe.create({
+          workingDir: directory,
+          planningService: orca.planner,
+        }),
         // Orca tools
         [Tools.OrcaInvoke.name]: Tools.OrcaInvoke.create(orca),
       },
