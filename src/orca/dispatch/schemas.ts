@@ -60,9 +60,7 @@ export const Task = {
     agent: AgentId,
     description: z.string().min(1).describe('What this step should accomplish'),
     command: z.string().optional().describe('Suggested approach'),
-    session_id: Identifier.schema('session')
-      .optional()
-      .describe('Continue existing conversation with target agent'),
+    session_id: Identifier.schema('session').optional().describe('Continue existing conversation with target agent'),
   }),
   result: TaskResult,
 }
@@ -82,20 +80,14 @@ export const AgentQuestion = {
     type: z.literal('agent_question'),
     agent: AgentId.describe('Target agent to ask'),
     question: z.string().min(1).describe('The question to ask'),
-    session_id: Identifier.schema('session')
-      .optional()
-      .describe('Continue existing conversation with target agent'),
+    session_id: Identifier.schema('session').optional().describe('Continue existing conversation with target agent'),
   }),
   result: AgentAnswer,
 }
 export type AgentQuestion = z.infer<typeof AgentQuestion.schema>
 
 // Union of all dispatch types
-export const schema = z.discriminatedUnion('type', [
-  Task.schema,
-  UserQuestion.schema,
-  AgentQuestion.schema,
-])
+export const schema = z.discriminatedUnion('type', [Task.schema, UserQuestion.schema, AgentQuestion.schema])
 export type Any = z.infer<typeof schema>
 
 // Type helper for getting result type from dispatch type

@@ -14,16 +14,12 @@ export type ExecutionDescribeInput = z.infer<typeof ExecutionDescribeInput>
 export const ExecutionDescribe = defineTool({
   name: 'execution-describe',
   agents: ['orca', 'planner', 'specialist'],
-  create: (deps: { workingDir: string; planningService: PlanningService }) =>
+  create: (deps: { directory: string; planningService: PlanningService }) =>
     tool({
       description: 'Get full details of a specific execution including task status',
       args: ExecutionDescribeInput.shape,
       async execute(args, ctx) {
-        const executionService = new ExecutionService(
-          deps.workingDir,
-          args.plan_id,
-          deps.planningService,
-        )
+        const executionService = new ExecutionService(deps.directory, args.plan_id, deps.planningService)
         const execution = await executionService.getExecution(args.execution_id)
         if (!execution) {
           return {

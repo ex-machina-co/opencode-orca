@@ -52,10 +52,7 @@ export function stripMarkdownCodeFences(content: string): string {
 /**
  * Attempt to parse content as JSON and validate against a schema.
  */
-export function tryParseAndValidate<T extends ZodType>(
-  content: string,
-  schema: T,
-): ParseAttemptResult<z.infer<T>> {
+export function tryParseAndValidate<T extends ZodType>(content: string, schema: T): ParseAttemptResult<z.infer<T>> {
   const jsonContent = stripMarkdownCodeFences(content)
 
   let parsed: unknown

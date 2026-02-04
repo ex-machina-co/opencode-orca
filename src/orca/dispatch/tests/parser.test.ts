@@ -55,11 +55,7 @@ describe('extractTextContent', () => {
   })
 
   test('ignores non-text parts', () => {
-    const result = extractTextContent([
-      makeTextPart('Hello'),
-      makeToolPart(),
-      makeTextPart('World'),
-    ])
+    const result = extractTextContent([makeTextPart('Hello'), makeToolPart(), makeTextPart('World')])
     expect(result).toBe('Hello\nWorld')
   })
 })

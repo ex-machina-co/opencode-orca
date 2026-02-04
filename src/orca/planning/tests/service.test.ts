@@ -72,9 +72,7 @@ describe('PlanningService', () => {
       const plan = await service.createProposal('ses_123', validContent)
       await service.approve(plan.plan_id)
 
-      expect(service.revise(plan.plan_id, validContent)).rejects.toThrow(
-        'Cannot revise plan in stage: approved',
-      )
+      expect(service.revise(plan.plan_id, validContent)).rejects.toThrow('Cannot revise plan in stage: approved')
     })
   })
 
@@ -90,9 +88,7 @@ describe('PlanningService', () => {
       const plan = await service.createProposal('ses_123', validContent)
       await service.reject(plan.plan_id)
 
-      expect(service.approve(plan.plan_id)).rejects.toThrow(
-        'Cannot approve plan in stage: rejected',
-      )
+      expect(service.approve(plan.plan_id)).rejects.toThrow('Cannot approve plan in stage: rejected')
     })
   })
 

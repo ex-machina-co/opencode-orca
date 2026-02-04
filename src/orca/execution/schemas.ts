@@ -29,10 +29,7 @@ export const TaskContext = z.strictObject({
   step_index: z.number().int().nonnegative().describe('Current step (0-based)'),
   total_steps: z.number().int().positive().describe('Total steps in plan'),
   relevant_files: z.array(z.string()).describe('Files relevant to this plan'),
-  previous_tasks: z
-    .array(PreviousTaskSummary)
-    .default([])
-    .describe('Context from previously completed tasks'),
+  previous_tasks: z.array(PreviousTaskSummary).default([]).describe('Context from previously completed tasks'),
   previous_attempts: z
     .array(PreviousAttempt)
     .default([])
@@ -47,10 +44,7 @@ export type TaskContext = z.infer<typeof TaskContext>
 export const TaskOutput = z.strictObject({
   summary: z.string().min(1).describe('Brief description of what was accomplished'),
   artifacts: z.array(z.string()).describe('Files created or modified'),
-  key_findings: z
-    .array(z.string())
-    .optional()
-    .describe('Important discoveries (for research tasks)'),
+  key_findings: z.array(z.string()).optional().describe('Important discoveries (for research tasks)'),
   verification: z.array(z.string()).optional().describe('Verification steps performed'),
   raw_response: z.string().describe('Full response text for debugging'),
 })
@@ -105,9 +99,7 @@ const taskRecordOptions = [PendingTask, RunningTask, CompletedTask, FailedTask] 
 export const TaskRecord = z.discriminatedUnion('status', taskRecordOptions)
 export type TaskRecord = z.infer<typeof TaskRecord>
 
-export const TaskStatus = z.enum(
-  taskRecordOptions.map((t) => t.shape.status.value) as [string, ...string[]],
-)
+export const TaskStatus = z.enum(taskRecordOptions.map((t) => t.shape.status.value) as [string, ...string[]])
 export type TaskStatus = z.infer<typeof TaskStatus>
 
 // ============================================================================
@@ -159,9 +151,7 @@ const executionStatusOptions = [
 export const ExecutionStatus = z.discriminatedUnion('stage', executionStatusOptions)
 export type ExecutionStatus = z.infer<typeof ExecutionStatus>
 
-export const ExecutionStage = z.enum(
-  executionStatusOptions.map((s) => s.shape.stage.value) as [string, ...string[]],
-)
+export const ExecutionStage = z.enum(executionStatusOptions.map((s) => s.shape.stage.value) as [string, ...string[]])
 export type ExecutionStage = z.infer<typeof ExecutionStage>
 
 // ============================================================================

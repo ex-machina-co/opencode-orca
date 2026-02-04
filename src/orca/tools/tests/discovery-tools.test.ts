@@ -116,7 +116,7 @@ describe('Discovery Tools', () => {
       const plan = await planningService.createProposal('ses_1', validContent)
       await planningService.approve(plan.plan_id)
 
-      const tool = ExecutionList.create({ workingDir: tempDir, planningService })
+      const tool = ExecutionList.create({ directory: tempDir, planningService })
       const result = await tool.execute({ plan_id: plan.plan_id }, mockCtx)
 
       expect(result).toMatchObject({
@@ -134,7 +134,7 @@ describe('Discovery Tools', () => {
       await execService.create()
       await execService.create()
 
-      const tool = ExecutionList.create({ workingDir: tempDir, planningService })
+      const tool = ExecutionList.create({ directory: tempDir, planningService })
       const result = await tool.execute({ plan_id: plan.plan_id }, mockCtx)
 
       expect(result).toMatchObject({
@@ -164,11 +164,8 @@ describe('Discovery Tools', () => {
       const execService = new ExecutionService(tempDir, plan.plan_id, planningService)
       const execution = await execService.create()
 
-      const tool = ExecutionDescribe.create({ workingDir: tempDir, planningService })
-      const result = await tool.execute(
-        { plan_id: plan.plan_id, execution_id: execution.execution_id },
-        mockCtx,
-      )
+      const tool = ExecutionDescribe.create({ directory: tempDir, planningService })
+      const result = await tool.execute({ plan_id: plan.plan_id, execution_id: execution.execution_id }, mockCtx)
 
       expect((result as { title: string }).title).toContain('pending')
       const output = JSON.parse((result as { output: string }).output)
@@ -184,11 +181,8 @@ describe('Discovery Tools', () => {
       const plan = await planningService.createProposal('ses_1', validContent)
       await planningService.approve(plan.plan_id)
 
-      const tool = ExecutionDescribe.create({ workingDir: tempDir, planningService })
-      const result = await tool.execute(
-        { plan_id: plan.plan_id, execution_id: 'exec_nonexistent123' },
-        mockCtx,
-      )
+      const tool = ExecutionDescribe.create({ directory: tempDir, planningService })
+      const result = await tool.execute({ plan_id: plan.plan_id, execution_id: 'exec_nonexistent123' }, mockCtx)
 
       expect((result as { title: string }).title).toBe('Execution not found')
       const output = JSON.parse((result as { output: string }).output)

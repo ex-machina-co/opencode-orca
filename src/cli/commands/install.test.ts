@@ -19,10 +19,7 @@ describe('install command', () => {
   })
 
   test('adds plugin to existing opencode.jsonc', async () => {
-    writeFileSync(
-      join(TEST_DIR, 'opencode.jsonc'),
-      JSON.stringify({ someConfig: 'value' }, null, 2),
-    )
+    writeFileSync(join(TEST_DIR, 'opencode.jsonc'), JSON.stringify({ someConfig: 'value' }, null, 2))
 
     await install()
 
@@ -33,10 +30,7 @@ describe('install command', () => {
   })
 
   test('preserves existing plugins', async () => {
-    writeFileSync(
-      join(TEST_DIR, 'opencode.jsonc'),
-      JSON.stringify({ plugin: ['other-plugin'] }, null, 2),
-    )
+    writeFileSync(join(TEST_DIR, 'opencode.jsonc'), JSON.stringify({ plugin: ['other-plugin'] }, null, 2))
 
     await install()
 
@@ -47,10 +41,7 @@ describe('install command', () => {
   })
 
   test('does not duplicate plugin if already installed', async () => {
-    writeFileSync(
-      join(TEST_DIR, 'opencode.jsonc'),
-      JSON.stringify({ plugin: ['@ex-machina/opencode-orca'] }, null, 2),
-    )
+    writeFileSync(join(TEST_DIR, 'opencode.jsonc'), JSON.stringify({ plugin: ['@ex-machina/opencode-orca'] }, null, 2))
 
     await install()
 

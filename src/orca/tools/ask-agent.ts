@@ -16,8 +16,7 @@ export const AskAgent = defineTool({
   agents: ['planner'],
   create: (dispatchService: DispatchService) =>
     tool({
-      description:
-        'Ask a specialist agent a technical question about the codebase or implementation.',
+      description: 'Ask a specialist agent a technical question about the codebase or implementation.',
       args: AskAgentInput.shape,
       async execute(args, ctx) {
         const { result, sessionId } = await dispatchService.dispatchQuestion(ctx, {

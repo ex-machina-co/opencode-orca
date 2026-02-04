@@ -13,9 +13,7 @@ import { defineTool } from './common'
 
 export const InvokeInput = z.strictObject({
   message: z.string().min(1).describe('User message to send to planner'),
-  session_id: Identifier.schema('session')
-    .optional()
-    .describe('Continue existing planner conversation'),
+  session_id: Identifier.schema('session').optional().describe('Continue existing planner conversation'),
 })
 export type InvokeInput = z.infer<typeof InvokeInput>
 
@@ -125,9 +123,7 @@ export const OrcaInvoke = defineTool({
           messageID: ctx.messageID,
         })
 
-        const ourPart = msgResponse.data?.parts.find(
-          (p): p is ToolPart => p.type === 'tool' && p.callID === ctx.callID,
-        )
+        const ourPart = msgResponse.data?.parts.find((p): p is ToolPart => p.type === 'tool' && p.callID === ctx.callID)
 
         if (!ourPart) {
           log.warn('Could not find our tool part for streaming updates', { callID: ctx.callID })

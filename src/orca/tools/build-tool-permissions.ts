@@ -2,9 +2,7 @@ import type { AgentType } from '../../common/agent'
 
 type PermissionValue = 'allow' | 'deny' | 'ask'
 
-export function buildToolPermissions(
-  tools: Array<{ name: string; agents: readonly AgentType[] }>,
-): {
+export function buildToolPermissions(tools: Array<{ name: string; agents: readonly AgentType[] }>): {
   defaults: Record<string, PermissionValue>
   byAgentType: Record<AgentType, Record<string, PermissionValue>>
 } {

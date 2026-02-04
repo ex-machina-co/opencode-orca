@@ -81,19 +81,14 @@ export class ExecutionService {
     return updated
   }
 
-  async claimNextTask(
-    executionId: string,
-    context: TaskContext,
-  ): Promise<TaskWithDefinition | null> {
+  async claimNextTask(executionId: string, context: TaskContext): Promise<TaskWithDefinition | null> {
     const execution = await this.getExecutionOrThrow(executionId)
     if (execution.status.stage !== 'running') {
       return null
     }
 
     // Find first claimable task (pending or failed), skip running/completed
-    const claimableIndex = execution.tasks.findIndex(
-      (t) => t.status === 'pending' || t.status === 'failed',
-    )
+    const claimableIndex = execution.tasks.findIndex((t) => t.status === 'pending' || t.status === 'failed')
     if (claimableIndex === -1) return null
 
     const plan = await this.planningService.getPlanOrThrow(this.planId)
@@ -138,11 +133,7 @@ export class ExecutionService {
     return updated
   }
 
-  async completeTask(
-    executionId: string,
-    stepIndex: number,
-    output: TaskOutput,
-  ): Promise<PlanExecution> {
+  async completeTask(executionId: string, stepIndex: number, output: TaskOutput): Promise<PlanExecution> {
     const execution = await this.getExecutionOrThrow(executionId)
 
     const task = execution.tasks[stepIndex]
@@ -218,12 +209,7 @@ export class ExecutionService {
     return updated
   }
 
-  async fail(
-    executionId: string,
-    error: string,
-    failedStep: number,
-    userStopReason?: string,
-  ): Promise<PlanExecution> {
+  async fail(executionId: string, error: string, failedStep: number, userStopReason?: string): Promise<PlanExecution> {
     const execution = await this.getExecutionOrThrow(executionId)
     if (execution.status.stage !== 'running') {
       throw new Error(`Cannot fail execution in stage: ${execution.status.stage}`)

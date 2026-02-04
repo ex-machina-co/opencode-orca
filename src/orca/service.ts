@@ -54,11 +54,7 @@ export class OrcaService {
     return this.planningService
   }
 
-  async invoke(
-    input: InvokeInput,
-    ctx: ToolContext,
-    options?: InvokeOptions,
-  ): Promise<InvokeOutput> {
+  async invoke(input: InvokeInput, ctx: ToolContext, options?: InvokeOptions): Promise<InvokeOutput> {
     try {
       const { result, sessionId } = await this.dispatchService.dispatchUserMessage(ctx, input, {
         onSessionCreated: options?.onSessionCreated,
@@ -70,10 +66,7 @@ export class OrcaService {
     }
   }
 
-  private async transformResponse(
-    response: PlannerResponse,
-    sessionId: string,
-  ): Promise<InvokeOutput> {
+  private async transformResponse(response: PlannerResponse, sessionId: string): Promise<InvokeOutput> {
     switch (response.type) {
       case 'answer':
         return {

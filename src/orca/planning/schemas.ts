@@ -112,9 +112,7 @@ export const StoredPlan = z.discriminatedUnion('stage', planVariants)
 export type StoredPlan = z.infer<typeof StoredPlan>
 
 // Derive stage enum from variants - single source of truth
-export const PlanStage = z.enum(
-  planVariants.map((v) => v.shape.stage.value) as [string, ...string[]],
-)
+export const PlanStage = z.enum(planVariants.map((v) => v.shape.stage.value) as [string, ...string[]])
 export type PlanStage = z.infer<typeof PlanStage>
 
 // ============================================================================

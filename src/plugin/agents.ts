@@ -147,9 +147,7 @@ export function mergeAgentConfigs(
   if (userAgents) {
     for (const agentId of ORCHESTRATION_AGENTS) {
       if (agentId in userAgents) {
-        getLogger().warn(
-          `"${agentId}" cannot be configured in "agents". Use the top-level "${agentId}" key instead.`,
-        )
+        getLogger().warn(`"${agentId}" cannot be configured in "agents". Use the top-level "${agentId}" key instead.`)
       }
     }
   }
@@ -255,9 +253,7 @@ export function generateSpecialistList(agentConfigs: Record<string, AgentConfig>
  * @param agentConfigs - Merged agent configurations
  * @returns Updated agent configurations with planner prompt modified
  */
-export function injectSpecialistList(
-  agentConfigs: Record<string, AgentConfig>,
-): Record<string, AgentConfig> {
+export function injectSpecialistList(agentConfigs: Record<string, AgentConfig>): Record<string, AgentConfig> {
   const planner = agentConfigs.planner
   if (!planner?.prompt) return agentConfigs
 

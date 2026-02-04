@@ -50,9 +50,7 @@ export async function listPlanIds(workingDir: string): Promise<string[]> {
   const dir = join(workingDir, PLANS_DIR)
   try {
     const entries = await readdir(dir, { withFileTypes: true })
-    return entries
-      .filter((e) => e.isFile() && e.name.endsWith('.json'))
-      .map((e) => e.name.replace('.json', ''))
+    return entries.filter((e) => e.isFile() && e.name.endsWith('.json')).map((e) => e.name.replace('.json', ''))
   } catch (err) {
     if (isNotFound(err)) return []
     throw err

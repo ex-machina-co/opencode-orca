@@ -91,9 +91,7 @@ describe('ExecutionService', () => {
       const execution = await service.create()
       await service.start(execution.execution_id)
 
-      expect(service.start(execution.execution_id)).rejects.toThrow(
-        'Cannot start execution in stage: running',
-      )
+      expect(service.start(execution.execution_id)).rejects.toThrow('Cannot start execution in stage: running')
     })
   })
 
@@ -188,9 +186,7 @@ describe('ExecutionService', () => {
       await service.start(execution.execution_id)
       // Task 0 is still pending, not running
 
-      expect(service.completeTask(execution.execution_id, 0, makeOutput())).rejects.toThrow(
-        'Task 0 is not running',
-      )
+      expect(service.completeTask(execution.execution_id, 0, makeOutput())).rejects.toThrow('Task 0 is not running')
     })
   })
 

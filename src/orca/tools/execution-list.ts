@@ -25,16 +25,12 @@ export type ExecutionListOutput = z.infer<typeof ExecutionListOutput>
 export const ExecutionList = defineTool({
   name: 'execution-list',
   agents: ['orca', 'planner', 'specialist'],
-  create: (deps: { workingDir: string; planningService: PlanningService }) =>
+  create: (deps: { directory: string; planningService: PlanningService }) =>
     tool({
       description: 'List all executions for a specific plan',
       args: ExecutionListInput.shape,
       async execute(args, ctx) {
-        const executionService = new ExecutionService(
-          deps.workingDir,
-          args.plan_id,
-          deps.planningService,
-        )
+        const executionService = new ExecutionService(deps.directory, args.plan_id, deps.planningService)
         const summaries = await executionService.listExecutions()
         return {
           title: `Found ${summaries.length} execution(s) for plan`,

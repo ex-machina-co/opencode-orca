@@ -22,8 +22,7 @@ export const AskUser = defineTool({
   agents: ['planner'],
   create: (hitlService: HITLService) =>
     tool({
-      description:
-        'Ask the user clarifying questions about requirements, preferences, or domain knowledge.',
+      description: 'Ask the user clarifying questions about requirements, preferences, or domain knowledge.',
       args: AskUserInput.shape,
       async execute(args, ctx) {
         const result = await hitlService.askUser(ctx.sessionID, args.questions)
