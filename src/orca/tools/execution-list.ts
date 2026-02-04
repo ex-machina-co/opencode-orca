@@ -30,6 +30,14 @@ export const ExecutionList = defineTool({
       description: 'List all executions for a specific plan',
       args: ExecutionListInput.shape,
       async execute(args, ctx) {
+        const plan = await deps.planningService.getPlan(args.plan_id)
+        if (!plan) {
+          return {
+            title: 'Plan not found',
+            metadata: planMetadata(ctx, args.plan_id),
+            output: JSON.stringify({ error: `Plan not found: ${args.plan_id}` }),
+          }
+        }
         const executionService = new ExecutionService(deps.directory, args.plan_id, deps.planningService)
         const summaries = await executionService.listExecutions()
         return {

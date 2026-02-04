@@ -6,6 +6,16 @@ import { describeWithContext, testToolDefinition, validPlanContent } from './tes
 describeWithContext('execution-list', (getCtx) => {
   testToolDefinition(ExecutionList, { name: 'execution-list', agents: ['orca', 'planner', 'specialist'] })
 
+  test('returns error for non-existent plan', async () => {
+    const ctx = getCtx()
+    const tool = ExecutionList.create({ directory: ctx.tempDir, planningService: ctx.planningService })
+    const result = await tool.execute({ plan_id: 'plan_nonexistent' }, ctx.mockCtx)
+
+    expect(result).toMatchObject({ title: 'Plan not found' })
+    const output = JSON.parse((result as { output: string }).output)
+    expect(output).toEqual({ error: 'Plan not found: plan_nonexistent' })
+  })
+
   test('returns empty array for plan with no executions', async () => {
     const ctx = getCtx()
     const plan = await ctx.planningService.createProposal('ses_1', validPlanContent)
