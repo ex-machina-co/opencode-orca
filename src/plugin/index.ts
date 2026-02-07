@@ -6,7 +6,7 @@ import { initLogger } from '../common/log'
 import { OrcaService } from '../orca/service'
 import { Tools } from '../orca/tools'
 import { buildToolPermissions } from '../orca/tools/build-tool-permissions'
-import { DEFAULT_AGENTS, mergeAgentConfigs } from './agents'
+import { DEFAULT_AGENTS, mergeAgentConfig, mergeAgentConfigs } from './agents'
 import { loadUserConfig } from './config'
 import { ORCA_TOOL_RESTRICTIONS } from './orca-restrictions'
 import { ensureSchema } from './schema'
@@ -85,9 +85,11 @@ export const createOrcaPlugin = (): Plugin => {
       async config(config) {
         config.agent = config.agent ?? {}
 
-        // Inject all Orca agents
+        // Inject Orca agents, merging with any existing opencode.jsonc config.
+        // Orca values take precedence on conflicts.
         for (const [agentId, agentConfig] of Object.entries(agents)) {
-          config.agent[agentId] = agentConfig
+          const existing = config.agent[agentId]
+          config.agent[agentId] = existing ? mergeAgentConfig(existing, agentConfig) : agentConfig
         }
 
         // Apply tool permissions: deny all orca tools by default, allow per agent type
