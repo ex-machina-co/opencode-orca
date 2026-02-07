@@ -1,4 +1,3 @@
-import { cloneDeep, merge } from 'lodash'
 import { getLogger } from '../common/log'
 import { architect } from '../orca/agents/architect'
 import { coder } from '../orca/agents/coder'
@@ -13,39 +12,31 @@ import { SPECIALIST_LIST_PLACEHOLDER } from './constants'
 
 const ORCHESTRATION_AGENTS = ['orca', 'planner'] as const
 
-const mergeConfigs = (a: AgentConfig, b: AgentConfig): AgentConfig => {
-  return {
-    ...merge(cloneDeep(a), cloneDeep(b)),
-    accepts: new Set(b.accepts?.length ? b.accepts : (a.accepts ?? [])).values().toArray(),
-  }
-}
-
 export const parseAgentConfig = (agentId: string, agent: AgentConfig): AgentConfig => {
   const parsedConfig = AgentConfig.parse(agent)
-  const baseConfig = { accepts: [], ...AgentConfig.parse({}) }
+  const baseAccepts: Array<'question' | 'task'> = []
+  const baseConfig: AgentConfig = { ...AgentConfig.parse({}), accepts: baseAccepts }
 
   if (agentId === 'orca') {
     baseConfig.supervised = false
     baseConfig.specialist = false
     baseConfig.mode = 'primary'
-
-    return mergeConfigs(baseConfig, parsedConfig)
-  }
-
-  if (agentId === 'planner') {
+  } else if (agentId === 'planner') {
     baseConfig.supervised = false
     baseConfig.specialist = false
     baseConfig.mode = 'subagent'
-
-    return mergeConfigs(baseConfig, parsedConfig)
-  }
-
-  if (agent.specialist) {
-    baseConfig.accepts.push('task', 'question')
+  } else if (agent.specialist) {
+    baseAccepts.push('task', 'question')
     baseConfig.mode = agent.mode || 'subagent'
   }
 
-  return mergeConfigs(baseConfig, parsedConfig)
+  const merged = mergeAgentConfig(baseConfig, parsedConfig)
+
+  if (merged.accepts) {
+    merged.accepts = [...new Set(merged.accepts)]
+  }
+
+  return merged
 }
 
 /**
@@ -76,18 +67,23 @@ export const DEFAULT_AGENTS: Record<string, AgentConfig> = {
 }
 
 /**
- * Deep merge two agent configs
- * User config values override defaults, with special handling for nested objects
+ * Deep merge two agent configs.
+ * Override values take precedence on conflicts.
+ * Nested plain objects (tools, permission) are shallow-merged one level deep.
+ * Arrays and primitives are directly replaced by the override.
+ * Undefined values in the override are skipped (base value preserved).
+ *
+ * Base accepts Record<string, unknown> so it can merge configs from external
+ * sources (e.g. OpenCode's SDK AgentConfig) without requiring identical types.
  */
-function mergeAgentConfig(base: AgentConfig, override: AgentConfig): AgentConfig {
+export function mergeAgentConfig(base: Record<string, unknown>, override: AgentConfig): AgentConfig {
   const result: AgentConfig = { ...base }
 
   for (const [key, value] of Object.entries(override)) {
     if (value === undefined) continue
 
-    const baseValue = base[key as keyof typeof override]
+    const baseValue = base[key]
 
-    // Deep merge for nested objects (tools, permission)
     if (
       typeof value === 'object' &&
       value !== null &&
@@ -97,11 +93,10 @@ function mergeAgentConfig(base: AgentConfig, override: AgentConfig): AgentConfig
       !Array.isArray(baseValue)
     ) {
       result[key] = {
-        ...baseValue,
+        ...(baseValue as Record<string, unknown>),
         ...value,
       }
     } else {
-      // Direct override for primitives and arrays
       result[key] = value
     }
   }
