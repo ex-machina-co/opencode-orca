@@ -1,0 +1,17 @@
+{
+  "$schema": "./orca.schema.json",
+  "settings": {
+    "defaultSupervised": false,
+    "defaultModel": "anthropic/claude-opus-4-5",
+    "validation": { "maxRetries": 3, "wrapPlainText": true }
+  },
+  "agents": {
+    "architect": { "model": "anthropic/claude-opus-4-5" },
+    "product-manager": { "specialist": true },
+    // disabled
+    "executor": { "disable": true },
+    "strategist": { "disable": true },
+    "github": { "disable": true, "model": "openai/gpt-5.2", "reasoningEffort": "medium", "specialist": true },
+    "coder": { "disable": true, "model": "anthropic/claude-opus-4-5" }
+  }
+}

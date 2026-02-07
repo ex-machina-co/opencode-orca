@@ -1,5 +1,5 @@
 /**
- * init command - Create default .opencode/orca.json configuration
+ * init command - Create default .opencode/orca.jsonc configuration
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -16,16 +16,16 @@ export interface InitOptions {
 }
 
 /**
- * Get the default template content for orca.json
+ * Get the default template content for orca.jsonc
  */
 function getTemplate(): string {
   // Try to read from templates directory
   const possiblePaths = [
     // Running from source (development)
-    resolve(process.cwd(), 'templates', 'orca.json'),
+    resolve(process.cwd(), 'templates', 'orca.jsonc'),
     // Running from dist (installed package)
-    resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'orca.json'),
-    resolve(dirname(fileURLToPath(import.meta.url)), '..', 'templates', 'orca.json'),
+    resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'orca.jsonc'),
+    resolve(dirname(fileURLToPath(import.meta.url)), '..', 'templates', 'orca.jsonc'),
   ]
 
   for (const templatePath of possiblePaths) {
@@ -58,7 +58,7 @@ function getTemplate(): string {
 /**
  * Initialize the Orca configuration file
  *
- * Creates .opencode/orca.json from the default template.
+ * Creates .opencode/orca.jsonc from the default template.
  * Does not modify opencode.jsonc.
  */
 export async function init(options: InitOptions = {}): Promise<void> {
@@ -88,13 +88,13 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
   // Copy schema file for editor autocomplete
   if (ensureSchema(opencodeDirPath)) {
-    success('Created .opencode/orca.schema.json')
+    success('Created .opencode/orca.schema.jsonc')
   }
 
   if (!options.quiet) {
     info('')
     info('Next steps:')
-    info('  1. Customize your configuration in .opencode/orca.json')
+    info('  1. Customize your configuration in .opencode/orca.jsonc')
     info('  2. Run `opencode-orca install` to add the plugin to opencode.jsonc')
   }
 }

@@ -2,7 +2,7 @@
  * JSON Schema generation for Orca config
  *
  * This module generates a JSON Schema from the Zod schemas,
- * which enables editor autocomplete and validation for orca.json files.
+ * which enables editor autocomplete and validation for orca.jsonc files.
  */
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'

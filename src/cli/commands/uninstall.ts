@@ -36,7 +36,7 @@ async function confirm(question: string): Promise<boolean> {
  * Uninstall the Orca plugin
  *
  * - Removes 'opencode-orca' from the plugin array in opencode.jsonc
- * - Optionally removes .opencode/orca.json
+ * - Optionally removes .opencode/orca.jsonc
  */
 export async function uninstall(options: UninstallOptions = {}): Promise<void> {
   const configPath = getOpenCodeConfigPath()
@@ -69,7 +69,7 @@ export async function uninstall(options: UninstallOptions = {}): Promise<void> {
     success(`Removed ${PLUGIN_NAME} from ${configPath}`)
   }
 
-  // Handle orca.json removal
+  // Handle orca.jsonc removal
   if (existsSync(orcaConfigPath)) {
     let shouldRemove = options.removeConfig
 

@@ -18,7 +18,7 @@ export interface InstallOptions {
  * Install the Orca plugin
  *
  * - Adds 'opencode-orca' to the plugin array in opencode.jsonc
- * - Creates .opencode/orca.json if it doesn't exist
+ * - Creates .opencode/orca.jsonc if it doesn't exist
  */
 export async function install(options: InstallOptions = {}): Promise<void> {
   const configPath = getOpenCodeConfigPath()
@@ -56,7 +56,7 @@ export async function install(options: InstallOptions = {}): Promise<void> {
   writeJsonc(configPath, config)
   success(`Added ${PLUGIN_NAME} to ${configPath}`)
 
-  // Initialize orca.json if it doesn't exist
+  // Initialize orca.jsonc if it doesn't exist
   if (!existsSync(orcaConfigPath)) {
     info('')
     info('Initializing Orca configuration...')
@@ -68,6 +68,6 @@ export async function install(options: InstallOptions = {}): Promise<void> {
   success('Installation complete!')
   info('')
   info('Next steps:')
-  info('  1. Review your configuration in .opencode/orca.json')
+  info('  1. Review your configuration in .opencode/orca.jsonc')
   info('  2. Start OpenCode to use the Orca plugin')
 }
