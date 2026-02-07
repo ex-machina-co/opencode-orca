@@ -13,7 +13,7 @@ Usage:
 Commands:
   install     Add the Orca plugin to your OpenCode configuration
   uninstall   Remove the Orca plugin from your OpenCode configuration
-  init        Create a default .opencode/orca.json configuration file
+  init        Create a default .opencode/orca.jsonc configuration file
 
 Options:
   --help, -h      Show this help message

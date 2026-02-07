@@ -62,7 +62,7 @@ function withProtocol(agentId: string, maybeAgent: AgentConfig): AgentConfig {
  * Default agent definitions for the Orca orchestration system
  *
  * These are injected into OpenCode's agent config and can be
- * overridden or extended via .opencode/orca.json
+ * overridden or extended via .opencode/orca.jsonc
  */
 export const DEFAULT_AGENTS: Record<string, AgentConfig> = {
   orca: withProtocol('orca', orca),

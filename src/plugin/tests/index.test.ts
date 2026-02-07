@@ -109,7 +109,7 @@ describe('createOrcaPlugin', () => {
   describe('graceful fallback', () => {
     test('works when user config does not exist', async () => {
       const plugin = createOrcaPlugin()
-      // Use a directory that doesn't have .opencode/orca.json
+      // Use a directory that doesn't have .opencode/orca.jsonc
       const hooks = await plugin(createMockInput('/tmp/nonexistent-project'))
 
       const config: Partial<Config> = {}

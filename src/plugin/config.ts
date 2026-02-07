@@ -137,10 +137,10 @@ export const OrcaUserConfig = z
 export type OrcaUserConfig = z.infer<typeof OrcaUserConfig>
 
 /** Path to the user config file relative to the project root */
-export const USER_CONFIG_PATH = '.opencode/orca.json'
+export const USER_CONFIG_PATH = '.opencode/orca.jsonc'
 
 /**
- * Load user configuration from .opencode/orca.json
+ * Load user configuration from .opencode/orca.jsonc
  *
  * @param directory - Project root directory
  * @returns Validated user config, or undefined if file doesn't exist

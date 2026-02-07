@@ -281,7 +281,7 @@ export async function runUpdateNotifier(ctx: UpdateNotifierContext): Promise<voi
     const message = [
       `v${latestVersion} available (pinned at v${pinnedVersion || currentVersion})`,
       `Update: change to "${PACKAGE_NAME}@${latestVersion}" in opencode.jsonc`,
-      'Disable in .opencode/orca.json: updateNotifier: false',
+      'Disable in .opencode/orca.jsonc: updateNotifier: false',
     ].join('\n')
 
     await showToast(client, {

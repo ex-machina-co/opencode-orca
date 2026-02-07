@@ -51,10 +51,10 @@ describe('install command', () => {
     expect(orcaCount).toBe(1)
   })
 
-  test('creates orca.json if not exists', async () => {
+  test('creates orca.jsonc if not exists', async () => {
     await install()
 
-    expect(existsSync(join(TEST_DIR, '.opencode', 'orca.json'))).toBe(true)
+    expect(existsSync(join(TEST_DIR, '.opencode', 'orca.jsonc'))).toBe(true)
   })
 
   test('preserves comments in JSONC', async () => {

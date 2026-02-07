@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Generate JSON Schema for orca.json
+ * Generate JSON Schema for orca.jsonc
  *
  * This script is run during build to generate dist/orca.schema.json
  * Usage: bun scripts/generate-schema.ts

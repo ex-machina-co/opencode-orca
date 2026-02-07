@@ -22,5 +22,5 @@ export function getOpenCodeDirPath(cwd: string = process.cwd()): string {
  * Get the path to the Orca configuration file
  */
 export function getOrcaConfigPath(cwd: string = process.cwd()): string {
-  return resolve(cwd, '.opencode', 'orca.json')
+  return resolve(cwd, '.opencode', 'orca.jsonc')
 }
