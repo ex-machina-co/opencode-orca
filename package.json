@@ -43,7 +43,7 @@
   "homepage": "https://github.com/ex-machina-co/opencode-orca#readme",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@ex-machina/opencode-orca": "link:.",
+    "@ex-machina/opencode-orca": "link:@ex-machina/opencode-orca",
     "@types/bun": "^1.2.15",
     "@types/lodash": "^4.17.23",
     "concurrently": "^9.2.1",

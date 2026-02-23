@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# OpenSpec
+openspec/archive/
+
 # Build output
 dist/
 
