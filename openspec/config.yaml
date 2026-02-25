@@ -82,6 +82,7 @@ rules:
     - MUST NOT spec infrastructure mechanisms (OTel spans, caching layers, internal job queues) — spec the VALUE those mechanisms deliver instead
     - Scenarios MUST describe observable outcomes from the perspective of whoever receives the value (end user, developer, API consumer)
     - Specs MUST be organized by product domain (the domain that delivers value), not by infrastructure domain (the domain that provides mechanisms)
+    - MUST NOT use domain names in requirements (e.g., "the planning domain SHALL", "available for the execution domain to execute", "the orchestration layer SHALL") — use "the system," "the user," or other user-visible concepts as subjects
   proposal:
     - Proposals MUST be under 500 words
     - SHOULD be distilled down to the smallest thing we can do to deliver customer-focused value

@@ -60,6 +60,40 @@ Specs SHALL be organized by the product domain that delivers customer value, not
 - **AND** all capabilities within the domain SHALL be expressed as requirements within that single spec
 - **AND** the domain SHALL NOT be split into multiple specs per capability (e.g., `execution-loop` and `execution-triggering` are requirements within the `execution` spec, not separate specs)
 
+### Requirement: Specifications do not reference domain names in requirements
+
+Spec files — including Purpose sections, requirements, and scenarios — SHALL NOT use domain names (e.g., "the planning domain," "the execution domain," "the orchestration layer") as subjects, objects, or qualifiers. Specs describe what the system does for users — not which internal organizational unit does it. The subject SHALL be "the system," "the user," "the plan," "the agent," or another user-visible concept — or omitted entirely using passive voice (e.g., "User requests are transformed into structured plans"). Users do not know about domains; specs SHALL NOT assume they do.
+
+#### Scenario: Domain name used as subject is rejected
+
+- **WHEN** a proposed requirement uses a domain name as its subject (e.g., "the planning domain SHALL return one of three response types")
+- **THEN** the requirement SHALL be rejected
+- **AND** it SHALL be rewritten with a user-visible subject (e.g., "the system SHALL return one of three response types")
+
+#### Scenario: Domain name used as consumer is rejected
+
+- **WHEN** a proposed requirement references another domain as a consumer or recipient (e.g., "the plan SHALL be available for the execution domain to execute")
+- **THEN** the requirement SHALL be rejected
+- **AND** it SHALL be rewritten to describe the outcome without naming the consumer (e.g., "the plan SHALL be available for execution")
+
+#### Scenario: Internal layer name is rejected
+
+- **WHEN** a proposed requirement uses an internal layer name (e.g., "the orchestration layer SHALL transform internal agent responses")
+- **THEN** the requirement SHALL be rejected
+- **AND** it SHALL be rewritten to describe user-observable behavior (e.g., "the system SHALL present responses to the user in a consistent format")
+
+#### Scenario: Cross-domain responsibility attribution is rejected
+
+- **WHEN** a proposed requirement attributes responsibility to another domain (e.g., "this is coordinated by the X domain's Y capability" or "the orchestration domain is responsible for presenting failures")
+- **THEN** the requirement SHALL be rejected
+- **AND** it SHALL be rewritten to describe the observable behavior without attributing it to a domain
+
+#### Scenario: User-observable outcome is acceptable
+
+- **WHEN** a requirement describes an outcome that the user observes (e.g., "when a user approves a plan, execution begins automatically")
+- **THEN** the requirement SHALL be accepted because it describes a user-observable outcome
+- **AND** the requirement SHALL NOT add organizational commentary about which domain triggers the transition
+
 ### Requirement: Scenarios are testable and verifiable
 
 Every scenario SHALL describe a concrete, verifiable outcome. Scenarios SHALL be specific enough that a developer could write an automated test or manually verify the behavior.

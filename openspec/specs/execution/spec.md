@@ -1,6 +1,6 @@
 ## Purpose
 
-The execution domain transforms approved plans into completed work by dispatching tasks to specialist agents in sequence, tracking progress, and collecting results. It separates the concern of _doing work and recording how it went_ from _deciding what to do_ (planning), ensuring users have visibility, control, and durable records of multi-step agent work.
+Approved plans are transformed into completed work by dispatching tasks to specialist agents in sequence, tracking progress, and collecting results. This separates the concern of _doing work and recording how it went_ from _deciding what to do_, ensuring users have visibility, control, and durable records of multi-step agent work.
 
 ## Requirements
 

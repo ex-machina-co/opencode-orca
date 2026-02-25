@@ -1,6 +1,6 @@
 ## Purpose
 
-The planning domain transforms user requests into structured, reviewable multi-step execution plans. It provides meaningful human control over multi-agent work by separating the decision of _what to do_ from _doing it_, ensuring users can review, approve, or reject plans before any work begins.
+User requests are transformed into structured, reviewable multi-step execution plans. This provides meaningful human control over multi-agent work by separating the decision of _what to do_ from _doing it_, ensuring users can review, approve, or reject plans before any work begins.
 
 ## Requirements
 
@@ -26,7 +26,7 @@ Every user request SHALL be triaged to determine whether it warrants a structure
 
 ### Requirement: Triage returns one of three response types
 
-The planning domain SHALL return exactly one of three response types for every user request: a direct answer containing the response text, a plan reference containing the plan identity and current stage, or a failure indication. The entry agent SHALL be able to distinguish between these response types without interpreting plan content.
+The system SHALL return exactly one of three response types for every user request: a direct answer containing the response text, a plan reference containing the plan identity and current stage, or a failure indication.
 
 #### Scenario: Direct answer response
 
@@ -40,7 +40,7 @@ The planning domain SHALL return exactly one of three response types for every u
 
 #### Scenario: Failure response
 
-- **WHEN** the planning domain cannot process a request (due to error or inability)
+- **WHEN** the system cannot process a request (due to error or inability)
 - **THEN** the system SHALL return a failure indication rather than silently dropping the request
 
 ### Requirement: Plans capture goal, steps, assumptions, risks, and verification
@@ -144,7 +144,7 @@ When a plan reaches proposal stage, the system SHALL present the plan to the use
 
 - **WHEN** the user selects Approve
 - **THEN** the plan SHALL transition to approved stage
-- **AND** the plan SHALL be available for the execution domain to execute
+- **AND** the plan SHALL be available for execution
 
 #### Scenario: User requests changes
 
@@ -160,17 +160,17 @@ When a plan reaches proposal stage, the system SHALL present the plan to the use
 
 ### Requirement: Approved plans provide a stable contract for execution
 
-An approved plan SHALL provide the execution domain with a stable, immutable contract containing: a plan identity that SHALL NOT change after creation, a goal, an ordered sequence of steps where each step includes a description and a specialist assignment, plan-level assumptions and risks, and plan-level verification criteria. The step sequence SHALL define the execution order. The execution domain SHALL be able to retrieve any approved plan by its identity.
+An approved plan SHALL serve as a stable, immutable contract containing: a plan identity that SHALL NOT change after creation, a goal, an ordered sequence of steps where each step includes a description and a specialist assignment, plan-level assumptions and risks, and plan-level verification criteria. The step sequence SHALL define the execution order. Any approved plan SHALL be retrievable by its identity.
 
-#### Scenario: Execution domain retrieves an approved plan
+#### Scenario: Approved plan is retrievable for execution
 
-- **WHEN** the execution domain needs to execute an approved plan
+- **WHEN** an approved plan is executed
 - **THEN** it SHALL be able to retrieve the plan by identity
 - **AND** the plan's content SHALL be identical to when it was approved
 
 #### Scenario: Step order defines execution order
 
-- **WHEN** the execution domain reads the steps of an approved plan
+- **WHEN** the system reads the steps of an approved plan for execution
 - **THEN** the steps SHALL be in the order the planner intended them to be executed
 
 ### Requirement: Plans survive session boundaries
