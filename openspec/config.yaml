@@ -1,0 +1,94 @@
+schema: spec-driven
+
+# Project context: this is shown to the agent when creating artifacts.
+context: |
+  # Project Constitution
+
+  This constitution codifies the governing architectural constraints for this project. All specifications,
+  proposals, and implementations MUST comply with these articles unless an explicit override is documented
+  per the governance process below.
+
+  Keywords follow [RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
+
+  ---
+
+  ## Article I: RFC 2119 Keyword Compliance
+
+  ### Statement
+  All specifications, design documents, and requirement definitions MUST use RFC 2119 keywords (MUST, SHALL, SHOULD,
+  MAY and their negations) to express requirement levels. Informal language ("should", "needs to", "has to") MUST NOT be
+  used for normative requirements.
+
+  ### Rationale
+  AI agents interpret specifications literally. Ambiguous requirement language leads to inconsistent implementation
+  decisions. RFC 2119 keywords provide a shared, machine-interpretable vocabulary for requirement severity.
+
+  ### Enforcement
+  - Spec review checks for RFC 2119 keyword presence in all requirement blocks
+  - Proposals without RFC 2119 keywords in requirements sections SHALL be rejected
+
+  ### Override Process
+  Not applicable — this article governs spec format and cannot be overridden.
+
+  ---
+
+  ## Article II: Value-Centric Specifications
+
+  ### Statement
+  All specifications MUST describe customer, user, or developer value — not internal implementation mechanisms.
+  Specs answer "what value does the system deliver?" not "how does the code work internally?"
+
+  The litmus test for every requirement: "Would a customer, user, or developer care if this stopped working?"
+  If the answer is no, the content belongs in a design document, not a specification.
+
+  ### Rationale
+  Specs that describe internal mechanisms (OTel attribute names, internal method signatures, class hierarchies)
+  become tightly coupled to implementation. When implementation changes, these specs break even though customer
+  value hasn't changed. Value-centric specs remain stable across refactors and make the intent of the system
+  legible to non-implementors.
+
+  ### Enforcement
+  - Requirements referencing internal class names, method names, or module paths SHALL be rejected
+  - Infrastructure mechanisms (tracing, caching, queuing) SHALL be specced through the lens of the product
+    domain that consumes them, not as standalone capabilities
+  - Specs SHALL be organized by product domain (the domain that delivers value), not by infrastructure domain
+
+  ### Override Process
+  Infrastructure specs MAY be created when the infrastructure IS the product (e.g., a shared platform team
+  publishing an API). Document the override rationale in the spec's Purpose section.
+
+artifacts:
+  - id: review
+    generates: review.md
+    description: Pre-implementation review checklist
+    template: review.md
+    instruction: |
+      Create a review checklist based on the design and completed tasks.
+      Include security, performance, and testing considerations.
+      Ensures the output covers all aspects of the design and meets the requirements set forth.
+    requires:
+      - design
+      - tasks
+
+# Add custom rules for specific artifacts.
+rules:
+  specs:
+    - All requirements MUST use RFC 2119 keywords to indicate requirement levels
+    - Each requirement MUST be atomic and focused on a single aspect of functionality or design
+    - Requirements MUST be testable and verifiable through implementation and testing
+    - Requirements MUST describe value delivered to customers, users, or developers — NOT internal implementation mechanisms
+    - "Litmus test: ask 'Would a customer, user, or developer care if this stopped working?' If not, it belongs in design.md, not spec.md"
+    - MUST NOT reference internal class names, method names, module paths, or internal data structures in requirements or scenarios
+    - MUST NOT spec infrastructure mechanisms (OTel spans, caching layers, internal job queues) — spec the VALUE those mechanisms deliver instead
+    - Scenarios MUST describe observable outcomes from the perspective of whoever receives the value (end user, developer, API consumer)
+    - Specs MUST be organized by product domain (the domain that delivers value), not by infrastructure domain (the domain that provides mechanisms)
+  proposal:
+    - Proposals MUST be under 500 words
+    - SHOULD be distilled down to the smallest thing we can do to deliver customer-focused value
+    - Large refactors SHOULD be simple, small, OR incredibly well-justified
+    - MUST include a "Non-goals" section
+  tasks:
+    - each task SHOULD be a small deliverable chunk that can ideally be delivered in a small (<= ~500 line) PR
+      - tests and generated code don't count as much as "code" for the purposes of this rule
+    - each task SHOULD be focused on delivering customer-focused value, not "internal" value
+    - if a task is focused on "internal" value, it SHOULD be justified in the proposal and ideally be a small, self-contained change

@@ -4,12 +4,5 @@
     "defaultSupervised": false,
     "defaultModel": "anthropic/claude-opus-4-6",
     "validation": { "maxRetries": 3, "wrapPlainText": true }
-  },
-  "agents": {
-    "product-manager": { "specialist": true },
-    "executor": { "disable": true, "mode": "subagent" },
-    "old-strategist": { "disable": true, "mode": "subagent" },
-
-    "coder": { "disable": true }
   }
 }
