@@ -1,0 +1,153 @@
+name: specify-domain
+version: 1
+description: Formally specify a product domain — from current-state inventory through value-centric specifications.
+
+artifacts:
+  - id: overview
+    generates: overview.md
+    description: Domain purpose, value proposition, and scope
+    template: overview.md
+    instruction: |
+      Create a domain overview that establishes WHY this domain exists and WHAT value it delivers.
+      Focus on the people who benefit (developers, users, operators) and the problems this domain solves.
+      The overview should be understandable by a product analyst — no internal implementation details.
+      Include a clear scope and non-scope section to bound the domain.
+    requires: []
+
+  - id: current-state
+    generates: current-state.md
+    description: Factual inventory of what exists today in this domain
+    template: current-state.md
+    instruction: |
+      Document what currently exists in this domain by examining the codebase.
+      Describe capabilities, behaviors, and user-facing functionality — not code structure.
+      Use evidence from the code but express findings as product capabilities, not technical artifacts.
+      This is a factual inventory: what works today, what users/developers can do, known limitations.
+      Do NOT propose changes — just observe and document the current reality.
+    requires:
+      - overview
+
+  - id: boundaries
+    generates: boundaries.md
+    description: Domain ownership, dependencies, and contracts with neighboring domains
+    template: boundaries.md
+    instruction: |
+      Define what this domain owns and where it ends, informed by the current-state inventory.
+      Describe relationships with other domains as value-level contracts, not API signatures.
+      For example: "Planning provides Execution with an approved plan containing ordered steps"
+      rather than "PlanningService.getApproved() returns ApprovedPlan".
+      Identify invariants — things that must always be true for this domain to function correctly.
+    requires:
+      - overview
+      - current-state
+
+  - id: drift
+    generates: drift.md
+    description: Divergence between existing specs and current codebase reality
+    template: drift.md
+    instruction: |
+      Compare existing specs (in openspec/specs/) against the current-state inventory
+      to identify where specifications have drifted from reality.
+
+      First, check openspec/specs/ for any specs relevant to this domain.
+      If no existing specs are found, produce a short summary stating this and stop —
+      no modifications or removals are needed for a brand-new domain.
+
+      If existing specs are found, compare each requirement and scenario against
+      the current-state inventory:
+      - Identify requirements that describe behavior differently than what exists
+      - Identify requirements whose scenarios no longer match observable behavior
+      - Identify entire specs that are obsolete (the capability no longer exists)
+
+      Focus on factual divergence, not quality judgments. The question is:
+      "Does the spec accurately describe what the system does today?"
+
+      IMPORTANT: The Capabilities section is critical. It creates the contract between
+      drift analysis and the specs phase:
+      - **Modified Capabilities**: List existing spec names that need MODIFIED delta operations.
+      - **Removed Capabilities**: List existing spec names that need REMOVED delta operations.
+      Each capability listed here will need a corresponding delta spec file.
+    requires:
+      - overview
+      - current-state
+      - boundaries
+
+  - id: gaps
+    generates: gaps.md
+    description: Delta between current state and desired state, with new capability enumeration
+    template: gaps.md
+    instruction: |
+      Analyze the delta between the current-state inventory and the desired boundaries.
+      Identify what is missing, incomplete, inconsistent, or misplaced.
+      Categorize gaps by severity: critical (blocks core value), important (degrades experience),
+      or minor (quality-of-life improvement).
+      Each gap should be actionable — clear enough that someone could write a change proposal for it.
+      Do NOT propose solutions — just identify and describe the gaps.
+
+      IMPORTANT: The Capabilities section is critical. It creates the contract between the gaps
+      analysis and the specs phase. After identifying gaps, enumerate which NEW capability areas
+      need formal specifications:
+      - **New Capabilities**: Group related gaps into coherent capability areas. Each becomes a
+        new `specs/<name>/spec.md` delta spec file. Use kebab-case names.
+      Modifications to existing specs belong in the drift artifact, not here.
+      Each capability listed here will need a corresponding delta spec file in the next step.
+    requires:
+      - overview
+      - current-state
+      - boundaries
+
+  - id: specs
+    generates: specs/**/*.md
+    description: Delta spec files compatible with the spec-driven sync/archive toolchain
+    template: spec.md
+    instruction: |
+      Create delta specification files that define WHAT the system should do.
+
+      The specs artifact draws from two sources of work:
+      - The gaps document's Capabilities → New Capabilities tells you which new specs to create (ADDED operations)
+      - The drift document's Capabilities → Modified/Removed Capabilities tells you which existing specs to update (MODIFIED/REMOVED operations)
+
+      Create one spec file per capability listed across both documents:
+      - New capabilities: use the exact kebab-case name from the gaps Capabilities section (specs/<capability>/spec.md).
+      - Modified/removed capabilities: use the existing spec folder name from openspec/specs/<capability>/ when creating the delta spec at specs/<capability>/spec.md.
+
+      Use the full domain analysis (overview, boundaries, gaps, drift) as your input:
+      - The overview establishes the domain's purpose and scope
+      - The boundaries define ownership, contracts, and invariants
+      - The gaps identify what is missing and what new capability areas need specs
+      - The drift identifies where existing specs have diverged from reality
+
+      Delta operations (use ## headers):
+      - **ADDED Requirements**: New capabilities
+      - **MODIFIED Requirements**: Changed behavior - MUST include full updated content
+      - **REMOVED Requirements**: Deprecated features - MUST include **Reason** and **Migration**
+      - **RENAMED Requirements**: Name changes only - use FROM:/TO: format
+
+      For initial domain specification, most requirements will be ADDED. Only use MODIFIED/REMOVED/RENAMED
+      when the domain has existing specs in openspec/specs/ that need updating.
+
+      Format requirements:
+      - Each requirement: `### Requirement: <name>` followed by description
+      - Use SHALL/MUST for normative requirements (avoid should/may)
+      - Each scenario: `#### Scenario: <name>` with WHEN/THEN format
+      - **CRITICAL**: Scenarios MUST use exactly 4 hashtags (`####`). Using 3 hashtags or bullets will fail silently.
+      - Every requirement MUST have at least one scenario.
+      - Every requirement MUST describe value delivered to customers, users, or developers.
+      - MUST NOT reference internal class names, method names, module paths, or data structures.
+
+      MODIFIED requirements workflow:
+      1. Locate the existing requirement in openspec/specs/<capability>/spec.md
+      2. Copy the ENTIRE requirement block (from `### Requirement:` through all scenarios)
+      3. Paste under `## MODIFIED Requirements` and edit to reflect new behavior
+      4. Ensure header text matches exactly (whitespace-insensitive)
+
+      Specs should be testable - each scenario is a potential test case.
+    requires:
+      - overview
+      - boundaries
+      - gaps
+      - drift
+
+apply:
+  requires:
+    - specs
