@@ -1,5 +1,13 @@
 # IMPORTANT RULES FOR AGENTS
 
+## Project
+
+**Name:** @ex-machina/opencode-orca
+
+An OpenCode plugin for AI agent orchestration. It provides a multi-agent system called "Orca" that orchestrates specialist AI agents (coder, tester, reviewer, researcher, document writer, architect) through a planning-then-execution workflow. Users interact with an entry agent ("Orca"), which routes messages to a Planner agent that either answers directly or builds execution plans. Approved plans are then executed by specialist agents.
+
+Built as a plugin for OpenCode (https://opencode.ai), using the @opencode-ai/plugin and @opencode-ai/sdk packages, with Zod for schema validation and TypeScript throughout.
+
 ## Best Practices and Context
 - Remove deprecated code instead of keeping aliases.
 - This is a PLUGIN, not a library. We don't need to maintain backwards API compatibility.
