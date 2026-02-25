@@ -19,8 +19,14 @@ Built as a plugin for OpenCode (https://opencode.ai), using the @opencode-ai/plu
 
 ## Architecture
 
-- ADRs are located in `ards/` and contain all the architecture decisions for the project
+- ADRs are located in `adrs/` and contain all the architecture decisions for the project
 - Whenever thinking about architecture, please consult the ADRs first
+
+## Specifications
+
+- Specifications are located in `openspec/specs/` and describe the expected behavior of each product domain
+- Whenever implementing or modifying behavior, consult the relevant spec first
+- Specs describe customer/user/developer value, not internal implementation — see `openspec/specs/spec-governance/spec.md` for the full governance rules
 
 ## TypeScript Best Practices
 
