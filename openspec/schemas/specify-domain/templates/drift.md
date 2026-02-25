@@ -25,13 +25,15 @@
 
 ### Modified Capabilities
 
-<!-- Existing specs (in openspec/specs/) whose REQUIREMENTS need updating.
+<!-- Use the EXACT existing spec directory name from openspec/specs/.
+     A domain has one spec — do not invent sub-capability names.
      Only list if spec-level behavior has drifted from reality.
      Each needs a delta spec file with MODIFIED operations. -->
-- `<existing-name>`: <what requirement is drifting and why>
+- `<existing-domain-name>`: <what requirement is drifting and why>
 
 ### Removed Capabilities
 
-<!-- Existing specs that should be removed entirely.
+<!-- Use the EXACT existing spec directory name from openspec/specs/.
+     A domain has one spec — do not invent sub-capability names.
      Each needs a delta spec file with REMOVED operations. -->
-- `<existing-name>`: <why this spec is obsolete>
+- `<existing-domain-name>`: <why this spec is obsolete>

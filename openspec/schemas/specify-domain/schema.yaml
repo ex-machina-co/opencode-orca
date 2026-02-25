@@ -67,6 +67,9 @@ artifacts:
       - **Modified Capabilities**: List existing spec names that need MODIFIED delta operations.
       - **Removed Capabilities**: List existing spec names that need REMOVED delta operations.
       Each capability listed here will need a corresponding delta spec file.
+
+      When listing Modified or Removed Capabilities, use the EXACT existing spec directory
+      name from openspec/specs/. A domain has one spec — do not invent sub-capability names.
     requires:
       - overview
       - current-state
@@ -91,6 +94,12 @@ artifacts:
         new `specs/<name>/spec.md` delta spec file. Use kebab-case names.
       Modifications to existing specs belong in the drift artifact, not here.
       Each capability listed here will need a corresponding delta spec file in the next step.
+
+      CRITICAL: This schema specifies ONE product domain. A domain has exactly ONE spec.
+      The Capabilities section MUST list exactly ONE new capability whose name matches the
+      domain being specified. All gaps identified above are inputs to that single domain
+      spec — do NOT split the domain's concerns into separate capabilities. Gaps become
+      requirements within a spec, not separate specs.
     requires:
       - overview
       - current-state

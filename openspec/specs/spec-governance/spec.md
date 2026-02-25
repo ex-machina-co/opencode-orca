@@ -8,11 +8,11 @@ Standards for how specifications are written in this project. Establishes the va
 
 All specifications SHALL describe value delivered to customers, users, or developers. The litmus test for every requirement SHALL be: "Would a customer, user, or developer care if this stopped working?" If the answer is no, the content belongs in a design document, not a specification.
 
-#### Scenario: Observability requirement passes the litmus test
+#### Scenario: Execution requirement passes the litmus test
 
-- **WHEN** a developer writes a requirement about AI assistant tracing
-- **THEN** the requirement SHALL describe what developers can observe and debug (e.g., "conversations are traceable in production")
-- **AND** the requirement SHALL NOT describe internal mechanisms (e.g., "OTel spans wrap call_responses with these attributes")
+- **WHEN** a developer writes a requirement about plan execution visibility
+- **THEN** the requirement SHALL describe what users can observe (e.g., "users can see which tasks have completed and which are pending")
+- **AND** the requirement SHALL NOT describe internal mechanisms (e.g., "ExecutionService persists a PlanExecution record via storage.ts")
 
 #### Scenario: Infrastructure mechanism fails the litmus test
 
@@ -28,8 +28,8 @@ Requirements and scenarios SHALL NOT reference internal class names, method name
 #### Scenario: Requirement avoids internal references
 
 - **WHEN** a requirement describes a system capability
-- **THEN** the requirement text SHALL NOT contain internal class names (e.g., `GenAi::Tracing`, `AiAssistant::Commands::CreateThreadNameCommand`)
-- **AND** the requirement text SHALL NOT contain internal method signatures (e.g., `.call_responses`, `.in_thread`)
+- **THEN** the requirement text SHALL NOT contain internal class names (e.g., `ExecutionService`, `DispatchService`, `PlanningService`)
+- **AND** the requirement text SHALL NOT contain internal method signatures (e.g., `.claimNextTask()`, `.tryParseAndValidate()`)
 - **AND** scenarios SHALL describe outcomes in terms of what users, developers, or API consumers observe
 
 #### Scenario: Implementation detail belongs in design
@@ -42,17 +42,23 @@ Requirements and scenarios SHALL NOT reference internal class names, method name
 
 Specs SHALL be organized by the product domain that delivers customer value, not by infrastructure domain. Each spec directory SHALL use flat kebab-case naming under `openspec/specs/`.
 
-#### Scenario: AI assistant observability belongs in the ai-assistant spec
+#### Scenario: Execution persistence belongs in the execution spec
 
-- **WHEN** a developer needs to spec observability for the AI assistant
-- **THEN** the requirements SHALL be placed in the `ai-assistant` spec (the product domain delivering value)
-- **AND** the requirements SHALL NOT be placed in a `gen-ai` or `gen-ai-tracing` spec (the infrastructure domain providing mechanisms)
+- **WHEN** a developer needs to spec persistence behavior for the execution domain
+- **THEN** the requirements SHALL be placed in the `execution` spec (the product domain delivering value)
+- **AND** the requirements SHALL NOT be placed in a `state-machines` or `task-persistence` spec (infrastructure concerns, not product domains)
 
 #### Scenario: Naming convention for specs
 
 - **WHEN** a new spec is created for a product domain
-- **THEN** the directory name SHALL use kebab-case (e.g., `ai-assistant`, `case-insights`, `filings`)
-- **AND** if a domain requires multiple specs, the name SHALL use `<domain>-<capability>` format (e.g., `ai-assistant-tools`, `ai-assistant-threads`)
+- **THEN** the directory name SHALL use kebab-case (e.g., `planning`, `execution`, `spec-governance`)
+
+#### Scenario: One spec per domain
+
+- **WHEN** a product domain is specified
+- **THEN** the domain SHALL have exactly one spec at `openspec/specs/<domain>/spec.md`
+- **AND** all capabilities within the domain SHALL be expressed as requirements within that single spec
+- **AND** the domain SHALL NOT be split into multiple specs per capability (e.g., `execution-loop` and `execution-triggering` are requirements within the `execution` spec, not separate specs)
 
 ### Requirement: Scenarios are testable and verifiable
 
@@ -68,4 +74,4 @@ Every scenario SHALL describe a concrete, verifiable outcome. Scenarios SHALL be
 
 - **WHEN** a proposed scenario uses vague language like "the system is observable" or "performance is acceptable"
 - **THEN** the scenario SHALL be rejected
-- **AND** it SHALL be rewritten with specific, measurable criteria (e.g., "traces appear in Langfuse within 30 seconds")
+- **AND** it SHALL be rewritten with specific, measurable criteria (e.g., "the user is presented with retry, re-plan, or stop options when a task fails")

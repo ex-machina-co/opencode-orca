@@ -30,9 +30,9 @@
 
 ### New Capabilities
 
-<!-- Based on the gaps above, which capability areas need formal specifications?
-     Each becomes a specs/<name>/spec.md delta spec file. Use kebab-case names.
-     Group related gaps into coherent capability areas.
+<!-- A domain has exactly ONE spec. List ONE new capability whose name matches
+     the domain being specified. All gaps above become requirements within this
+     single spec — do NOT create a separate capability per gap.
      Modifications to existing specs belong in the drift artifact, not here. -->
-- `<name>`: <brief description of what this capability covers>
+- `<domain-name>`: <brief description of what this domain spec covers>
 
