@@ -1,6 +1,6 @@
 ## Purpose
 
-<!-- What is this domain? What problem does it solve? Why does it exist as a distinct domain? -->
+<!-- What value does this area deliver? What problem does it solve? Why is it distinct? Do NOT use domain names as subjects — use passive or value-centric framing. -->
 
 ## Value Proposition
 

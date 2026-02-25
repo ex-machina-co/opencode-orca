@@ -135,6 +135,12 @@ artifacts:
       For initial domain specification, most requirements will be ADDED. Only use MODIFIED/REMOVED/RENAMED
       when the domain has existing specs in openspec/specs/ that need updating.
 
+      New specs MUST include a `## Purpose` section before requirements. Purpose sections
+      describe what value this area delivers — not which domain provides it. Use passive or
+      value-centric framing (e.g., "User requests are transformed into structured plans" not
+      "The planning domain transforms user requests"). Do NOT use domain names as subjects
+      anywhere in the spec file.
+
       Format requirements:
       - Each requirement: `### Requirement: <name>` followed by description
       - Use SHALL/MUST for normative requirements (avoid should/may)
