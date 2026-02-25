@@ -205,18 +205,6 @@ gh pr checks <number> --repo=<full_name>
 
 **This skill covers READ-ONLY operations.**
 
-For any operation that modifies state, delegate to the `github` agent:
-- `git commit`, `git push`, `git merge`, `git rebase`
-- `gh issue create`, `gh issue edit`, `gh issue close`
-- `gh pr create`, `gh pr merge`, `gh pr comment`
-- `gh project item-add`, project status updates
-- Any `gh api` mutations (POST/PATCH/DELETE)
+For git mutations (commits, pushes, merges), the main agent or commands handle those directly.
 
-Example delegation:
-```
-Delegate to github agent:
-> Create issue:
-> - Title: "Fix login redirect"
-> - Labels: bug
-> - Body: "Users are redirected to wrong page after login"
-```
+For project management writes (issues, PRs, board updates), delegate to the `product-manager` agent.
