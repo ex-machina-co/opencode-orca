@@ -83,11 +83,13 @@ rules:
     - Scenarios MUST describe observable outcomes from the perspective of whoever receives the value (end user, developer, API consumer)
     - Specs MUST be organized by product domain (the domain that delivers value), not by infrastructure domain (the domain that provides mechanisms)
     - MUST NOT use domain names in requirements (e.g., "the planning domain SHALL", "available for the execution domain to execute", "the orchestration layer SHALL") — use "the system," "the user," or other user-visible concepts as subjects
+    - "A capability IS a product domain. Capability names MUST be domain names (e.g., `execution`, `planning`, `entry`), NOT domain-feature compounds (e.g., NOT `execution-loop`, `auth-login`, `user-auth`, `data-export`). A domain has exactly ONE spec — features within a domain are requirements inside that spec, not separate capabilities."
   proposal:
     - Proposals MUST be under 500 words
     - SHOULD be distilled down to the smallest thing we can do to deliver customer-focused value
     - Large refactors SHOULD be simple, small, OR incredibly well-justified
     - MUST include a "Non-goals" section
+    - "Each capability in the Capabilities section MUST correspond to a product domain, not a feature within a domain. Use domain names (e.g., `execution`, `planning`) not domain-feature compounds (e.g., NOT `execution-loop`, `auth-login`, `user-auth`, `data-export`). Check `openspec/specs/` for existing domain names before inventing new ones."
   tasks:
     - each task SHOULD be a small deliverable chunk that can ideally be delivered in a small (<= ~500 line) PR
       - tests and generated code don't count as much as "code" for the purposes of this rule

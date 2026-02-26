@@ -58,7 +58,7 @@ Specs SHALL be organized by the product domain that delivers customer value, not
 - **WHEN** a product domain is specified
 - **THEN** the domain SHALL have exactly one spec at `openspec/specs/<domain>/spec.md`
 - **AND** all capabilities within the domain SHALL be expressed as requirements within that single spec
-- **AND** the domain SHALL NOT be split into multiple specs per capability (e.g., `execution-loop` and `execution-triggering` are requirements within the `execution` spec, not separate specs)
+- **AND** the domain SHALL NOT be split into multiple specs per capability (e.g., `execution-loop` and `execution-triggering` are requirements within the `execution` spec, not separate specs; `auth-login` is a requirement within the `auth` spec, not a separate spec)
 
 ### Requirement: Specifications do not reference domain names in requirements
 

@@ -72,3 +72,4 @@ After completing the steps, summarize:
 - If the name is invalid (not kebab-case), ask for a valid name
 - If a change with that name already exists, suggest continuing that change instead
 - Pass --schema if using a non-default workflow
+- When the first artifact is a proposal, remind the user that capabilities in the Capabilities section must be domain names (e.g., `execution`), not domain-feature names (e.g., `execution-loop`, `auth-login`, `user-auth`). Load the `spec-writing` skill for full guidance.
