@@ -95,11 +95,14 @@ After each invocation, show:
 
 The artifact types and their purpose depend on the schema. Use the `instruction` field from the instructions output to understand what to create.
 
+**When creating proposal or spec artifacts**, load the `spec-writing` skill first for capability naming rules and spec governance guidance. The most common mistake is naming capabilities as `<domain>-<feature>` instead of just `<domain>`.
+
 Common artifact patterns:
 
 **spec-driven schema** (proposal → specs → design → tasks):
 - **proposal.md**: Ask user about the change if not clear. Fill in Why, What Changes, Capabilities, Impact.
   - The Capabilities section is critical - each capability listed will need a spec file.
+  - A capability IS a product domain. Name them after domains (e.g., `execution`), not features within domains (e.g., NOT `execution-loop`, `auth-login`, `user-auth`).
 - **specs/<capability>/spec.md**: Create one spec per capability listed in the proposal's Capabilities section (use the capability name, not the change name).
 - **design.md**: Document technical decisions, architecture, and implementation approach.
 - **tasks.md**: Break down implementation into checkboxed tasks.
